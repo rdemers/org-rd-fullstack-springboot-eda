@@ -1,0 +1,42 @@
+spring.graphql.graphiql.enabled=true
+
+public static HttpResponse callGraphQLService(String url, String query) 
+  throws URISyntaxException, IOException {
+    HttpClient client = HttpClientBuilder.create().build();
+    HttpGet request = new HttpGet(url);
+    URI uri = new URIBuilder(request.getURI())
+      .addParameter("query", query)
+      .build();
+    request.setURI(uri);
+    return client.execute(request);
+}
+
+HttpResponse httpResponse = callGraphQLService(serviceUrl, "{allBooks{title}}");
+String actualResponse = IOUtils.toString(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8.name());
+Response parsedResponse = objectMapper.readValue(actualResponse, Response.class);
+assertThat(parsedResponse.getData().getAllBooks()).hasSize(2);
+
+import java.util.Objects;
+
+import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.servlet.function.RequestPredicates;
+import org.springframework.web.servlet.function.RouterFunction;
+import org.springframework.web.servlet.function.RouterFunctions;
+import org.springframework.web.servlet.function.ServerResponse;
+
+@Configuration
+public class GraphQlConfiguration {
+
+    @Bean
+    @Order(-1)
+    public RouterFunction<ServerResponse> graphQlGetRouterFunction(GetRequestGraphQlHttpHandler gethttpHandler,
+            GraphQlProperties properties) {
+        return RouterFunctions
+                .route()
+                .GET(properties.getPath(), RequestPredicates.param("query", Objects::nonNull), gethttpHandler::handleRequest)
+                .build();
+    }
+}

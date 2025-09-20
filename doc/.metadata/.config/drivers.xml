@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<drivers>
+	<provider id="h2">
+		<driver id="h2_embedded_v2" category="H2" categories="sql,embedded" name="H2 Embedded V.2" class="org.h2.Driver" url="jdbc:h2:{file}" description="H2 Embedded V.2" custom="false" embedded="true">
+			<library type="jar" path="maven:/com.h2database:h2:RELEASE" custom="false" version="2.1.210">
+				<file id="com.h2database:h2:RELEASE" version="2.1.210" path="${drivers_home}\maven\maven-central\com.h2database\h2-2.1.210.jar"/>
+			</library>
+			<library type="license" path="https://raw.githubusercontent.com/h2database/h2database/master/LICENSE.txt" custom="false">
+				<file id="https://raw.githubusercontent.com/h2database/h2database/master/LICENSE.txt" path="${drivers_home}\remote\h2database\h2database\master\LICENSE.txt"/>
+			</library>
+		</driver>
+	</provider>
+</drivers>

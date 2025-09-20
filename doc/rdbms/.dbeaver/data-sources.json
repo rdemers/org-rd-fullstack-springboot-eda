@@ -1,0 +1,36 @@
+{
+	"folders": {},
+	"connections": {
+		"h2_embedded_v2-1993f1a5cb9-212b3ebca436d09": {
+			"provider": "h2",
+			"driver": "h2_embedded_v2",
+			"name": "H2 StagingDB",
+			"description": "H2 LocalDB",
+			"save-password": true,
+			"configuration": {
+				"url": "jdbc:h2:mem:stagingdb",
+				"configurationType": "URL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native"
+			}
+		}
+	},
+	"virtual-models": {"h2_embedded_v2-1993f1a5cb9-212b3ebca436d09":{"PUBLIC":{":PRODUCT":{"properties":{"erd.diagram.state":{"serialized":"\u003cdiagram version\u003d\"1\" name\u003d\"empty\" time\u003d\"202509121414\"\u003e\u003centities\u003e\u003cdata-source id\u003d\"h2_embedded_v2-1993f1a5cb9-212b3ebca436d09\"\u003e\u003centity id\u003d\"1\" name\u003d\"PRODUCT\" fq-name\u003d\"PUBLIC.PRODUCT\" order\u003d\"0\" x\u003d\"56\" y\u003d\"73\"\u003e\u003cpath name\u003d\"PUBLIC\"/\u003e\u003c/entity\u003e\u003c/data-source\u003e\u003c/entities\u003e\u003crelations/\u003e\u003c/diagram\u003e"}}}}}},
+	"connection-types": {
+		"dev": {
+			"name": "Development",
+			"color": "255,255,255",
+			"description": "Regular development database",
+			"auto-commit": true,
+			"confirm-execute": false,
+			"confirm-data-change": false,
+			"smart-commit": false,
+			"smart-commit-recover": true,
+			"auto-close-transactions": true,
+			"close-transactions-period": 1800,
+			"auto-close-connections": true,
+			"close-connections-period": 14400
+		}
+	}
+}

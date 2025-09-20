@@ -1,0 +1,57 @@
+#
+# R. Demers 2025.
+#
+server:
+  shutdown: graceful
+  port: 8080
+#
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: "info,health,prometheus"
+#
+logging: 
+  file:
+    name: log/springboot-eda-log.json
+  structured: 
+    format:
+      console: ecs
+      file: ecs
+    ecs:
+      service:
+        name: org.rd.fullstack.springboot-eda
+        version: unspecified
+        environment: DEV
+        node-name: DEV
+#
+spring:
+  main:
+    cloud-platform: kubernetes
+  lifecycle:
+    timeout-per-shutdown-phase: 45s
+  h2:
+    console:
+      enabled: false # Doesn't work well with Spring/Security.
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        ddl-auto: update
+#
+org:
+  rd:
+    fullstack:
+      springbooteda:
+        secret: the.beautiful.secret.key.to.change
+        expiration: 30000
+        authorities: rd.roles
+#

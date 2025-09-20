@@ -1,0 +1,130 @@
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Mono;
+
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.graphql.server.WebGraphQlHandler;
+import org.springframework.graphql.server.WebGraphQlRequest;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.util.AlternativeJdkIdGenerator;
+import org.springframework.util.IdGenerator;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
+
+@Component
+public class GetRequestGraphQlHttpHandler {
+    private static final Log logger = LogFactory.getLog(GetRequestGraphQlHttpHandler.class);
+
+    private static final List<MediaType> SUPPORTED_MEDIA_TYPES =
+            Arrays.asList(MediaType.APPLICATION_GRAPHQL, MediaType.APPLICATION_JSON);
+
+    private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
+
+    private final WebGraphQlHandler graphQlHandler;
+
+    GetRequestGraphQlHttpHandler(WebGraphQlHandler graphQlHandler) {
+        this.graphQlHandler = graphQlHandler;
+    }
+
+    public ServerResponse handleRequest(ServerRequest serverRequest) {
+        String query = serverRequest.param("query").orElseThrow(() -> new RuntimeException("'query' parameter not set"));
+
+        WebGraphQlRequest graphQlRequest = new WebGraphQlRequest(
+                serverRequest.uri(), serverRequest.headers().asHttpHeaders(), Map.of("query", query),
+                this.idGenerator.generateId().toString(), LocaleContextHolder.getLocale());
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Executing: " + graphQlRequest);
+        }
+
+        Mono<ServerResponse> responseMono = this.graphQlHandler.handleRequest(graphQlRequest)
+                .map(response -> {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Execution complete");
+                    }
+                    ServerResponse.BodyBuilder builder = ServerResponse.ok();
+                    builder.headers(headers -> headers.putAll(response.getResponseHeaders()));
+                    builder.contentType(selectResponseMediaType(serverRequest));
+                    return builder.body(response.toMap());
+                });
+
+        return ServerResponse.async(responseMono);
+    }
+
+    private static MediaType selectResponseMediaType(ServerRequest serverRequest) {
+        for (MediaType accepted : serverRequest.headers().accept()) {
+            if (SUPPORTED_MEDIA_TYPES.contains(accepted)) {
+                return accepted;
+            }
+        }
+        return MediaType.APPLICATION_JSON;
+    }
+}
+
+
+
+
+// This is a conceptual example and may require adjustments based on your specific Spring setup.
+
+import org.springframework.graphql.ExecutionGraphQlService;
+import org.springframework.graphql.web.WebGraphQlHandler;
+import org.springframework.graphql.web.WebGraphQlRequest;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+
+@Component
+public class GetRequestGraphQlHandler {
+
+    private final ExecutionGraphQlService executionGraphQlService;
+
+    public GetRequestGraphQlHandler(ExecutionGraphQlService executionGraphQlService) {
+        this.executionGraphQlService = executionGraphQlService;
+    }
+
+    public ServerResponse handleGetRequest(ServerRequest request) throws IOException {
+        if (request.method() == HttpMethod.GET) {
+            String query = request.param("query").orElse(null);
+            String variablesJson = request.param("variables").orElse("{}");
+            String operationName = request.param("operationName").orElse(null);
+
+            // Parse variables from JSON string if present
+            Map<String, Object> variables = parseVariables(variablesJson);
+
+            WebGraphQlRequest webRequest = new WebGraphQlRequest(
+                request.uri(),
+                request.headers().asHttpHeaders(),
+                request.cookies(),
+                request.attributes(),
+                query,
+                operationName,
+                variables,
+                request.exchange().getPrincipal(),
+                request.exchange().getLocale()
+            );
+
+            // Execute the GraphQL request
+            WebGraphQlHandler webGraphQlHandler = WebGraphQlHandler.builder(executionGraphQlService).build();
+            return webGraphQlHandler.handleRequest(webRequest)
+                .map(response -> ServerResponse.ok().body(response.getData()))
+                .block(); // Or use Flux/Mono for reactive setup
+        }
+        return ServerResponse.badRequest().build(); // Or handle other methods
+    }
+
+    private Map<String, Object> parseVariables(String variablesJson) {
+        // Implement JSON parsing for variables (e.g., using ObjectMapper)
+        // For simplicity, returning empty map here
+        return Collections.emptyMap();
+    }
+}

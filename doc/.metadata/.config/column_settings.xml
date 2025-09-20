@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<items>
+	<item id="NodeList/GenericTableColumn">
+		<column name="Column Name" visible="true" order="0" width="100"/>
+		<column name="#" visible="true" order="1" width="100"/>
+		<column name="Data Type" visible="true" order="2" width="100"/>
+		<column name="Length" visible="true" order="3" width="100"/>
+		<column name="Scale" visible="true" order="4" width="100"/>
+		<column name="Not Null" visible="true" order="5" width="100"/>
+		<column name="Auto Generated" visible="true" order="6" width="100"/>
+		<column name="Auto Increment" visible="true" order="7" width="100"/>
+		<column name="Default" visible="true" order="8" width="100"/>
+		<column name="Description" visible="true" order="9" width="100"/>
+	</item>
+</items>

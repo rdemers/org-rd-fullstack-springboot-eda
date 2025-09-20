@@ -1,0 +1,47 @@
+<layers xmlns="http://www.springframework.org/schema/boot/layers"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/boot/layers
+                            http://www.springframework.org/schema/boot/layers/layers-2.7.xsd">
+    <!--
+        Your app.
+        The "loader" is considered to be a stakeholder.
+
+        Att: This section uses pattern definition with style (Ant) -> /package/sub-package/**. We manipulate classes.
+      -->
+    <application>
+        <into layer="spring-boot-loader">
+            <include>org/springframework/boot/loader/**</include>
+        </into>
+        <into layer="application"/>
+    </application>
+
+    <!--
+        Dependency management.
+        Including a project with modules:
+            <includeModuleDependencies/> Include submodules.
+            <excludeModuleDependencies/> Exclude submodules.
+
+        Att: This section uses pattern definition with the format -> group:artifact[:version]. We handle jars.
+      -->
+    <dependencies>
+        <into layer="application">
+            <includeModuleDependencies/> <!-- Example only. -->
+        </into>
+        <into layer="snapshot-dependencies">
+            <include>*:*:*SNAPSHOT</include>
+        </into>
+        <into layer="corpo-dependencies"> <!-- Example. We simulate one or more JARS/Corporate Libraries. -->
+            <include>com.fasterxml.jackson.core:*</include>
+        </into>
+        <into layer="framework-dependencies"/>
+    </dependencies>
+
+    <!-- The order of the layers is important. From those that change the least to the most often. -->
+    <layerOrder>
+        <layer>framework-dependencies</layer>  <!-- Doesn't change often. SpringFramework, libraries and others. -->
+        <layer>spring-boot-loader</layer>      <!-- SpringBoot/Loader changes more often than SpringFramework.   -->
+        <layer>corpo-dependencies</layer>      <!-- May change often... But less than app/system.                -->
+        <layer>snapshot-dependencies</layer>   <!-- SNAPSHOT artifacts change more often than the rest.          -->
+        <layer>application</layer>             <!-- Layer that changes most often normally. It's your app.       -->
+    </layerOrder>
+</layers>
