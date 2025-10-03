@@ -22,7 +22,6 @@ import org.springframework.boot.availability.LivenessState;
 import org.springframework.boot.availability.ReadinessState;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -63,7 +62,6 @@ public class HealthController {
      * - Example: Application/service is having a fatal runtime exception.
      */
     @RequestMapping(value = "/liveness_state_down", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
-    @PreAuthorize("hasRole('ROLE_UPDATE')")
     @Operation(summary = "Report that the internal state of the application is broken.", description = "String.class")
     @ApiResponses(value = { 
         @ApiResponse(responseCode = "200", description = "Success|OK."),
@@ -77,7 +75,6 @@ public class HealthController {
     }
 
     @RequestMapping(value = "/liveness_state_up", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
-    @PreAuthorize("hasRole('ROLE_UPDATE')")
     @Operation(summary = "Signal that the application's internal state is valid.", description = "String.class")
     @ApiResponses(value = { 
         @ApiResponse(responseCode = "200", description = "Success|OK."),
@@ -104,7 +101,6 @@ public class HealthController {
      * - Example: application/services is usually going to a graceful shutdown.
      */
     @RequestMapping(value = "/readiness_state_down", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
-    @PreAuthorize("hasRole('ROLE_UPDATE')")
     @Operation(summary = "Report that the application is no longer accepting requests.", description = "String.class")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Success|OK."),
@@ -119,7 +115,6 @@ public class HealthController {
 
     @RequestMapping(value = "/readiness_state_up", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
     @Operation(summary = "Signal that the application is accepting requests.", description = "String.class")
-    @PreAuthorize("hasRole('ROLE_UPDATE')")
     @ApiResponses(value = { 
         @ApiResponse(responseCode = "200", description = "Success|OK."),
         @ApiResponse(responseCode = "401", description = "Unauthorized."), 

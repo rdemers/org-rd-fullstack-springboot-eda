@@ -16,21 +16,42 @@
 
 package org.rd.fullstack.springbooteda.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.kafka.test.EmbeddedKafkaKraftBroker;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
 @Configuration
-@EntityScan({"org.rd.fullstack.springbootnuxt.dto"})
-@ComponentScan({"org.rd.fullstack.springbootnuxt.controller"})
-@EnableJpaRepositories({"org.rd.fullstack.springbootnuxt.dao"})
+@EntityScan({"org.rd.fullstack.springbooteda.dto"})
+@ComponentScan({"org.rd.fullstack.springbooteda.controller"})
+@EnableJpaRepositories({"org.rd.fullstack.springbooteda.dao"})
 public class ApplicationConfig {
+
+    @Autowired
+    EmbeddedKafkaKraftBroker embeddedKafkaBroker;
 
     public ApplicationConfig() {
         super();
     }
 
-    // Nothing in particular.
-    // It is always possible to create a few beans for your application.
+    @Component
+    public class ShutdownEventListener implements ApplicationListener<ContextClosedEvent> {
+        @Override
+        public void onApplicationEvent(@NonNull ContextClosedEvent event) {
+
+            Logger logger = LoggerFactory.getLogger(getClass());
+            logger.info("Kafka cluster - Shutdown initiated...");
+            embeddedKafkaBroker.destroy();
+            System.clearProperty("spring.kafka.bootstrap-servers");
+            logger.info("Kafka cluster - Shutdown completed.");
+        }
+    }
 }

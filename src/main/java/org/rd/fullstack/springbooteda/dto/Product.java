@@ -16,7 +16,7 @@
 
 package org.rd.fullstack.springbooteda.dto;
 
-import java.util.UUID;
+import java.math.BigDecimal;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,48 +31,45 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @Column(name = "product_id", unique = true, nullable = false)
+    private Long productId;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID uuid;
-
-    @Column(name = "code", unique = true, nullable = false)
+    @Column(name = "code", nullable = false)
     private String code;
 
     @Column(name = "description", nullable = false)
     private String description;
 
+    @Column(name = "price", nullable = false)
+    private BigDecimal price;
+
     public Product() {
         super();
 
-        id = null;
-        code = null;
-        uuid = null;
+        productId   = null;
+        code        = null;
         description = null;
+        price       = null;
     }
 
-    public Product(String code, String description) {
+    public Product(String code, String description, BigDecimal price) {
         this();
         this.code = code;
         this.description = description;
+        this.price = price;
     }
 
-    public Long getId() {
-        return id;
+    public Long getProductId() {
+        return productId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setProductId(Long productId) {
+        this.productId = productId;
     }
 
-    public UUID getUUID() {
-        return uuid;
+    public String getCode() {
+        return code;
     }
-
-    public void setUUID(UUID uuid) {
-        this.uuid = uuid;
-    }    
 
     public void setCode(String code) {
         this.code = code;
@@ -86,12 +83,20 @@ public class Product {
         this.description = description;
     }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
     @Override
     public String toString() {
         return super.toString() + 
-               "\nProduct [id=" + id + 
-               ", uuid=" + uuid.toString() +  
+               "Product [productId=" + productId + 
                ", code=" + code + 
-               ", description=" + description + "]";
+               ", description=" + description +
+               ", price=" + price + "]";
     }
 }

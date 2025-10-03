@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.rd.fullstack</groupId>
-    <artifactId>springboot-nuxt</artifactId>
+    <artifactId>springboot-eda</artifactId>
     <version>unspecified</version>
 
     <packaging>jar</packaging>
@@ -46,8 +46,6 @@
 
     <properties>
         <java.version>17</java.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -57,10 +55,12 @@
 
         <maven-ant-plugin.version>3.1.0</maven-ant-plugin.version>
         <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
+        <maven-compile-plugin.version>3.14.0</maven-compile-plugin.version>
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
 
         <spring.boot.version>3.5.4</spring.boot.version>
         <springdoc.version>2.8.9</springdoc.version>
+        <springkafka.version>3.3.10</springkafka.version>
     </properties>
 
     <dependencyManagement>
@@ -112,6 +112,14 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+        </dependency>
 
         <!-- JDK 9+ dependencies - No longer included with the JDK. -->
         <dependency> <!-- JAXB API only -->
@@ -162,6 +170,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>${maven-clean-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compile-plugin.version}</version>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

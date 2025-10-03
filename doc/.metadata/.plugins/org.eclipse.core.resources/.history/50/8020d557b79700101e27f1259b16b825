@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="StagingDB">
+	<entities>
+		<data-source id="h2_embedded_v2-1993f1a5cb9-212b3ebca436d09">
+			<entity id="1" name="CHECK_CONSTRAINTS" fq-name="INFORMATION_SCHEMA.CHECK_CONSTRAINTS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="2" name="COLLATIONS" fq-name="INFORMATION_SCHEMA.COLLATIONS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="3" name="COLUMN_PRIVILEGES" fq-name="INFORMATION_SCHEMA.COLUMN_PRIVILEGES">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="4" name="COLUMNS" fq-name="INFORMATION_SCHEMA.COLUMNS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="5" name="CONSTANTS" fq-name="INFORMATION_SCHEMA.CONSTANTS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="6" name="CONSTRAINT_COLUMN_USAGE" fq-name="INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="7" name="DOMAIN_CONSTRAINTS" fq-name="INFORMATION_SCHEMA.DOMAIN_CONSTRAINTS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="8" name="DOMAINS" fq-name="INFORMATION_SCHEMA.DOMAINS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="9" name="ELEMENT_TYPES" fq-name="INFORMATION_SCHEMA.ELEMENT_TYPES">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="10" name="ENUM_VALUES" fq-name="INFORMATION_SCHEMA.ENUM_VALUES">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="11" name="FIELDS" fq-name="INFORMATION_SCHEMA.FIELDS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="12" name="IN_DOUBT" fq-name="INFORMATION_SCHEMA.IN_DOUBT">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="13" name="INDEX_COLUMNS" fq-name="INFORMATION_SCHEMA.INDEX_COLUMNS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="14" name="INDEXES" fq-name="INFORMATION_SCHEMA.INDEXES">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="15" name="INFORMATION_SCHEMA_CATALOG_NAME" fq-name="INFORMATION_SCHEMA.INFORMATION_SCHEMA_CATALOG_NAME">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="16" name="KEY_COLUMN_USAGE" fq-name="INFORMATION_SCHEMA.KEY_COLUMN_USAGE">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="17" name="LOCKS" fq-name="INFORMATION_SCHEMA.LOCKS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="18" name="PARAMETERS" fq-name="INFORMATION_SCHEMA.PARAMETERS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="19" name="QUERY_STATISTICS" fq-name="INFORMATION_SCHEMA.QUERY_STATISTICS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="20" name="REFERENTIAL_CONSTRAINTS" fq-name="INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="21" name="RIGHTS" fq-name="INFORMATION_SCHEMA.RIGHTS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="22" name="ROLES" fq-name="INFORMATION_SCHEMA.ROLES">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="23" name="ROUTINES" fq-name="INFORMATION_SCHEMA.ROUTINES">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="24" name="SCHEMATA" fq-name="INFORMATION_SCHEMA.SCHEMATA">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="25" name="SEQUENCES" fq-name="INFORMATION_SCHEMA.SEQUENCES">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="26" name="SESSION_STATE" fq-name="INFORMATION_SCHEMA.SESSION_STATE">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="27" name="SESSIONS" fq-name="INFORMATION_SCHEMA.SESSIONS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="28" name="SETTINGS" fq-name="INFORMATION_SCHEMA.SETTINGS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="29" name="SYNONYMS" fq-name="INFORMATION_SCHEMA.SYNONYMS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="30" name="TABLE_CONSTRAINTS" fq-name="INFORMATION_SCHEMA.TABLE_CONSTRAINTS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="31" name="TABLE_PRIVILEGES" fq-name="INFORMATION_SCHEMA.TABLE_PRIVILEGES">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="32" name="TABLES" fq-name="INFORMATION_SCHEMA.TABLES">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="33" name="TRIGGERS" fq-name="INFORMATION_SCHEMA.TRIGGERS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="34" name="USERS" fq-name="INFORMATION_SCHEMA.USERS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="35" name="VIEWS" fq-name="INFORMATION_SCHEMA.VIEWS">
+				<path name="INFORMATION_SCHEMA"/>
+			</entity>
+			<entity id="36" name="CUSTOMER" fq-name="PUBLIC.CUSTOMER">
+				<path name="PUBLIC"/>
+			</entity>
+		</data-source>
+	</entities>
+	<relations/>
+</diagram>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="StagingDB">
+	<entities>
+		<data-source id="h2_embedded_v2-1993f1a5cb9-212b3ebca436d09">
+			<entity id="1" name="CUSTOMER" fq-name="PUBLIC.CUSTOMER">
+				<path name="PUBLIC"/>
+			</entity>
+		</data-source>
+	</entities>
+	<relations/>
+</diagram>

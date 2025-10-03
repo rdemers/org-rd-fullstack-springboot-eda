@@ -38,10 +38,10 @@
 # 4. You can also suppress test execution using the next parameter: -Dmaven.test.skip=true.
 #
 # 5. The command to use to build the image:
-#    - docker build --no-cache -t org-rd-fullstack/springboot-nuxt:unspecified .
+#    - docker build --no-cache -t org-rd-fullstack/springboot-eda:unspecified .
 #
 # 6. The command to run the image:
-#    - docker run -it -p8080:8080 -p8081:8081 org-rd-fullstack/springboot-nuxt:unspecified
+#    - docker run -it -p8080:8080 -p8081:8081 org-rd-fullstack/springboot-eda:unspecified
 #
 # 7. To clear cache and local registry to do a full test
 #    of the construction of your image:

@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items>
+	<item id="NodeList/GenericTable">
+		<column name="Table Name" visible="true" order="0" width="100"/>
+		<column name="Table Type" visible="true" order="1" width="100"/>
+		<column name="Table Description" visible="true" order="2" width="101"/>
+	</item>
 	<item id="NodeList/GenericTableColumn">
-		<column name="Column Name" visible="true" order="0" width="100"/>
-		<column name="#" visible="true" order="1" width="100"/>
-		<column name="Data Type" visible="true" order="2" width="100"/>
+		<column name="Column Name" visible="true" order="0" width="159"/>
+		<column name="#" visible="true" order="1" width="71"/>
+		<column name="Data Type" visible="true" order="2" width="177"/>
 		<column name="Length" visible="true" order="3" width="100"/>
 		<column name="Scale" visible="true" order="4" width="100"/>
 		<column name="Not Null" visible="true" order="5" width="100"/>
@@ -11,5 +16,75 @@
 		<column name="Auto Increment" visible="true" order="7" width="100"/>
 		<column name="Default" visible="true" order="8" width="100"/>
 		<column name="Description" visible="true" order="9" width="100"/>
+	</item>
+	<item id="NodeList/GenericTableConstraintColumn">
+		<column name="Column" visible="true" order="0" width="100"/>
+	</item>
+	<item id="NodeList/GenericTableForeignKey">
+		<column name="Name" visible="true" order="0" width="100"/>
+		<column name="Owner" visible="true" order="1" width="100"/>
+		<column name="Ref Table" visible="true" order="2" width="100"/>
+		<column name="Type" visible="true" order="3" width="100"/>
+		<column name="Ref Object" visible="true" order="4" width="100"/>
+		<column name="On Delete" visible="true" order="5" width="100"/>
+		<column name="On Update" visible="true" order="6" width="100"/>
+		<column name="Deferability" visible="true" order="7" width="100"/>
+	</item>
+	<item id="NodeList/GenericTableForeignKey/GenericTableForeignKeyColumnTable">
+		<column name="Name" visible="true" order="0" width="195"/>
+		<column name="Owner" visible="true" order="1" width="100"/>
+		<column name="Ref Table" visible="true" order="2" width="100"/>
+		<column name="Type" visible="true" order="3" width="100"/>
+		<column name="Ref Object" visible="true" order="4" width="100"/>
+		<column name="On Delete" visible="true" order="5" width="100"/>
+		<column name="On Update" visible="true" order="6" width="100"/>
+		<column name="Deferability" visible="true" order="7" width="101"/>
+	</item>
+	<item id="NodeList/GenericTableForeignKeyColumnTable">
+		<column name="Column" visible="true" order="0" width="103"/>
+		<column name="Reference Column" visible="true" order="1" width="105"/>
+	</item>
+	<item id="NodeList/GenericTableIndex">
+		<column name="Index Name" visible="true" order="0" width="100"/>
+		<column name="Column" visible="true" order="1" width="100"/>
+		<column name="Table" visible="true" order="2" width="100"/>
+		<column name="Index Type" visible="true" order="3" width="100"/>
+		<column name="Unique" visible="true" order="4" width="100"/>
+		<column name="Cardinality" visible="true" order="6" width="100"/>
+		<column name="Qualifier" visible="true" order="5" width="100"/>
+		<column name="Index Description" visible="true" order="7" width="102"/>
+	</item>
+	<item id="NodeList/GenericTableIndex/GenericTableIndexColumn">
+		<column name="Index Name" visible="true" order="0" width="245"/>
+		<column name="Column" visible="true" order="1" width="177"/>
+		<column name="Table" visible="true" order="2" width="100"/>
+		<column name="Index Type" visible="true" order="3" width="100"/>
+		<column name="Ascending" visible="true" order="4" width="100"/>
+		<column name="Unique" visible="true" order="5" width="100"/>
+		<column name="Cardinality" visible="true" order="7" width="100"/>
+		<column name="Qualifier" visible="true" order="6" width="100"/>
+		<column name="Index Description" visible="true" order="8" width="102"/>
+	</item>
+	<item id="NodeList/GenericTableIndexColumn">
+		<column name="Name" visible="true" order="0" width="100"/>
+		<column name="Column" visible="true" order="1" width="100"/>
+		<column name="Ascending" visible="true" order="2" width="100"/>
+	</item>
+	<item id="NodeList/GenericUniqueKey">
+		<column name="Name" visible="true" order="0" width="100"/>
+		<column name="Owner" visible="true" order="1" width="100"/>
+		<column name="Type" visible="true" order="2" width="100"/>
+	</item>
+	<item id="NodeList/H2Table">
+		<column name="Table Name" visible="true" order="0" width="100"/>
+		<column name="Table Type" visible="true" order="1" width="100"/>
+		<column name="Schema Name" visible="true" order="2" width="100"/>
+		<column name="Table Description" visible="true" order="3" width="101"/>
+	</item>
+	<item id="scriptSelectorViewer">
+		<column name="Script" visible="true" order="0" width="174"/>
+		<column name="Time" visible="true" order="1" width="181"/>
+		<column name="Info" visible="true" order="2" width="72"/>
+		<column name="Folder" visible="true" order="3" width="84"/>
 	</item>
 </items>

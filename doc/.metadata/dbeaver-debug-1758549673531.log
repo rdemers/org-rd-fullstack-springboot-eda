@@ -1,0 +1,923 @@
+2025-09-22 09:31:40.172 - DBeaver 25.2.1.202509211659 is starting
+2025-09-22 09:31:40.174 - OS: Windows 11 10.0 (amd64)
+2025-09-22 09:31:40.175 - Java version: 21.0.8 by Eclipse Adoptium (64bit)
+2025-09-22 09:31:40.176 - Install path: 'C:\STD\dbeaver'
+2025-09-22 09:31:40.176 - Instance path: 'file:/C:/lq-sdk/scm/org-rd-fullstack-springboot-eda/doc/'
+2025-09-22 09:31:40.179 - Memory available 64Mb/1024Mb
+2025-09-22 09:31:40.195 - Create display
+2025-09-22 09:31:40.600 - Initialize desktop platform...
+2025-09-22 09:31:41.181 - BounceCastle bundle found. Use JCE provider BC
+> Start Core File Systems [org.eclipse.core.filesystem 1.11.200.v20250513-1234]
+> Start Core Resource Management [org.eclipse.core.resources 3.22.200.v20250513-1234]
+> Start Team Support Core [org.eclipse.team.core 3.10.700.v20250313-0656]
+> Start DBeaver UI Navigator [org.jkiss.dbeaver.ui.navigator 1.0.163.202509211659]
+2025-09-22 09:31:41.717 - Initialize base platform...
+2025-09-22 09:31:41.822 - send collected statistics
+2025-09-22 09:31:41.845 - Platform initialized (1245ms)
+2025-09-22 09:31:42.200 - Starting instance server at http://localhost:57893
+2025-09-22 09:31:42.215 - Run workbench
+> Start Eclipse e4 Workbench SWT [org.eclipse.e4.ui.workbench.swt 0.17.800.v20250422-1254]
+> Start Eclipse Application Services [org.eclipse.e4.core.services 2.5.200.v20250326-1945]
+> Start Eclipse UI Application Services [org.eclipse.e4.ui.services 1.6.500.v20250123-0754]
+> Start Eclipse e4 Progress View [org.eclipse.e4.ui.progress 0.4.800.v20250422-1254]
+> Start Eclipse Bindings Support [org.eclipse.e4.ui.bindings 0.14.600.v20250331-1050]
+> Start Eclipse e4 core commands [org.eclipse.e4.core.commands 1.1.600.v20250307-1331]
+> Start EMF XML/XMI Persistence [org.eclipse.emf.ecore.xmi 2.39.0.v20250414-1351]
+> Start Eclipse CSS SWT Theme Support [org.eclipse.e4.ui.css.swt.theme 0.14.500.v20250213-1508]
+> Start Eclipse e4 Workbench Add-ons [org.eclipse.e4.ui.workbench.addons.swt 1.5.700.v20250422-1254]
+> Start Eclipse e4 Workbench SWT Renderer [org.eclipse.e4.ui.workbench.renderers.swt 0.16.800.v20250519-1609]
+> Start Eclipse Dependency Injection Extensions [org.eclipse.e4.core.di.extensions 0.18.300.v20240413-1529]
+> Start DBeaver AI Model [org.jkiss.dbeaver.model.ai 2.0.6.202509211659]
+> Start DBeaver AI UI [org.jkiss.dbeaver.ui.ai 1.0.65.202509211659]
+> Start Eclipse CSS SWT Support [org.eclipse.e4.ui.css.swt 0.15.600.v20250409-1135]
+2025-09-22 09:31:46.539 - Configure workbench window
+> Start DBeaver SQL Model [org.jkiss.dbeaver.model.sql 1.0.153.202509211659]
+2025-09-22 09:31:47.442 - Total database drivers: 128 (128)
+> Start Help System Core [org.eclipse.help 3.10.500.v20250423-1201]
+2025-09-22 09:31:47.659 - Create actions
+2025-09-22 09:31:47.685 - Disable Eclipse action set 'org.eclipse.ui.edit.text.actionSet.annotationNavigation'
+2025-09-22 09:31:47.686 - Disable Eclipse action set 'org.eclipse.ui.WorkingSetActionSet'
+2025-09-22 09:31:47.687 - Disable Eclipse action set 'org.eclipse.ui.actionSet.openFiles'
+2025-09-22 09:31:47.688 - Create workbench actions
+2025-09-22 09:31:49.271 - Initialize workbench window
+2025-09-22 09:31:49.292 - Finish initialization
+> Start Default Text Editor [org.eclipse.ui.editors 3.20.0.v20250514-1719]
+> Start Text Editor Framework [org.eclipse.ui.workbench.texteditor 3.19.200.v20250514-1719]
+> Start DBeaver UI Editors - Data [org.jkiss.dbeaver.ui.editors.data 1.0.163.202509211659]
+> Start Equinox Java Authentication and Authorization Service (JAAS) [org.eclipse.equinox.security 1.4.600.v20250521-0413]
+> Start Internet Connection Management UI [org.eclipse.ui.net 1.5.400.v20240413-1529]
+> Start Internet Connection Management [org.eclipse.core.net 1.5.700.v20250313-0656]
+> Start DBeaver UI Editors - SQL [org.jkiss.dbeaver.ui.editors.sql 1.0.163.202509211659]
+> Start DBeaver Sample Database [org.jkiss.dbeaver.ui.config.sample 1.0.200.202509211659]
+> Start GEF Classic Draw2d [org.eclipse.draw2d 3.20.0.202505280821]
+> Start GEF Classic GEF (MVC) [org.eclipse.gef 3.22.0.202505280821]
+> Start DBeaver ERD UI [org.jkiss.dbeaver.ui.editors.erd 3.1.4.202509211659]
+> Start DBeaver ERD Model [org.jkiss.dbeaver.model.erd 1.1.4.202509211659]
+> Start DBeaver Dashboard UI [org.jkiss.dbeaver.ui.dashboard 1.0.160.202509211659]
+2025-09-22 09:31:54.146 - Connect with 'H2 StagingDB' (h2_embedded_v2-1993f1a5cb9-212b3ebca436d09)
+> Start DBeaver JDBC Model [org.jkiss.dbeaver.model.jdbc 1.0.56.202509211659]
+> Start DBeaver Generic Plug-in [org.jkiss.dbeaver.ext.generic 2.3.249.202509211659]
+> Start DBeaver H2 Model [org.jkiss.dbeaver.ext.h2 1.0.218.202509211659]
+2025-09-22 09:31:54.391 - Execution context opened (H2 StagingDB; Main; 0)
+2025-09-22 09:31:54.803 - Error setting client application name: Client info name 'ApplicationName' not supported.
+2025-09-22 09:31:54.964 - Connected (h2_embedded_v2-1993f1a5cb9-212b3ebca436d09, H2 JDBC Driver [2.1.210 (2022-01-17)])
+> Start DBeaver SQL Terminal [org.jkiss.dbeaver.ui.editors.sql.terminal 1.0.139.202509211659]
+> Start Core Compare Support [org.eclipse.compare.core 3.8.700.v20250120-0641]
+> Start Console [org.eclipse.ui.console 3.14.300.v20250509-1251]
+> Start Debug Core [org.eclipse.debug.core 3.23.0.v20250509-1924]
+> Start DBeaver SQL Language Semantic Model [org.jkiss.dbeaver.model.lsm 1.0.58.202509211659]
+> Start DBeaver UI Editors - Entity [org.jkiss.dbeaver.ui.editors.entity 1.0.163.202509211659]
+> Start DBeaver Generic UI Plug-in [org.jkiss.dbeaver.ext.generic.ui 1.0.139.202509211659]
+2025-09-22 09:36:11.200 - Can't get column 'KEY_SEQ': Column "KEY_SEQ" not found [42122-210]
+2025-09-22 09:45:34.051 - Error while analyzing query text: CREATE TABLE PUBLIC.INVENTORY (
+	INVENTORY_ID INTEGER NOT NULL,
+	PRODUCT_ID INTEGER NOT NULL,
+	QTY INTEGER NOT NULL,
+	CONSTRAINT INVENTORY_PK PRIMARY KEY (INVENTORY_ID),
+	CONSTRAINT INVENTORY_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+)
+java.lang.IllegalStateException: Rows data was not resolved yet
+	at org.jkiss.dbeaver.model.sql.semantics.model.select.SQLQueryRowsSourceModel.getRowsDataContext(SQLQueryRowsSourceModel.java:52)
+	at org.jkiss.dbeaver.model.sql.semantics.model.ddl.SQLQueryColumnConstraintSpec.propagateForReferencedEntity(SQLQueryColumnConstraintSpec.java:118)
+	at org.jkiss.dbeaver.model.sql.semantics.model.ddl.SQLQueryTableConstraintSpec.resolveRelations(SQLQueryTableConstraintSpec.java:116)
+	at org.jkiss.dbeaver.model.sql.semantics.model.ddl.SQLQueryTableCreateModel.resolveObjectAndRowsReferences(SQLQueryTableCreateModel.java:139)
+	at org.jkiss.dbeaver.model.sql.semantics.model.SQLQueryModel.resolveRelations(SQLQueryModel.java:72)
+	at org.jkiss.dbeaver.model.sql.semantics.SQLQueryModelRecognizer.recognizeQuery(SQLQueryModelRecognizer.java:155)
+	at org.jkiss.dbeaver.model.sql.semantics.SQLQueryModelRecognizer.recognizeQuery(SQLQueryModelRecognizer.java:1024)
+	at org.jkiss.dbeaver.ui.editors.sql.semantics.SQLBackgroundParsingJob.doWork(SQLBackgroundParsingJob.java:605)
+	at org.jkiss.dbeaver.ui.editors.sql.semantics.SQLBackgroundParsingJob$1.run(SQLBackgroundParsingJob.java:85)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+2025-09-22 09:46:44.791 - Service 'org.jkiss.dbeaver.ui.UIServiceConnectionEditor' not found
+2025-09-22 09:46:44.940 - Service 'org.jkiss.dbeaver.runtime.ui.UIServiceSecurity' not found
+2025-09-22 09:48:35.331 - Connect with 'testdb' (h2_embedded_v2-19971ad4474-1061a59c085b58ca)
+2025-09-22 09:48:35.336 - Execution context opened (testdb; Main; 1)
+2025-09-22 09:48:35.350 - General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:testdb" [50000-210]
+org.jkiss.dbeaver.model.exec.DBCConnectException: General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:testdb" [50000-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:259)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:133)
+	at org.jkiss.dbeaver.ext.generic.model.GenericDataSource.openConnection(GenericDataSource.java:158)
+	at org.jkiss.dbeaver.ext.h2.model.H2DataSource.openConnection(H2DataSource.java:74)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCExecutionContext.connect(JDBCExecutionContext.java:124)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCRemoteInstance.initializeMainContext(JDBCRemoteInstance.java:106)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCRemoteInstance.<init>(JDBCRemoteInstance.java:61)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.initializeRemoteInstance(JDBCDataSource.java:125)
+	at org.jkiss.dbeaver.ext.generic.model.GenericDataSource.<init>(GenericDataSource.java:124)
+	at org.jkiss.dbeaver.ext.h2.model.H2DataSource.<init>(H2DataSource.java:43)
+	at org.jkiss.dbeaver.ext.h2.model.H2MetaModel.createDataSourceImpl(H2MetaModel.java:57)
+	at org.jkiss.dbeaver.ext.generic.GenericDataSourceProvider.openDataSource(GenericDataSourceProvider.java:57)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.openDataSource(DataSourceDescriptor.java:1413)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.connect0(DataSourceDescriptor.java:1271)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.connect(DataSourceDescriptor.java:1061)
+	at org.jkiss.dbeaver.runtime.jobs.ConnectJob.run(ConnectJob.java:78)
+	at org.jkiss.dbeaver.runtime.jobs.ConnectJob.runSync(ConnectJob.java:109)
+	at org.jkiss.dbeaver.ui.actions.datasource.DataSourceHandler.connectToDataSource(DataSourceHandler.java:123)
+	at org.jkiss.dbeaver.ui.actions.datasource.UIServiceConnectionsImpl.initConnection(UIServiceConnectionsImpl.java:87)
+	at org.jkiss.dbeaver.model.DBUtils.initDataSource(DBUtils.java:2456)
+	at org.jkiss.dbeaver.model.navigator.DBNDataSource.initializeNode(DBNDataSource.java:159)
+	at org.jkiss.dbeaver.model.navigator.DBNDatabaseNode.getChildren(DBNDatabaseNode.java:226)
+	at org.jkiss.dbeaver.model.navigator.DBNDatabaseNode.getChildren(DBNDatabaseNode.java:1)
+	at org.jkiss.dbeaver.model.navigator.DBNUtils.getNodeChildrenFiltered(DBNUtils.java:99)
+	at org.jkiss.dbeaver.ui.navigator.database.load.TreeLoadService.evaluate(TreeLoadService.java:49)
+	at org.jkiss.dbeaver.ui.navigator.database.load.TreeLoadService.evaluate(TreeLoadService.java:1)
+	at org.jkiss.dbeaver.ui.LoadingJob.run(LoadingJob.java:88)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientException: General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:testdb" [50000-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:573)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.get(DbException.java:216)
+	at org.h2.message.DbException.convert(DbException.java:414)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:340)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:122)
+	at org.h2.Driver.connect(Driver.java:59)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCConnectionOpener.run(JDBCConnectionOpener.java:112)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCConnectionOpener.run(JDBCConnectionOpener.java:86)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:215)
+	... 28 more
+Caused by: java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:testdb
+	at java.base/sun.nio.fs.WindowsPathParser.normalize(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPathParser.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPathParser.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPath.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileSystem.getPath(Unknown Source)
+	at java.base/java.nio.file.Path.of(Unknown Source)
+	at java.base/java.nio.file.Paths.get(Unknown Source)
+	at org.h2.store.fs.disk.FilePathDisk.isAbsolute(FilePathDisk.java:308)
+	at org.h2.store.fs.FileUtils.isAbsolute(FileUtils.java:144)
+	at org.h2.engine.ConnectionInfo.getName(ConnectionInfo.java:457)
+	at org.h2.engine.Engine.openSession(Engine.java:49)
+	at org.h2.engine.Engine.openSession(Engine.java:222)
+	at org.h2.engine.Engine.createSession(Engine.java:201)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:338)
+	... 33 more
+2025-09-22 09:48:54.155 - Connect with 'testdb' (h2_embedded_v2-19971ad4474-1061a59c085b58ca)
+2025-09-22 09:48:54.158 - Execution context opened (testdb; Main; 2)
+2025-09-22 09:48:54.159 - General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:testdb" [50000-210]
+org.jkiss.dbeaver.model.exec.DBCConnectException: General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:testdb" [50000-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:259)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:133)
+	at org.jkiss.dbeaver.ext.generic.model.GenericDataSource.openConnection(GenericDataSource.java:158)
+	at org.jkiss.dbeaver.ext.h2.model.H2DataSource.openConnection(H2DataSource.java:74)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCExecutionContext.connect(JDBCExecutionContext.java:124)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCRemoteInstance.initializeMainContext(JDBCRemoteInstance.java:106)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCRemoteInstance.<init>(JDBCRemoteInstance.java:61)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.initializeRemoteInstance(JDBCDataSource.java:125)
+	at org.jkiss.dbeaver.ext.generic.model.GenericDataSource.<init>(GenericDataSource.java:124)
+	at org.jkiss.dbeaver.ext.h2.model.H2DataSource.<init>(H2DataSource.java:43)
+	at org.jkiss.dbeaver.ext.h2.model.H2MetaModel.createDataSourceImpl(H2MetaModel.java:57)
+	at org.jkiss.dbeaver.ext.generic.GenericDataSourceProvider.openDataSource(GenericDataSourceProvider.java:57)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.openDataSource(DataSourceDescriptor.java:1413)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.connect0(DataSourceDescriptor.java:1271)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.connect(DataSourceDescriptor.java:1061)
+	at org.jkiss.dbeaver.runtime.jobs.ConnectJob.run(ConnectJob.java:78)
+	at org.jkiss.dbeaver.runtime.jobs.ConnectJob.runSync(ConnectJob.java:109)
+	at org.jkiss.dbeaver.ui.actions.datasource.DataSourceHandler.connectToDataSource(DataSourceHandler.java:123)
+	at org.jkiss.dbeaver.ui.actions.datasource.UIServiceConnectionsImpl.initConnection(UIServiceConnectionsImpl.java:87)
+	at org.jkiss.dbeaver.model.DBUtils.initDataSource(DBUtils.java:2456)
+	at org.jkiss.dbeaver.model.navigator.DBNDataSource.initializeNode(DBNDataSource.java:159)
+	at org.jkiss.dbeaver.model.navigator.DBNDatabaseNode.getChildren(DBNDatabaseNode.java:226)
+	at org.jkiss.dbeaver.model.navigator.DBNDatabaseNode.getChildren(DBNDatabaseNode.java:1)
+	at org.jkiss.dbeaver.model.navigator.DBNUtils.getNodeChildrenFiltered(DBNUtils.java:99)
+	at org.jkiss.dbeaver.ui.navigator.database.load.TreeLoadService.evaluate(TreeLoadService.java:49)
+	at org.jkiss.dbeaver.ui.navigator.database.load.TreeLoadService.evaluate(TreeLoadService.java:1)
+	at org.jkiss.dbeaver.ui.LoadingJob.run(LoadingJob.java:88)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientException: General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:testdb" [50000-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:573)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.get(DbException.java:216)
+	at org.h2.message.DbException.convert(DbException.java:414)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:340)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:122)
+	at org.h2.Driver.connect(Driver.java:59)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCConnectionOpener.run(JDBCConnectionOpener.java:112)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCConnectionOpener.run(JDBCConnectionOpener.java:86)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:215)
+	... 28 more
+Caused by: java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:testdb
+	at java.base/sun.nio.fs.WindowsPathParser.normalize(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPathParser.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPathParser.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPath.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileSystem.getPath(Unknown Source)
+	at java.base/java.nio.file.Path.of(Unknown Source)
+	at java.base/java.nio.file.Paths.get(Unknown Source)
+	at org.h2.store.fs.disk.FilePathDisk.isAbsolute(FilePathDisk.java:308)
+	at org.h2.store.fs.FileUtils.isAbsolute(FileUtils.java:144)
+	at org.h2.engine.ConnectionInfo.getName(ConnectionInfo.java:457)
+	at org.h2.engine.Engine.openSession(Engine.java:49)
+	at org.h2.engine.Engine.openSession(Engine.java:222)
+	at org.h2.engine.Engine.createSession(Engine.java:201)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:338)
+	... 33 more
+> Start Data Transfer UI [org.jkiss.dbeaver.data.transfer.ui 1.0.147.202509211659]
+2025-09-22 09:49:04.800 - Service 'org.jkiss.dbeaver.ui.UIServiceConnectionEditor' not found
+2025-09-22 09:49:04.855 - Service 'org.jkiss.dbeaver.runtime.ui.UIServiceSecurity' not found
+2025-09-22 09:49:24.070 - Connect with 'testdb' (h2_embedded_v2-19971ad4474-1061a59c085b58ca)
+2025-09-22 09:49:24.072 - Execution context opened (testdb; Main; 3)
+2025-09-22 09:49:24.073 - General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:/testdb" [50000-210]
+org.jkiss.dbeaver.model.exec.DBCConnectException: General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:/testdb" [50000-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:259)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:133)
+	at org.jkiss.dbeaver.ext.generic.model.GenericDataSource.openConnection(GenericDataSource.java:158)
+	at org.jkiss.dbeaver.ext.h2.model.H2DataSource.openConnection(H2DataSource.java:74)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCExecutionContext.connect(JDBCExecutionContext.java:124)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCRemoteInstance.initializeMainContext(JDBCRemoteInstance.java:106)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCRemoteInstance.<init>(JDBCRemoteInstance.java:61)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.initializeRemoteInstance(JDBCDataSource.java:125)
+	at org.jkiss.dbeaver.ext.generic.model.GenericDataSource.<init>(GenericDataSource.java:124)
+	at org.jkiss.dbeaver.ext.h2.model.H2DataSource.<init>(H2DataSource.java:43)
+	at org.jkiss.dbeaver.ext.h2.model.H2MetaModel.createDataSourceImpl(H2MetaModel.java:57)
+	at org.jkiss.dbeaver.ext.generic.GenericDataSourceProvider.openDataSource(GenericDataSourceProvider.java:57)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.openDataSource(DataSourceDescriptor.java:1413)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.connect0(DataSourceDescriptor.java:1271)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.connect(DataSourceDescriptor.java:1061)
+	at org.jkiss.dbeaver.runtime.jobs.ConnectJob.run(ConnectJob.java:78)
+	at org.jkiss.dbeaver.runtime.jobs.ConnectJob.runSync(ConnectJob.java:109)
+	at org.jkiss.dbeaver.ui.actions.datasource.DataSourceHandler.connectToDataSource(DataSourceHandler.java:123)
+	at org.jkiss.dbeaver.ui.actions.datasource.UIServiceConnectionsImpl.initConnection(UIServiceConnectionsImpl.java:87)
+	at org.jkiss.dbeaver.model.DBUtils.initDataSource(DBUtils.java:2456)
+	at org.jkiss.dbeaver.model.navigator.DBNDataSource.initializeNode(DBNDataSource.java:159)
+	at org.jkiss.dbeaver.model.navigator.DBNDatabaseNode.getChildren(DBNDatabaseNode.java:226)
+	at org.jkiss.dbeaver.model.navigator.DBNDatabaseNode.getChildren(DBNDatabaseNode.java:1)
+	at org.jkiss.dbeaver.model.navigator.DBNUtils.getNodeChildrenFiltered(DBNUtils.java:99)
+	at org.jkiss.dbeaver.ui.navigator.database.load.TreeLoadService.evaluate(TreeLoadService.java:49)
+	at org.jkiss.dbeaver.ui.navigator.database.load.TreeLoadService.evaluate(TreeLoadService.java:1)
+	at org.jkiss.dbeaver.ui.LoadingJob.run(LoadingJob.java:88)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientException: General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:/testdb" [50000-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:573)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.get(DbException.java:216)
+	at org.h2.message.DbException.convert(DbException.java:414)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:340)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:122)
+	at org.h2.Driver.connect(Driver.java:59)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCConnectionOpener.run(JDBCConnectionOpener.java:112)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCConnectionOpener.run(JDBCConnectionOpener.java:86)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:215)
+	... 28 more
+Caused by: java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:/testdb
+	at java.base/sun.nio.fs.WindowsPathParser.normalize(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPathParser.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPathParser.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPath.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileSystem.getPath(Unknown Source)
+	at java.base/java.nio.file.Path.of(Unknown Source)
+	at java.base/java.nio.file.Paths.get(Unknown Source)
+	at org.h2.store.fs.disk.FilePathDisk.isAbsolute(FilePathDisk.java:308)
+	at org.h2.store.fs.FileUtils.isAbsolute(FileUtils.java:144)
+	at org.h2.engine.ConnectionInfo.getName(ConnectionInfo.java:457)
+	at org.h2.engine.Engine.openSession(Engine.java:49)
+	at org.h2.engine.Engine.openSession(Engine.java:222)
+	at org.h2.engine.Engine.createSession(Engine.java:201)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:338)
+	... 33 more
+2025-09-22 09:49:28.768 - Connect with 'testdb' (h2_embedded_v2-19971ad4474-1061a59c085b58ca)
+2025-09-22 09:49:28.771 - Execution context opened (testdb; Main; 4)
+2025-09-22 09:49:28.772 - General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:/testdb" [50000-210]
+org.jkiss.dbeaver.model.exec.DBCConnectException: General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:/testdb" [50000-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:259)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:133)
+	at org.jkiss.dbeaver.ext.generic.model.GenericDataSource.openConnection(GenericDataSource.java:158)
+	at org.jkiss.dbeaver.ext.h2.model.H2DataSource.openConnection(H2DataSource.java:74)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCExecutionContext.connect(JDBCExecutionContext.java:124)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCRemoteInstance.initializeMainContext(JDBCRemoteInstance.java:106)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCRemoteInstance.<init>(JDBCRemoteInstance.java:61)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.initializeRemoteInstance(JDBCDataSource.java:125)
+	at org.jkiss.dbeaver.ext.generic.model.GenericDataSource.<init>(GenericDataSource.java:124)
+	at org.jkiss.dbeaver.ext.h2.model.H2DataSource.<init>(H2DataSource.java:43)
+	at org.jkiss.dbeaver.ext.h2.model.H2MetaModel.createDataSourceImpl(H2MetaModel.java:57)
+	at org.jkiss.dbeaver.ext.generic.GenericDataSourceProvider.openDataSource(GenericDataSourceProvider.java:57)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.openDataSource(DataSourceDescriptor.java:1413)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.connect0(DataSourceDescriptor.java:1271)
+	at org.jkiss.dbeaver.registry.DataSourceDescriptor.connect(DataSourceDescriptor.java:1061)
+	at org.jkiss.dbeaver.runtime.jobs.ConnectJob.run(ConnectJob.java:78)
+	at org.jkiss.dbeaver.runtime.jobs.ConnectJob.runSync(ConnectJob.java:109)
+	at org.jkiss.dbeaver.ui.actions.datasource.DataSourceHandler.connectToDataSource(DataSourceHandler.java:123)
+	at org.jkiss.dbeaver.ui.actions.datasource.UIServiceConnectionsImpl.initConnection(UIServiceConnectionsImpl.java:87)
+	at org.jkiss.dbeaver.model.DBUtils.initDataSource(DBUtils.java:2456)
+	at org.jkiss.dbeaver.model.navigator.DBNDataSource.initializeNode(DBNDataSource.java:159)
+	at org.jkiss.dbeaver.model.navigator.DBNDatabaseNode.getChildren(DBNDatabaseNode.java:226)
+	at org.jkiss.dbeaver.model.navigator.DBNDatabaseNode.getChildren(DBNDatabaseNode.java:1)
+	at org.jkiss.dbeaver.model.navigator.DBNUtils.getNodeChildrenFiltered(DBNUtils.java:99)
+	at org.jkiss.dbeaver.ui.navigator.database.load.TreeLoadService.evaluate(TreeLoadService.java:49)
+	at org.jkiss.dbeaver.ui.navigator.database.load.TreeLoadService.evaluate(TreeLoadService.java:1)
+	at org.jkiss.dbeaver.ui.LoadingJob.run(LoadingJob.java:88)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientException: General error: "java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:/testdb" [50000-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:573)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.get(DbException.java:216)
+	at org.h2.message.DbException.convert(DbException.java:414)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:340)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:122)
+	at org.h2.Driver.connect(Driver.java:59)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCConnectionOpener.run(JDBCConnectionOpener.java:112)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCConnectionOpener.run(JDBCConnectionOpener.java:86)
+	at org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSource.openConnection(JDBCDataSource.java:215)
+	... 28 more
+Caused by: java.nio.file.InvalidPathException: Illegal char <:> at index 4: jdbc:h2:mem:/testdb
+	at java.base/sun.nio.fs.WindowsPathParser.normalize(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPathParser.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPathParser.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsPath.parse(Unknown Source)
+	at java.base/sun.nio.fs.WindowsFileSystem.getPath(Unknown Source)
+	at java.base/java.nio.file.Path.of(Unknown Source)
+	at java.base/java.nio.file.Paths.get(Unknown Source)
+	at org.h2.store.fs.disk.FilePathDisk.isAbsolute(FilePathDisk.java:308)
+	at org.h2.store.fs.FileUtils.isAbsolute(FileUtils.java:144)
+	at org.h2.engine.ConnectionInfo.getName(ConnectionInfo.java:457)
+	at org.h2.engine.Engine.openSession(Engine.java:49)
+	at org.h2.engine.Engine.openSession(Engine.java:222)
+	at org.h2.engine.Engine.createSession(Engine.java:201)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:338)
+	... 33 more
+> Start DBeaver Data Transfer [org.jkiss.dbeaver.data.transfer 2.0.147.202509211659]
+2025-09-22 09:49:37.168 - Service 'org.jkiss.dbeaver.ui.UIServiceConnectionEditor' not found
+2025-09-22 09:49:37.226 - Service 'org.jkiss.dbeaver.runtime.ui.UIServiceSecurity' not found
+2025-09-22 09:49:59.890 - Service 'org.jkiss.dbeaver.ui.UIServiceConnectionEditor' not found
+2025-09-22 09:49:59.941 - Service 'org.jkiss.dbeaver.runtime.ui.UIServiceSecurity' not found
+2025-09-22 09:50:11.817 - Connect with 'testdb' (h2_embedded_v2-19971ad4474-1061a59c085b58ca)
+2025-09-22 09:50:11.819 - Execution context opened (testdb; Main; 5)
+2025-09-22 09:50:11.830 - Error setting client application name: Client info name 'ApplicationName' not supported.
+2025-09-22 09:50:11.916 - Connected (h2_embedded_v2-19971ad4474-1061a59c085b58ca, H2 JDBC Driver [2.1.210 (2022-01-17)])
+> Start DBeaver GIS Support [org.jkiss.dbeaver.data.gis 1.0.187.202509211659]
+2025-09-22 09:51:31.683 - Execution context closed (H2 StagingDB, 0)
+2025-09-22 09:51:31.683 - Disconnected (h2_embedded_v2-1993f1a5cb9-212b3ebca436d09)
+2025-09-22 09:52:12.977 - Can't get column 'KEY_SEQ': Column "KEY_SEQ" not found [42122-210]
+2025-09-22 09:52:43.186 - SQL Error [42001] [42001]: Syntax error in SQL statement "--\000d\000a-- DDL for the staging database.\000d\000a--\000d\000a\000d\000a-- Database definition.\000d\000a\000d\000aDROP TABLE PUBLIC.[*]ORDER;\000d\000aDROP TABLE PUBLIC.INVENTORY;\000d\000aDROP TABLE PUBLIC.CUSTOMER;\000d\000aDROP TABLE PUBLIC.PRODUCT;\000d\000a\000d\000aCREATE TABLE PUBLIC.CUSTOMER (\000d\000a\0009CUSTOMER_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009CODE CHARACTER VARYING(64) NOT NULL,\000d\000a\0009DESCRIPTION CHARACTER VARYING(128) NOT NULL,\000d\000a\0009CONSTRAINT CUSTOMER_PK PRIMARY KEY (CUSTOMER_ID),\000d\000a\0009CONSTRAINT CUSTOMER_UNIQUE UNIQUE (CODE)\000d\000a);\000d\000aCREATE UNIQUE INDEX CUSTOMER_UNIQUE_INDEX_5 ON PUBLIC.CUSTOMER (CODE);\000d\000aCREATE UNIQUE INDEX PRIMARY_KEY_5 ON PUBLIC.CUSTOMER (CUSTOMER_ID);\000d\000aCOMMENT ON TABLE PUBLIC.CUSTOMER IS 'Customer table';\000d\000aCOMMENT ON COLUMN PUBLIC.CUSTOMER.CUSTOMER_ID IS 'Primary key.';\000d\000aCOMMENT ON COLUMN PUBLIC.CUSTOMER.CODE IS 'Code.';\000d\000aCOMMENT ON COLUMN PUBLIC.CUSTOMER.DESCRIPTION IS 'Description.';\000d\000a\000d\000aCREATE TABLE PUBLIC.PRODUCT (\000d\000a\0009PRODUCT_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009CODE CHARACTER VARYING(64) NOT NULL,\000d\000a\0009DESCRIPTION CHARACTER VARYING(128) NOT NULL,\000d\000a\0009CONSTRAINT PRODUCT_PK PRIMARY KEY (PRODUCT_ID),\000d\000a\0009CONSTRAINT PRODUCT_UNIQUE UNIQUE (CODE)\000d\000a);\000d\000aCOMMENT ON TABLE PUBLIC.PRODUCT IS 'Product table';\000d\000aCOMMENT ON COLUMN PUBLIC.PRODUCT.PRODUCT_ID IS 'Primary key.';\000d\000aCOMMENT ON COLUMN PUBLIC.PRODUCT.CODE IS 'Code.';\000d\000aCOMMENT ON COLUMN PUBLIC.PRODUCT.DESCRIPTION IS 'Description.';\000d\000a\000d\000aCREATE TABLE PUBLIC.INVENTORY (\000d\000a\0009INVENTORY_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009PRODUCT_ID INTEGER NOT NULL,\000d\000a\0009QTY INTEGER NOT NULL,\000d\000a\0009CONSTRAINT INVENTORY_PK PRIMARY KEY (INVENTORY_ID),\000d\000a\0009CONSTRAINT INVENTORY_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)\000d\000a);\000d\000aCREATE UNIQUE INDEX INVENTORY_INVENTORY_ID_IDX ON PUBLIC.INVENTORY (INVENTORY_ID,PRODUCT_ID);\000d\000aCOMMENT ON TABLE PUBLIC.INVENTORY IS 'Inventory table.';\000d\000aCOMMENT ON COLUMN PUBLIC.INVENTORY.INVENTORY_ID IS 'Primary key.';\000d\000aCOMMENT ON COLUMN PUBLIC.INVENTORY.PRODUCT_ID IS 'Product ID.';\000d\000aCOMMENT ON COLUMN PUBLIC.INVENTORY.QTY IS 'Quantity.';\000d\000a\000d\000aCREATE TABLE PUBLIC.""ORDER"" (\000d\000a\0009ORDER_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009CUSTOMER_ID INTEGER,\000d\000a\0009PRODUCT_ID INTEGER,\000d\000a\0009QTY INTEGER NOT NULL,\000d\000a\0009STATUS INTEGER NOT NULL,\000d\000a\0009CONSTRAINT ORDER_PK PRIMARY KEY (ORDER_ID),\000d\000a\0009CONSTRAINT ORDER_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),\000d\000a\0009CONSTRAINT ORDER_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)\000d\000a);\000d\000aCOMMENT ON TABLE PUBLIC.""ORDER"" IS 'Order table.';\000d\000aCOMMENT ON COLUMN PUBLIC.""ORDER"".QTY IS 'Quantity order.';\000d\000aCOMMENT ON COLUMN PUBLIC.""ORDER"".STATUS IS 'Status order.'\000d\000a"; expected "identifier"; SQL statement:
+--
+-- DDL for the staging database.
+--
+
+-- Database definition.
+
+DROP TABLE PUBLIC.ORDER;
+DROP TABLE PUBLIC.INVENTORY;
+DROP TABLE PUBLIC.CUSTOMER;
+DROP TABLE PUBLIC.PRODUCT;
+
+CREATE TABLE PUBLIC.CUSTOMER (
+	CUSTOMER_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CODE CHARACTER VARYING(64) NOT NULL,
+	DESCRIPTION CHARACTER VARYING(128) NOT NULL,
+	CONSTRAINT CUSTOMER_PK PRIMARY KEY (CUSTOMER_ID),
+	CONSTRAINT CUSTOMER_UNIQUE UNIQUE (CODE)
+);
+CREATE UNIQUE INDEX CUSTOMER_UNIQUE_INDEX_5 ON PUBLIC.CUSTOMER (CODE);
+CREATE UNIQUE INDEX PRIMARY_KEY_5 ON PUBLIC.CUSTOMER (CUSTOMER_ID);
+COMMENT ON TABLE PUBLIC.CUSTOMER IS 'Customer table';
+COMMENT ON COLUMN PUBLIC.CUSTOMER.CUSTOMER_ID IS 'Primary key.';
+COMMENT ON COLUMN PUBLIC.CUSTOMER.CODE IS 'Code.';
+COMMENT ON COLUMN PUBLIC.CUSTOMER.DESCRIPTION IS 'Description.';
+
+CREATE TABLE PUBLIC.PRODUCT (
+	PRODUCT_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CODE CHARACTER VARYING(64) NOT NULL,
+	DESCRIPTION CHARACTER VARYING(128) NOT NULL,
+	CONSTRAINT PRODUCT_PK PRIMARY KEY (PRODUCT_ID),
+	CONSTRAINT PRODUCT_UNIQUE UNIQUE (CODE)
+);
+COMMENT ON TABLE PUBLIC.PRODUCT IS 'Product table';
+COMMENT ON COLUMN PUBLIC.PRODUCT.PRODUCT_ID IS 'Primary key.';
+COMMENT ON COLUMN PUBLIC.PRODUCT.CODE IS 'Code.';
+COMMENT ON COLUMN PUBLIC.PRODUCT.DESCRIPTION IS 'Description.';
+
+CREATE TABLE PUBLIC.INVENTORY (
+	INVENTORY_ID INTEGER NOT NULL AUTO_INCREMENT,
+	PRODUCT_ID INTEGER NOT NULL,
+	QTY INTEGER NOT NULL,
+	CONSTRAINT INVENTORY_PK PRIMARY KEY (INVENTORY_ID),
+	CONSTRAINT INVENTORY_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+);
+CREATE UNIQUE INDEX INVENTORY_INVENTORY_ID_IDX ON PUBLIC.INVENTORY (INVENTORY_ID,PRODUCT_ID);
+COMMENT ON TABLE PUBLIC.INVENTORY IS 'Inventory table.';
+COMMENT ON COLUMN PUBLIC.INVENTORY.INVENTORY_ID IS 'Primary key.';
+COMMENT ON COLUMN PUBLIC.INVENTORY.PRODUCT_ID IS 'Product ID.';
+COMMENT ON COLUMN PUBLIC.INVENTORY.QTY IS 'Quantity.';
+
+CREATE TABLE PUBLIC."ORDER" (
+	ORDER_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDER_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDER_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDER_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+);
+COMMENT ON TABLE PUBLIC."ORDER" IS 'Order table.';
+COMMENT ON COLUMN PUBLIC."ORDER".QTY IS 'Quantity order.';
+COMMENT ON COLUMN PUBLIC."ORDER".STATUS IS 'Status order.'
+ [42001-210]
+org.jkiss.dbeaver.model.sql.DBSQLException: SQL Error [42001] [42001]: Syntax error in SQL statement "--\000d\000a-- DDL for the staging database.\000d\000a--\000d\000a\000d\000a-- Database definition.\000d\000a\000d\000aDROP TABLE PUBLIC.[*]ORDER;\000d\000aDROP TABLE PUBLIC.INVENTORY;\000d\000aDROP TABLE PUBLIC.CUSTOMER;\000d\000aDROP TABLE PUBLIC.PRODUCT;\000d\000a\000d\000aCREATE TABLE PUBLIC.CUSTOMER (\000d\000a\0009CUSTOMER_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009CODE CHARACTER VARYING(64) NOT NULL,\000d\000a\0009DESCRIPTION CHARACTER VARYING(128) NOT NULL,\000d\000a\0009CONSTRAINT CUSTOMER_PK PRIMARY KEY (CUSTOMER_ID),\000d\000a\0009CONSTRAINT CUSTOMER_UNIQUE UNIQUE (CODE)\000d\000a);\000d\000aCREATE UNIQUE INDEX CUSTOMER_UNIQUE_INDEX_5 ON PUBLIC.CUSTOMER (CODE);\000d\000aCREATE UNIQUE INDEX PRIMARY_KEY_5 ON PUBLIC.CUSTOMER (CUSTOMER_ID);\000d\000aCOMMENT ON TABLE PUBLIC.CUSTOMER IS 'Customer table';\000d\000aCOMMENT ON COLUMN PUBLIC.CUSTOMER.CUSTOMER_ID IS 'Primary key.';\000d\000aCOMMENT ON COLUMN PUBLIC.CUSTOMER.CODE IS 'Code.';\000d\000aCOMMENT ON COLUMN PUBLIC.CUSTOMER.DESCRIPTION IS 'Description.';\000d\000a\000d\000aCREATE TABLE PUBLIC.PRODUCT (\000d\000a\0009PRODUCT_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009CODE CHARACTER VARYING(64) NOT NULL,\000d\000a\0009DESCRIPTION CHARACTER VARYING(128) NOT NULL,\000d\000a\0009CONSTRAINT PRODUCT_PK PRIMARY KEY (PRODUCT_ID),\000d\000a\0009CONSTRAINT PRODUCT_UNIQUE UNIQUE (CODE)\000d\000a);\000d\000aCOMMENT ON TABLE PUBLIC.PRODUCT IS 'Product table';\000d\000aCOMMENT ON COLUMN PUBLIC.PRODUCT.PRODUCT_ID IS 'Primary key.';\000d\000aCOMMENT ON COLUMN PUBLIC.PRODUCT.CODE IS 'Code.';\000d\000aCOMMENT ON COLUMN PUBLIC.PRODUCT.DESCRIPTION IS 'Description.';\000d\000a\000d\000aCREATE TABLE PUBLIC.INVENTORY (\000d\000a\0009INVENTORY_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009PRODUCT_ID INTEGER NOT NULL,\000d\000a\0009QTY INTEGER NOT NULL,\000d\000a\0009CONSTRAINT INVENTORY_PK PRIMARY KEY (INVENTORY_ID),\000d\000a\0009CONSTRAINT INVENTORY_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)\000d\000a);\000d\000aCREATE UNIQUE INDEX INVENTORY_INVENTORY_ID_IDX ON PUBLIC.INVENTORY (INVENTORY_ID,PRODUCT_ID);\000d\000aCOMMENT ON TABLE PUBLIC.INVENTORY IS 'Inventory table.';\000d\000aCOMMENT ON COLUMN PUBLIC.INVENTORY.INVENTORY_ID IS 'Primary key.';\000d\000aCOMMENT ON COLUMN PUBLIC.INVENTORY.PRODUCT_ID IS 'Product ID.';\000d\000aCOMMENT ON COLUMN PUBLIC.INVENTORY.QTY IS 'Quantity.';\000d\000a\000d\000aCREATE TABLE PUBLIC.""ORDER"" (\000d\000a\0009ORDER_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009CUSTOMER_ID INTEGER,\000d\000a\0009PRODUCT_ID INTEGER,\000d\000a\0009QTY INTEGER NOT NULL,\000d\000a\0009STATUS INTEGER NOT NULL,\000d\000a\0009CONSTRAINT ORDER_PK PRIMARY KEY (ORDER_ID),\000d\000a\0009CONSTRAINT ORDER_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),\000d\000a\0009CONSTRAINT ORDER_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)\000d\000a);\000d\000aCOMMENT ON TABLE PUBLIC.""ORDER"" IS 'Order table.';\000d\000aCOMMENT ON COLUMN PUBLIC.""ORDER"".QTY IS 'Quantity order.';\000d\000aCOMMENT ON COLUMN PUBLIC.""ORDER"".STATUS IS 'Status order.'\000d\000a"; expected "identifier"; SQL statement:
+--
+-- DDL for the staging database.
+--
+
+-- Database definition.
+
+DROP TABLE PUBLIC.ORDER;
+DROP TABLE PUBLIC.INVENTORY;
+DROP TABLE PUBLIC.CUSTOMER;
+DROP TABLE PUBLIC.PRODUCT;
+
+CREATE TABLE PUBLIC.CUSTOMER (
+	CUSTOMER_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CODE CHARACTER VARYING(64) NOT NULL,
+	DESCRIPTION CHARACTER VARYING(128) NOT NULL,
+	CONSTRAINT CUSTOMER_PK PRIMARY KEY (CUSTOMER_ID),
+	CONSTRAINT CUSTOMER_UNIQUE UNIQUE (CODE)
+);
+CREATE UNIQUE INDEX CUSTOMER_UNIQUE_INDEX_5 ON PUBLIC.CUSTOMER (CODE);
+CREATE UNIQUE INDEX PRIMARY_KEY_5 ON PUBLIC.CUSTOMER (CUSTOMER_ID);
+COMMENT ON TABLE PUBLIC.CUSTOMER IS 'Customer table';
+COMMENT ON COLUMN PUBLIC.CUSTOMER.CUSTOMER_ID IS 'Primary key.';
+COMMENT ON COLUMN PUBLIC.CUSTOMER.CODE IS 'Code.';
+COMMENT ON COLUMN PUBLIC.CUSTOMER.DESCRIPTION IS 'Description.';
+
+CREATE TABLE PUBLIC.PRODUCT (
+	PRODUCT_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CODE CHARACTER VARYING(64) NOT NULL,
+	DESCRIPTION CHARACTER VARYING(128) NOT NULL,
+	CONSTRAINT PRODUCT_PK PRIMARY KEY (PRODUCT_ID),
+	CONSTRAINT PRODUCT_UNIQUE UNIQUE (CODE)
+);
+COMMENT ON TABLE PUBLIC.PRODUCT IS 'Product table';
+COMMENT ON COLUMN PUBLIC.PRODUCT.PRODUCT_ID IS 'Primary key.';
+COMMENT ON COLUMN PUBLIC.PRODUCT.CODE IS 'Code.';
+COMMENT ON COLUMN PUBLIC.PRODUCT.DESCRIPTION IS 'Description.';
+
+CREATE TABLE PUBLIC.INVENTORY (
+	INVENTORY_ID INTEGER NOT NULL AUTO_INCREMENT,
+	PRODUCT_ID INTEGER NOT NULL,
+	QTY INTEGER NOT NULL,
+	CONSTRAINT INVENTORY_PK PRIMARY KEY (INVENTORY_ID),
+	CONSTRAINT INVENTORY_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+);
+CREATE UNIQUE INDEX INVENTORY_INVENTORY_ID_IDX ON PUBLIC.INVENTORY (INVENTORY_ID,PRODUCT_ID);
+COMMENT ON TABLE PUBLIC.INVENTORY IS 'Inventory table.';
+COMMENT ON COLUMN PUBLIC.INVENTORY.INVENTORY_ID IS 'Primary key.';
+COMMENT ON COLUMN PUBLIC.INVENTORY.PRODUCT_ID IS 'Product ID.';
+COMMENT ON COLUMN PUBLIC.INVENTORY.QTY IS 'Quantity.';
+
+CREATE TABLE PUBLIC."ORDER" (
+	ORDER_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDER_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDER_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDER_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+);
+COMMENT ON TABLE PUBLIC."ORDER" IS 'Order table.';
+COMMENT ON COLUMN PUBLIC."ORDER".QTY IS 'Quantity order.';
+COMMENT ON COLUMN PUBLIC."ORDER".STATUS IS 'Status order.'
+ [42001-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:134)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeStatement(SQLQueryJob.java:675)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.lambda$2(SQLQueryJob.java:568)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleElement(SQLQueryJob.java:587)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleQuery(SQLQueryJob.java:449)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.extractData(SQLQueryJob.java:1061)
+	at org.jkiss.dbeaver.ui.editors.sql.SQLEditor$QueryResultsContainer.readData(SQLEditor.java:4568)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.lambda$0(ResultSetJobDataRead.java:128)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.run(ResultSetJobDataRead.java:126)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetViewer$ResultSetDataPumpJob.run(ResultSetViewer.java:5155)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "--\000d\000a-- DDL for the staging database.\000d\000a--\000d\000a\000d\000a-- Database definition.\000d\000a\000d\000aDROP TABLE PUBLIC.[*]ORDER;\000d\000aDROP TABLE PUBLIC.INVENTORY;\000d\000aDROP TABLE PUBLIC.CUSTOMER;\000d\000aDROP TABLE PUBLIC.PRODUCT;\000d\000a\000d\000aCREATE TABLE PUBLIC.CUSTOMER (\000d\000a\0009CUSTOMER_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009CODE CHARACTER VARYING(64) NOT NULL,\000d\000a\0009DESCRIPTION CHARACTER VARYING(128) NOT NULL,\000d\000a\0009CONSTRAINT CUSTOMER_PK PRIMARY KEY (CUSTOMER_ID),\000d\000a\0009CONSTRAINT CUSTOMER_UNIQUE UNIQUE (CODE)\000d\000a);\000d\000aCREATE UNIQUE INDEX CUSTOMER_UNIQUE_INDEX_5 ON PUBLIC.CUSTOMER (CODE);\000d\000aCREATE UNIQUE INDEX PRIMARY_KEY_5 ON PUBLIC.CUSTOMER (CUSTOMER_ID);\000d\000aCOMMENT ON TABLE PUBLIC.CUSTOMER IS 'Customer table';\000d\000aCOMMENT ON COLUMN PUBLIC.CUSTOMER.CUSTOMER_ID IS 'Primary key.';\000d\000aCOMMENT ON COLUMN PUBLIC.CUSTOMER.CODE IS 'Code.';\000d\000aCOMMENT ON COLUMN PUBLIC.CUSTOMER.DESCRIPTION IS 'Description.';\000d\000a\000d\000aCREATE TABLE PUBLIC.PRODUCT (\000d\000a\0009PRODUCT_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009CODE CHARACTER VARYING(64) NOT NULL,\000d\000a\0009DESCRIPTION CHARACTER VARYING(128) NOT NULL,\000d\000a\0009CONSTRAINT PRODUCT_PK PRIMARY KEY (PRODUCT_ID),\000d\000a\0009CONSTRAINT PRODUCT_UNIQUE UNIQUE (CODE)\000d\000a);\000d\000aCOMMENT ON TABLE PUBLIC.PRODUCT IS 'Product table';\000d\000aCOMMENT ON COLUMN PUBLIC.PRODUCT.PRODUCT_ID IS 'Primary key.';\000d\000aCOMMENT ON COLUMN PUBLIC.PRODUCT.CODE IS 'Code.';\000d\000aCOMMENT ON COLUMN PUBLIC.PRODUCT.DESCRIPTION IS 'Description.';\000d\000a\000d\000aCREATE TABLE PUBLIC.INVENTORY (\000d\000a\0009INVENTORY_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009PRODUCT_ID INTEGER NOT NULL,\000d\000a\0009QTY INTEGER NOT NULL,\000d\000a\0009CONSTRAINT INVENTORY_PK PRIMARY KEY (INVENTORY_ID),\000d\000a\0009CONSTRAINT INVENTORY_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)\000d\000a);\000d\000aCREATE UNIQUE INDEX INVENTORY_INVENTORY_ID_IDX ON PUBLIC.INVENTORY (INVENTORY_ID,PRODUCT_ID);\000d\000aCOMMENT ON TABLE PUBLIC.INVENTORY IS 'Inventory table.';\000d\000aCOMMENT ON COLUMN PUBLIC.INVENTORY.INVENTORY_ID IS 'Primary key.';\000d\000aCOMMENT ON COLUMN PUBLIC.INVENTORY.PRODUCT_ID IS 'Product ID.';\000d\000aCOMMENT ON COLUMN PUBLIC.INVENTORY.QTY IS 'Quantity.';\000d\000a\000d\000aCREATE TABLE PUBLIC.""ORDER"" (\000d\000a\0009ORDER_ID INTEGER NOT NULL AUTO_INCREMENT,\000d\000a\0009CUSTOMER_ID INTEGER,\000d\000a\0009PRODUCT_ID INTEGER,\000d\000a\0009QTY INTEGER NOT NULL,\000d\000a\0009STATUS INTEGER NOT NULL,\000d\000a\0009CONSTRAINT ORDER_PK PRIMARY KEY (ORDER_ID),\000d\000a\0009CONSTRAINT ORDER_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),\000d\000a\0009CONSTRAINT ORDER_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)\000d\000a);\000d\000aCOMMENT ON TABLE PUBLIC.""ORDER"" IS 'Order table.';\000d\000aCOMMENT ON COLUMN PUBLIC.""ORDER"".QTY IS 'Quantity order.';\000d\000aCOMMENT ON COLUMN PUBLIC.""ORDER"".STATUS IS 'Status order.'\000d\000a"; expected "identifier"; SQL statement:
+--
+-- DDL for the staging database.
+--
+
+-- Database definition.
+
+DROP TABLE PUBLIC.ORDER;
+DROP TABLE PUBLIC.INVENTORY;
+DROP TABLE PUBLIC.CUSTOMER;
+DROP TABLE PUBLIC.PRODUCT;
+
+CREATE TABLE PUBLIC.CUSTOMER (
+	CUSTOMER_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CODE CHARACTER VARYING(64) NOT NULL,
+	DESCRIPTION CHARACTER VARYING(128) NOT NULL,
+	CONSTRAINT CUSTOMER_PK PRIMARY KEY (CUSTOMER_ID),
+	CONSTRAINT CUSTOMER_UNIQUE UNIQUE (CODE)
+);
+CREATE UNIQUE INDEX CUSTOMER_UNIQUE_INDEX_5 ON PUBLIC.CUSTOMER (CODE);
+CREATE UNIQUE INDEX PRIMARY_KEY_5 ON PUBLIC.CUSTOMER (CUSTOMER_ID);
+COMMENT ON TABLE PUBLIC.CUSTOMER IS 'Customer table';
+COMMENT ON COLUMN PUBLIC.CUSTOMER.CUSTOMER_ID IS 'Primary key.';
+COMMENT ON COLUMN PUBLIC.CUSTOMER.CODE IS 'Code.';
+COMMENT ON COLUMN PUBLIC.CUSTOMER.DESCRIPTION IS 'Description.';
+
+CREATE TABLE PUBLIC.PRODUCT (
+	PRODUCT_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CODE CHARACTER VARYING(64) NOT NULL,
+	DESCRIPTION CHARACTER VARYING(128) NOT NULL,
+	CONSTRAINT PRODUCT_PK PRIMARY KEY (PRODUCT_ID),
+	CONSTRAINT PRODUCT_UNIQUE UNIQUE (CODE)
+);
+COMMENT ON TABLE PUBLIC.PRODUCT IS 'Product table';
+COMMENT ON COLUMN PUBLIC.PRODUCT.PRODUCT_ID IS 'Primary key.';
+COMMENT ON COLUMN PUBLIC.PRODUCT.CODE IS 'Code.';
+COMMENT ON COLUMN PUBLIC.PRODUCT.DESCRIPTION IS 'Description.';
+
+CREATE TABLE PUBLIC.INVENTORY (
+	INVENTORY_ID INTEGER NOT NULL AUTO_INCREMENT,
+	PRODUCT_ID INTEGER NOT NULL,
+	QTY INTEGER NOT NULL,
+	CONSTRAINT INVENTORY_PK PRIMARY KEY (INVENTORY_ID),
+	CONSTRAINT INVENTORY_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+);
+CREATE UNIQUE INDEX INVENTORY_INVENTORY_ID_IDX ON PUBLIC.INVENTORY (INVENTORY_ID,PRODUCT_ID);
+COMMENT ON TABLE PUBLIC.INVENTORY IS 'Inventory table.';
+COMMENT ON COLUMN PUBLIC.INVENTORY.INVENTORY_ID IS 'Primary key.';
+COMMENT ON COLUMN PUBLIC.INVENTORY.PRODUCT_ID IS 'Product ID.';
+COMMENT ON COLUMN PUBLIC.INVENTORY.QTY IS 'Quantity.';
+
+CREATE TABLE PUBLIC."ORDER" (
+	ORDER_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDER_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDER_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDER_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+);
+COMMENT ON TABLE PUBLIC."ORDER" IS 'Order table.';
+COMMENT ON COLUMN PUBLIC."ORDER".QTY IS 'Quantity order.';
+COMMENT ON COLUMN PUBLIC."ORDER".STATUS IS 'Status order.'
+ [42001-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:521)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.getSyntaxError(DbException.java:265)
+	at org.h2.command.Parser.readIdentifier(Parser.java:5759)
+	at org.h2.command.Parser.readIdentifierWithSchema2(Parser.java:5735)
+	at org.h2.command.Parser.readIdentifierWithSchema(Parser.java:5722)
+	at org.h2.command.Parser.readIdentifierWithSchema(Parser.java:5748)
+	at org.h2.command.Parser.parseDrop(Parser.java:2194)
+	at org.h2.command.Parser.parsePrepared(Parser.java:759)
+	at org.h2.command.Parser.parse(Parser.java:674)
+	at org.h2.command.Parser.parse(Parser.java:644)
+	at org.h2.command.Parser.prepareCommand(Parser.java:551)
+	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:615)
+	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:553)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1116)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:237)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:223)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.execute(JDBCStatementImpl.java:328)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:132)
+	... 13 more
+2025-09-22 09:52:52.501 - Event loop exception
+java.lang.IllegalArgumentException: Index out of bounds
+	at org.eclipse.swt.SWT.error(SWT.java:4926)
+	at org.eclipse.swt.SWT.error(SWT.java:4860)
+	at org.eclipse.swt.SWT.error(SWT.java:4831)
+	at org.eclipse.swt.custom.StyledText.getTextBounds(StyledText.java:4890)
+	at org.jkiss.dbeaver.ui.editors.sql.util.AnnotationsInformationView.show(AnnotationsInformationView.java:205)
+	at org.jkiss.dbeaver.ui.editors.sql.util.SQLAnnotationHover$LinkListInformationControl.setVisible(SQLAnnotationHover.java:255)
+	at org.eclipse.jface.text.AbstractInformationControlManager.showInformationControl(AbstractInformationControlManager.java:1240)
+	at org.eclipse.jface.text.TextViewerHoverManager.showInformationControl(TextViewerHoverManager.java:276)
+	at org.eclipse.jface.text.AbstractInformationControlManager.internalShowInformationControl(AbstractInformationControlManager.java:1191)
+	at org.eclipse.jface.text.AbstractInformationControlManager.presentInformation(AbstractInformationControlManager.java:1120)
+	at org.eclipse.jface.text.AbstractHoverInformationControlManager.presentInformation(AbstractHoverInformationControlManager.java:884)
+	at org.eclipse.jface.text.TextViewerHoverManager.doPresentInformation(TextViewerHoverManager.java:237)
+	at org.eclipse.jface.text.TextViewerHoverManager.lambda$3(TextViewerHoverManager.java:227)
+	at org.eclipse.swt.widgets.RunnableLock.run(RunnableLock.java:40)
+	at org.eclipse.swt.widgets.Synchronizer.runAsyncMessages(Synchronizer.java:132)
+	at org.eclipse.swt.widgets.Display.runAsyncMessages(Display.java:4111)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3727)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1151)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1042)
+	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
+	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:678)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
+	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:583)
+	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:173)
+	at org.jkiss.dbeaver.ui.app.standalone.DBeaverApplication.start(DBeaverApplication.java:313)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:219)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:149)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:115)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:467)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:298)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at org.jkiss.dbeaver.launcher.DBeaverLauncher.invokeFramework(DBeaverLauncher.java:884)
+	at org.jkiss.dbeaver.launcher.DBeaverLauncher.basicRun(DBeaverLauncher.java:661)
+	at org.jkiss.dbeaver.launcher.DBeaverLauncher.run(DBeaverLauncher.java:1665)
+2025-09-22 09:52:56.494 - SQL Error [42001] [42001]: Syntax error in SQL statement "DROP TABLE PUBLIC.[*]ORDER"; expected "identifier"; SQL statement:
+DROP TABLE PUBLIC.ORDER [42001-210]
+org.jkiss.dbeaver.model.sql.DBSQLException: SQL Error [42001] [42001]: Syntax error in SQL statement "DROP TABLE PUBLIC.[*]ORDER"; expected "identifier"; SQL statement:
+DROP TABLE PUBLIC.ORDER [42001-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:134)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeStatement(SQLQueryJob.java:675)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.lambda$2(SQLQueryJob.java:568)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleElement(SQLQueryJob.java:587)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleQuery(SQLQueryJob.java:449)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.extractData(SQLQueryJob.java:1061)
+	at org.jkiss.dbeaver.ui.editors.sql.SQLEditor$QueryResultsContainer.readData(SQLEditor.java:4568)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.lambda$0(ResultSetJobDataRead.java:128)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.run(ResultSetJobDataRead.java:126)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetViewer$ResultSetDataPumpJob.run(ResultSetViewer.java:5155)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "DROP TABLE PUBLIC.[*]ORDER"; expected "identifier"; SQL statement:
+DROP TABLE PUBLIC.ORDER [42001-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:521)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.getSyntaxError(DbException.java:265)
+	at org.h2.command.Parser.readIdentifier(Parser.java:5759)
+	at org.h2.command.Parser.readIdentifierWithSchema2(Parser.java:5735)
+	at org.h2.command.Parser.readIdentifierWithSchema(Parser.java:5722)
+	at org.h2.command.Parser.readIdentifierWithSchema(Parser.java:5748)
+	at org.h2.command.Parser.parseDrop(Parser.java:2194)
+	at org.h2.command.Parser.parsePrepared(Parser.java:759)
+	at org.h2.command.Parser.parse(Parser.java:674)
+	at org.h2.command.Parser.parse(Parser.java:644)
+	at org.h2.command.Parser.prepareCommand(Parser.java:551)
+	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:615)
+	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:553)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1116)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:237)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:223)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.execute(JDBCStatementImpl.java:328)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:132)
+	... 13 more
+2025-09-22 09:53:36.721 - SQL Error [90045] [90045]: Constraint "ORDER_PK" already exists; SQL statement:
+CREATE TABLE PUBLIC."ORDERS" (
+	ORDER_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDER_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDER_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDER_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+) [90045-210]
+org.jkiss.dbeaver.model.sql.DBSQLException: SQL Error [90045] [90045]: Constraint "ORDER_PK" already exists; SQL statement:
+CREATE TABLE PUBLIC."ORDERS" (
+	ORDER_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDER_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDER_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDER_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+) [90045-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:134)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeStatement(SQLQueryJob.java:675)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.lambda$2(SQLQueryJob.java:568)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleElement(SQLQueryJob.java:587)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleQuery(SQLQueryJob.java:449)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.extractData(SQLQueryJob.java:1061)
+	at org.jkiss.dbeaver.ui.editors.sql.SQLEditor$QueryResultsContainer.readData(SQLEditor.java:4568)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.lambda$0(ResultSetJobDataRead.java:128)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.run(ResultSetJobDataRead.java:126)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetViewer$ResultSetDataPumpJob.run(ResultSetViewer.java:5155)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Constraint "ORDER_PK" already exists; SQL statement:
+CREATE TABLE PUBLIC."ORDERS" (
+	ORDER_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDER_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDER_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDER_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+) [90045-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:651)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.get(DbException.java:227)
+	at org.h2.message.DbException.get(DbException.java:203)
+	at org.h2.command.ddl.AlterTableAddConstraint.tryUpdate(AlterTableAddConstraint.java:109)
+	at org.h2.command.ddl.AlterTableAddConstraint.update(AlterTableAddConstraint.java:72)
+	at org.h2.command.ddl.AlterTable.update(AlterTable.java:46)
+	at org.h2.command.ddl.CommandWithColumns.createConstraints(CommandWithColumns.java:83)
+	at org.h2.command.ddl.CreateTable.update(CreateTable.java:131)
+	at org.h2.command.CommandContainer.update(CommandContainer.java:174)
+	at org.h2.command.Command.executeUpdate(Command.java:252)
+	at org.h2.command.CommandList.update(CommandList.java:65)
+	at org.h2.command.Command.executeUpdate(Command.java:252)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:252)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:223)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.execute(JDBCStatementImpl.java:328)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:132)
+	... 13 more
+2025-09-22 09:54:03.686 - SQL Error [42122] [42S22]: Column "ORDER_ID" not found; SQL statement:
+CREATE TABLE PUBLIC."ORDERS" (
+	ORDERS_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDERS_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDERS_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDERS_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+) [42122-210]
+org.jkiss.dbeaver.model.sql.DBSQLException: SQL Error [42122] [42S22]: Column "ORDER_ID" not found; SQL statement:
+CREATE TABLE PUBLIC."ORDERS" (
+	ORDERS_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDERS_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDERS_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDERS_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+) [42122-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:134)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeStatement(SQLQueryJob.java:675)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.lambda$2(SQLQueryJob.java:568)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleElement(SQLQueryJob.java:587)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleQuery(SQLQueryJob.java:449)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.extractData(SQLQueryJob.java:1061)
+	at org.jkiss.dbeaver.ui.editors.sql.SQLEditor$QueryResultsContainer.readData(SQLEditor.java:4568)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.lambda$0(ResultSetJobDataRead.java:128)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.run(ResultSetJobDataRead.java:126)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetViewer$ResultSetDataPumpJob.run(ResultSetViewer.java:5155)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ORDER_ID" not found; SQL statement:
+CREATE TABLE PUBLIC."ORDERS" (
+	ORDERS_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDERS_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDERS_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDERS_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+) [42122-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:521)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.get(DbException.java:227)
+	at org.h2.message.DbException.get(DbException.java:203)
+	at org.h2.table.Table.getColumn(Table.java:754)
+	at org.h2.table.IndexColumn.mapColumns(IndexColumn.java:184)
+	at org.h2.command.ddl.AlterTableAddConstraint.tryUpdate(AlterTableAddConstraint.java:119)
+	at org.h2.command.ddl.AlterTableAddConstraint.update(AlterTableAddConstraint.java:72)
+	at org.h2.command.ddl.AlterTable.update(AlterTable.java:46)
+	at org.h2.command.ddl.CommandWithColumns.createConstraints(CommandWithColumns.java:83)
+	at org.h2.command.ddl.CreateTable.update(CreateTable.java:131)
+	at org.h2.command.CommandContainer.update(CommandContainer.java:174)
+	at org.h2.command.Command.executeUpdate(Command.java:252)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:252)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:223)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.execute(JDBCStatementImpl.java:328)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:132)
+	... 13 more
+2025-09-22 09:54:20.136 - SQL Error [42102] [42S02]: Table "ORDERS" not found; SQL statement:
+DROP TABLE PUBLIC.ORDERS [42102-210]
+org.jkiss.dbeaver.model.sql.DBSQLException: SQL Error [42102] [42S02]: Table "ORDERS" not found; SQL statement:
+DROP TABLE PUBLIC.ORDERS [42102-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:134)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeStatement(SQLQueryJob.java:675)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.lambda$2(SQLQueryJob.java:568)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleElement(SQLQueryJob.java:587)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleQuery(SQLQueryJob.java:449)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.extractData(SQLQueryJob.java:1061)
+	at org.jkiss.dbeaver.ui.editors.sql.SQLEditor$QueryResultsContainer.readData(SQLEditor.java:4568)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.lambda$0(ResultSetJobDataRead.java:128)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.run(ResultSetJobDataRead.java:126)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetViewer$ResultSetDataPumpJob.run(ResultSetViewer.java:5155)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "ORDERS" not found; SQL statement:
+DROP TABLE PUBLIC.ORDERS [42102-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:521)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.get(DbException.java:227)
+	at org.h2.message.DbException.get(DbException.java:203)
+	at org.h2.command.ddl.DropTable.prepareDrop(DropTable.java:64)
+	at org.h2.command.ddl.DropTable.update(DropTable.java:121)
+	at org.h2.command.CommandContainer.update(CommandContainer.java:174)
+	at org.h2.command.Command.executeUpdate(Command.java:252)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:252)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:223)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.execute(JDBCStatementImpl.java:328)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:132)
+	... 13 more
+2025-09-22 09:54:35.055 - SQL Error [42122] [42S22]: Column "ORDER_ID" not found; SQL statement:
+CREATE TABLE PUBLIC."ORDERS" (
+	ORDERS_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDERS_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDERS_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDERS_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+) [42122-210]
+org.jkiss.dbeaver.model.sql.DBSQLException: SQL Error [42122] [42S22]: Column "ORDER_ID" not found; SQL statement:
+CREATE TABLE PUBLIC."ORDERS" (
+	ORDERS_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDERS_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDERS_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDERS_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+) [42122-210]
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:134)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeStatement(SQLQueryJob.java:675)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.lambda$2(SQLQueryJob.java:568)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleElement(SQLQueryJob.java:587)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.executeSingleQuery(SQLQueryJob.java:449)
+	at org.jkiss.dbeaver.ui.editors.sql.execute.SQLQueryJob.extractData(SQLQueryJob.java:1061)
+	at org.jkiss.dbeaver.ui.editors.sql.SQLEditor$QueryResultsContainer.readData(SQLEditor.java:4568)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.lambda$0(ResultSetJobDataRead.java:128)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.tryExecuteRecover(DBExecUtils.java:189)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetJobDataRead.run(ResultSetJobDataRead.java:126)
+	at org.jkiss.dbeaver.ui.controls.resultset.ResultSetViewer$ResultSetDataPumpJob.run(ResultSetViewer.java:5155)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ORDER_ID" not found; SQL statement:
+CREATE TABLE PUBLIC."ORDERS" (
+	ORDERS_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT ORDERS_PK PRIMARY KEY (ORDER_ID),
+	CONSTRAINT ORDERS_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID),
+	CONSTRAINT ORDERS_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID)
+) [42122-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:521)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.get(DbException.java:227)
+	at org.h2.message.DbException.get(DbException.java:203)
+	at org.h2.table.Table.getColumn(Table.java:754)
+	at org.h2.table.IndexColumn.mapColumns(IndexColumn.java:184)
+	at org.h2.command.ddl.AlterTableAddConstraint.tryUpdate(AlterTableAddConstraint.java:119)
+	at org.h2.command.ddl.AlterTableAddConstraint.update(AlterTableAddConstraint.java:72)
+	at org.h2.command.ddl.AlterTable.update(AlterTable.java:46)
+	at org.h2.command.ddl.CommandWithColumns.createConstraints(CommandWithColumns.java:83)
+	at org.h2.command.ddl.CreateTable.update(CreateTable.java:131)
+	at org.h2.command.CommandContainer.update(CommandContainer.java:174)
+	at org.h2.command.Command.executeUpdate(Command.java:252)
+	at org.h2.command.CommandList.update(CommandList.java:65)
+	at org.h2.command.Command.executeUpdate(Command.java:252)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:252)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:223)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.execute(JDBCStatementImpl.java:328)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:132)
+	... 13 more
+2025-09-22 09:55:07.855 - Connect with 'H2 StagingDB' (h2_embedded_v2-1993f1a5cb9-212b3ebca436d09)
+2025-09-22 09:55:07.857 - Execution context opened (H2 StagingDB; Main; 6)
+2025-09-22 09:55:07.880 - Error setting client application name: Client info name 'ApplicationName' not supported.
+2025-09-22 09:55:07.895 - Connected (h2_embedded_v2-1993f1a5cb9-212b3ebca436d09, H2 JDBC Driver [2.1.210 (2022-01-17)])
+2025-09-22 09:55:12.617 - Execution context closed (testdb, 5)
+2025-09-22 09:55:12.620 - Disconnected (h2_embedded_v2-19971ad4474-1061a59c085b58ca)
+2025-09-22 09:58:32.217 - org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "REQUEST" not found; SQL statement:
+DROP TABLE PUBLIC.REQUEST [42102-210]
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "REQUEST" not found; SQL statement:
+DROP TABLE PUBLIC.REQUEST [42102-210]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:521)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:496)
+	at org.h2.message.DbException.get(DbException.java:227)
+	at org.h2.message.DbException.get(DbException.java:203)
+	at org.h2.command.ddl.DropTable.prepareDrop(DropTable.java:64)
+	at org.h2.command.ddl.DropTable.update(DropTable.java:121)
+	at org.h2.command.CommandContainer.update(CommandContainer.java:174)
+	at org.h2.command.Command.executeUpdate(Command.java:252)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:252)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:223)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.execute(JDBCStatementImpl.java:328)
+	at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCStatementImpl.executeStatement(JDBCStatementImpl.java:132)
+	at org.jkiss.dbeaver.model.exec.DBExecUtils.executePersistAction(DBExecUtils.java:358)
+	at org.jkiss.dbeaver.model.impl.edit.AbstractObjectManager.executePersistAction(AbstractObjectManager.java:40)
+	at org.jkiss.dbeaver.model.impl.edit.AbstractCommandContext.executeCommands(AbstractCommandContext.java:198)
+	at org.jkiss.dbeaver.model.impl.edit.AbstractCommandContext.saveChanges(AbstractCommandContext.java:125)
+	at org.jkiss.dbeaver.ui.navigator.actions.NavigatorHandlerObjectBase$ObjectSaver.run(NavigatorHandlerObjectBase.java:297)
+	at org.jkiss.dbeaver.runtime.TasksJob.run(TasksJob.java:58)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+2025-09-22 09:58:44.931 - Dispose navigator model
+2025-09-22 09:58:45.039 - DBeaver is stopping
+2025-09-22 09:58:45.045 - Stop instance server
+2025-09-22 09:58:46.057 - DBeaver shutdown completed

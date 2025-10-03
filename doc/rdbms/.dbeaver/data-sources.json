@@ -8,7 +8,7 @@
 			"description": "H2 LocalDB",
 			"save-password": true,
 			"configuration": {
-				"url": "jdbc:h2:mem:stagingdb",
+				"url": "jdbc:h2:file:./stagingdb",
 				"configurationType": "URL",
 				"type": "dev",
 				"closeIdleConnection": true,

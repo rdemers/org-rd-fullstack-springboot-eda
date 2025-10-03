@@ -1,0 +1,101 @@
+2025-09-22 10:01:13.541 - DBeaver 25.2.1.202509211659 is starting
+2025-09-22 10:01:13.543 - OS: Windows 11 10.0 (amd64)
+2025-09-22 10:01:13.544 - Java version: 21.0.8 by Eclipse Adoptium (64bit)
+2025-09-22 10:01:13.544 - Install path: 'C:\STD\dbeaver'
+2025-09-22 10:01:13.545 - Instance path: 'file:/C:/lq-sdk/scm/org-rd-fullstack-springboot-eda/doc/'
+2025-09-22 10:01:13.549 - Memory available 64Mb/1024Mb
+2025-09-22 10:01:13.565 - Create display
+2025-09-22 10:01:13.991 - Initialize desktop platform...
+2025-09-22 10:01:14.543 - BounceCastle bundle found. Use JCE provider BC
+> Start Core File Systems [org.eclipse.core.filesystem 1.11.200.v20250513-1234]
+> Start Core Resource Management [org.eclipse.core.resources 3.22.200.v20250513-1234]
+> Start Team Support Core [org.eclipse.team.core 3.10.700.v20250313-0656]
+> Start DBeaver UI Navigator [org.jkiss.dbeaver.ui.navigator 1.0.163.202509211659]
+2025-09-22 10:01:15.113 - Initialize base platform...
+2025-09-22 10:01:15.184 - send collected statistics
+2025-09-22 10:01:15.227 - Platform initialized (1236ms)
+2025-09-22 10:01:15.614 - Starting instance server at http://localhost:61465
+2025-09-22 10:01:15.628 - Run workbench
+> Start Eclipse e4 Workbench SWT [org.eclipse.e4.ui.workbench.swt 0.17.800.v20250422-1254]
+> Start Eclipse Application Services [org.eclipse.e4.core.services 2.5.200.v20250326-1945]
+> Start Eclipse UI Application Services [org.eclipse.e4.ui.services 1.6.500.v20250123-0754]
+> Start Eclipse e4 Progress View [org.eclipse.e4.ui.progress 0.4.800.v20250422-1254]
+> Start Eclipse Bindings Support [org.eclipse.e4.ui.bindings 0.14.600.v20250331-1050]
+> Start Eclipse e4 core commands [org.eclipse.e4.core.commands 1.1.600.v20250307-1331]
+> Start EMF XML/XMI Persistence [org.eclipse.emf.ecore.xmi 2.39.0.v20250414-1351]
+> Start Eclipse CSS SWT Theme Support [org.eclipse.e4.ui.css.swt.theme 0.14.500.v20250213-1508]
+> Start Eclipse e4 Workbench Add-ons [org.eclipse.e4.ui.workbench.addons.swt 1.5.700.v20250422-1254]
+> Start Eclipse e4 Workbench SWT Renderer [org.eclipse.e4.ui.workbench.renderers.swt 0.16.800.v20250519-1609]
+> Start Eclipse Dependency Injection Extensions [org.eclipse.e4.core.di.extensions 0.18.300.v20240413-1529]
+> Start DBeaver AI Model [org.jkiss.dbeaver.model.ai 2.0.6.202509211659]
+> Start DBeaver AI UI [org.jkiss.dbeaver.ui.ai 1.0.65.202509211659]
+> Start Eclipse CSS SWT Support [org.eclipse.e4.ui.css.swt 0.15.600.v20250409-1135]
+2025-09-22 10:01:20.058 - Configure workbench window
+> Start DBeaver SQL Model [org.jkiss.dbeaver.model.sql 1.0.153.202509211659]
+2025-09-22 10:01:20.738 - Total database drivers: 128 (128)
+> Start Help System Core [org.eclipse.help 3.10.500.v20250423-1201]
+2025-09-22 10:01:20.930 - Create actions
+2025-09-22 10:01:20.952 - Disable Eclipse action set 'org.eclipse.ui.edit.text.actionSet.annotationNavigation'
+2025-09-22 10:01:20.954 - Disable Eclipse action set 'org.eclipse.ui.WorkingSetActionSet'
+2025-09-22 10:01:20.955 - Disable Eclipse action set 'org.eclipse.ui.actionSet.openFiles'
+2025-09-22 10:01:20.956 - Create workbench actions
+2025-09-22 10:01:22.577 - Initialize workbench window
+2025-09-22 10:01:22.603 - Finish initialization
+> Start Default Text Editor [org.eclipse.ui.editors 3.20.0.v20250514-1719]
+> Start Text Editor Framework [org.eclipse.ui.workbench.texteditor 3.19.200.v20250514-1719]
+> Start DBeaver UI Editors - Data [org.jkiss.dbeaver.ui.editors.data 1.0.163.202509211659]
+> Start Equinox Java Authentication and Authorization Service (JAAS) [org.eclipse.equinox.security 1.4.600.v20250521-0413]
+> Start Internet Connection Management UI [org.eclipse.ui.net 1.5.400.v20240413-1529]
+> Start Internet Connection Management [org.eclipse.core.net 1.5.700.v20250313-0656]
+> Start DBeaver UI Editors - SQL [org.jkiss.dbeaver.ui.editors.sql 1.0.163.202509211659]
+> Start DBeaver Sample Database [org.jkiss.dbeaver.ui.config.sample 1.0.200.202509211659]
+> Start GEF Classic Draw2d [org.eclipse.draw2d 3.20.0.202505280821]
+> Start GEF Classic GEF (MVC) [org.eclipse.gef 3.22.0.202505280821]
+> Start DBeaver ERD UI [org.jkiss.dbeaver.ui.editors.erd 3.1.4.202509211659]
+> Start DBeaver ERD Model [org.jkiss.dbeaver.model.erd 1.1.4.202509211659]
+> Start DBeaver Dashboard UI [org.jkiss.dbeaver.ui.dashboard 1.0.160.202509211659]
+2025-09-22 10:01:27.389 - Connect with 'H2 StagingDB' (h2_embedded_v2-1993f1a5cb9-212b3ebca436d09)
+> Start DBeaver JDBC Model [org.jkiss.dbeaver.model.jdbc 1.0.56.202509211659]
+> Start DBeaver Generic Plug-in [org.jkiss.dbeaver.ext.generic 2.3.249.202509211659]
+> Start DBeaver H2 Model [org.jkiss.dbeaver.ext.h2 1.0.218.202509211659]
+2025-09-22 10:01:27.655 - Execution context opened (H2 StagingDB; Main; 0)
+2025-09-22 10:01:28.295 - Error setting client application name: Client info name 'ApplicationName' not supported.
+2025-09-22 10:01:28.490 - Connected (h2_embedded_v2-1993f1a5cb9-212b3ebca436d09, H2 JDBC Driver [2.1.210 (2022-01-17)])
+> Start DBeaver SQL Language Semantic Model [org.jkiss.dbeaver.model.lsm 1.0.58.202509211659]
+> Start DBeaver Generic UI Plug-in [org.jkiss.dbeaver.ext.generic.ui 1.0.139.202509211659]
+> Start DBeaver UI Editors - Entity [org.jkiss.dbeaver.ui.editors.entity 1.0.163.202509211659]
+2025-09-22 10:03:11.165 - Can't get column 'KEY_SEQ': Column "KEY_SEQ" not found [42122-210]
+> Start DBeaver SQL Terminal [org.jkiss.dbeaver.ui.editors.sql.terminal 1.0.139.202509211659]
+> Start Core Compare Support [org.eclipse.compare.core 3.8.700.v20250120-0641]
+> Start Console [org.eclipse.ui.console 3.14.300.v20250509-1251]
+> Start Debug Core [org.eclipse.debug.core 3.23.0.v20250509-1924]
+2025-09-22 10:05:35.229 - Error while analyzing query text: CREATE TABLE PUBLIC.REQUEST (
+	REQUEST_ID INTEGER NOT NULL AUTO_INCREMENT,
+	CUSTOMER_ID INTEGER,
+	PRODUCT_ID INTEGER,
+	QTY INTEGER NOT NULL,
+	STATUS INTEGER NOT NULL,
+	CONSTRAINT REQUEST_PK PRIMARY KEY (REQUEST_ID),
+	CONSTRAINT REQUEST_CUSTOMER_FK FOREIGN KEY (CUSTOMER_ID) REFERENCES PUBLIC.CUSTOMER(CUSTOMER_ID) ON DELETE RESTRICT ON UPDATE RESTRICT,
+	CONSTRAINT REQUEST_PRODUCT_FK FOREIGN KEY (PRODUCT_ID) REFERENCES PUBLIC.PRODUCT(PRODUCT_ID) ON DELETE RESTRICT ON UPDATE RESTRICT
+)
+java.lang.IllegalStateException: Rows data was not resolved yet
+	at org.jkiss.dbeaver.model.sql.semantics.model.select.SQLQueryRowsSourceModel.getRowsDataContext(SQLQueryRowsSourceModel.java:52)
+	at org.jkiss.dbeaver.model.sql.semantics.model.ddl.SQLQueryColumnConstraintSpec.propagateForReferencedEntity(SQLQueryColumnConstraintSpec.java:118)
+	at org.jkiss.dbeaver.model.sql.semantics.model.ddl.SQLQueryTableConstraintSpec.resolveRelations(SQLQueryTableConstraintSpec.java:116)
+	at org.jkiss.dbeaver.model.sql.semantics.model.ddl.SQLQueryTableCreateModel.resolveObjectAndRowsReferences(SQLQueryTableCreateModel.java:139)
+	at org.jkiss.dbeaver.model.sql.semantics.model.SQLQueryModel.resolveRelations(SQLQueryModel.java:72)
+	at org.jkiss.dbeaver.model.sql.semantics.SQLQueryModelRecognizer.recognizeQuery(SQLQueryModelRecognizer.java:155)
+	at org.jkiss.dbeaver.model.sql.semantics.SQLQueryModelRecognizer.recognizeQuery(SQLQueryModelRecognizer.java:1024)
+	at org.jkiss.dbeaver.ui.editors.sql.semantics.SQLBackgroundParsingJob.doWork(SQLBackgroundParsingJob.java:605)
+	at org.jkiss.dbeaver.ui.editors.sql.semantics.SQLBackgroundParsingJob$1.run(SQLBackgroundParsingJob.java:85)
+	at org.jkiss.dbeaver.model.runtime.AbstractJob.run(AbstractJob.java:119)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+2025-09-22 10:05:48.973 - Cannot find table 'ORDER' in 'PUBLIC'
+2025-09-22 10:05:48.977 - PK (1) or FK (4) table(s) not found for relation ORDER_CUSTOMER_FK
+2025-09-22 10:05:48.978 - PK (2) or FK (4) table(s) not found for relation ORDER_PRODUCT_FK
+2025-09-22 10:09:54.516 - Dispose navigator model
+2025-09-22 10:09:54.545 - DBeaver is stopping
+2025-09-22 10:09:54.546 - Stop instance server
+2025-09-22 10:09:55.551 - Instance server has been stopped
+2025-09-22 10:09:55.552 - DBeaver shutdown completed

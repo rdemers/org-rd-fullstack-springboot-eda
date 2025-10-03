@@ -8,7 +8,21 @@
 			"description": "H2 LocalDB",
 			"save-password": true,
 			"configuration": {
-				"url": "jdbc:h2:mem:localdb",
+				"url": "jdbc:h2:file:./stagingdb",
+				"configurationType": "URL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native"
+			}
+		},
+		"h2_embedded_v2-19971ad4474-1061a59c085b58ca": {
+			"provider": "h2",
+			"driver": "h2_embedded_v2",
+			"name": "testdb",
+			"save-password": true,
+			"configuration": {
+				"database": "jdbc:h2:mem:/testdb",
+				"url": "jdbc:h2:mem:testdb",
 				"configurationType": "URL",
 				"type": "dev",
 				"closeIdleConnection": true,

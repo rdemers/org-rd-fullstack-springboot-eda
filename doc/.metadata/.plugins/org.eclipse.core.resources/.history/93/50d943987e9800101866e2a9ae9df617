@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="StagingDB.erd">
+	<entities>
+		<data-source id="h2_embedded_v2-1993f1a5cb9-212b3ebca436d09">
+			<entity id="1" name="CUSTOMER" fq-name="PUBLIC.CUSTOMER" order="0" border-width="3" x="443" y="29">
+				<path name="PUBLIC"/>
+			</entity>
+			<entity id="2" name="PRODUCT" fq-name="PUBLIC.PRODUCT" order="1" x="241" y="229">
+				<path name="PUBLIC"/>
+			</entity>
+			<entity id="3" name="INVENTORY" fq-name="PUBLIC.INVENTORY" order="2" x="40" y="250">
+				<path name="PUBLIC"/>
+			</entity>
+			<entity id="4" name="REQUEST" fq-name="PUBLIC.REQUEST" order="3" x="40" y="40">
+				<path name="PUBLIC"/>
+			</entity>
+		</data-source>
+	</entities>
+	<relations>
+		<relation name="INVENTORY_PRODUCT_FK" fq-name="PUBLIC.INVENTORY.INVENTORY_PRODUCT_FK" type="fk" pk-ref="2" fk-ref="3"/>
+		<relation name="REQUEST_PRODUCT_FK" fq-name="PUBLIC.REQUEST.REQUEST_PRODUCT_FK" type="fk" pk-ref="2" fk-ref="4"/>
+	</relations>
+</diagram>

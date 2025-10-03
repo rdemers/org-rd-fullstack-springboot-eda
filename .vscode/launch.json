@@ -1,21 +1,21 @@
 {
     "version": "0.2.0",
     "configurations": [
-
-        {
-            "type": "java",
-            "name": "Current File",
-            "request": "launch",
-            "mainClass": "${file}"
-        },
-        {
-            "type": "java",
-            "name": "Application",
-            "request": "launch",
-            "mainClass": "org.rd.fullstack.springbootnuxt.config.Application",
-            "projectName": "springboot-nuxt"
-        },
-        {
+      {
+        "type": "java",
+        "name": "Current File",
+        "request": "launch",
+        "mainClass": "${file}"
+      },
+      {
+        "type": "java",
+        "name": "server: Spring Boot Application",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "console": "internalConsole",
+        "mainClass": "org.rd.fullstack.springbooteda.config.Application"
+      },
+      {
         "type": "chrome",
         "name": "client: chrome",
         "request": "launch",

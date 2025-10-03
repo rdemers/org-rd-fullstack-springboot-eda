@@ -1,6 +1,8 @@
+driver.selector.orderBy=score
 eclipse.preferences.version=1
 navigator.show.objects.description=true
+org.jkiss.dbeaver.core.confirm.drop_sql=always
 sample.database.canceled=true
 tipOfTheDayInitializer.notFirstRun=true
-ui.auto.update.check.time=1758222973958
+ui.auto.update.check.time=1758631557456
 ui.show.tip.of.the.day.on.startup=false

@@ -18,7 +18,7 @@ logging:
     name: log/springboot-eda-log.json
   structured: 
     format:
-      console: ecs
+      # console: ecs
       file: ecs
     ecs:
       service:
@@ -34,24 +34,30 @@ spring:
     timeout-per-shutdown-phase: 45s
   h2:
     console:
-      enabled: false # Doesn't work well with Spring/Security.
+      enabled: true
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:stagingdb
     driverClassName: org.h2.Driver
     username: sa
     password:
+  sql:
+    init:
+      mode: always
   jpa:
+    defer-datasource-initialization: true
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
-        ddl-auto: update
-#
-org:
-  rd:
-    fullstack:
-      springbooteda:
-        secret: the.beautiful.secret.key.to.change
-        expiration: 30000
-        authorities: rd.roles
+        ddl-auto: none
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: org-rd-eda-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 #
