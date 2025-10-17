@@ -12,12 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * References:
+ * - https://docs.enterprise.spring.io/spring-kafka/reference/testing.html
+ * - https://www.baeldung.com/spring-kafka
+ * - https://www.baeldung.com/spring-boot-kafka-testing 
+ * 
  */
 
 package org.rd.fullstack.springbooteda;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,10 +37,11 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.rd.fullstack.springbooteda.config.Application;
+import org.rd.fullstack.springbooteda.util.KafkaToolBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 /*
  * See POM.XML file
@@ -39,10 +49,12 @@ import org.springframework.test.context.web.WebAppConfiguration;
  * - Unit tests VS integrated tests.
  */
 @SpringBootTest(classes = Application.class)
-@WebAppConfiguration
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DisplayName("KAFKA and producer/consomer demo and tests.")
+@DisplayName("KAFKA toolbox, producer, consumer demo and tests.")
 public class T2000_KAFKA_UT_Tests {
+
+    @Autowired
+    private KafkaToolBox kafkaToolBox;   
 
     private static final Logger logger = LoggerFactory.getLogger(T2000_KAFKA_UT_Tests.class);
 
@@ -57,7 +69,7 @@ public class T2000_KAFKA_UT_Tests {
 
     @AfterAll
     static void tearDownAfterAll() {
-         logger.info("@BeforeAll - Run once after all test methods of this class.");
+        logger.info("@BeforeAll - Run once after all test methods of this class.");
     }
 
     @BeforeEach
@@ -72,10 +84,16 @@ public class T2000_KAFKA_UT_Tests {
 
     @Test
     @Order(1)
-    public void personRepositoryDemoTest() throws Exception {
+    public void kafkaToolBoxStartStopDemoTest() throws Exception {
 
-        assertNotNull(this);
-        logger.info("null");
-        assertEquals(1,1);
+        logger.info("kafkaToolBoxStartStopDemoTest");
+
+        assertFalse(kafkaToolBox.isbStated());
+        kafkaToolBox.startKafkaBroker();
+
+        assertTrue(kafkaToolBox.isbStated());
+        kafkaToolBox.stopKafkaBroker();
+
+        assertFalse(kafkaToolBox.isbStated());
      }
 }

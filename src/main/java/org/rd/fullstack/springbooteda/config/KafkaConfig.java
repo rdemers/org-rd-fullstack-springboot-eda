@@ -15,13 +15,9 @@
  */
 package org.rd.fullstack.springbooteda.config;
 
+import org.rd.fullstack.springbooteda.util.KafkaToolBox;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.test.EmbeddedKafkaKraftBroker;
-
-//https://docs.enterprise.spring.io/spring-kafka/reference/testing.html
-//https://www.baeldung.com/spring-kafka
-//https://www.baeldung.com/spring-boot-kafka-testing
 
 @Configuration
 public class KafkaConfig {
@@ -31,13 +27,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public EmbeddedKafkaKraftBroker embeddedKafkaBroker() {
-        EmbeddedKafkaKraftBroker embeddedKafkaBroker = 
-            new EmbeddedKafkaKraftBroker(1, 10, "topic_1", "topic_2");
-        
-        embeddedKafkaBroker.afterPropertiesSet(); // Will start the broker.
-
-        System.setProperty("spring.kafka.bootstrap-servers", embeddedKafkaBroker.getBrokersAsString());
-        return embeddedKafkaBroker;
+    public KafkaToolBox getKafkaToolBox() {
+        return KafkaToolBox.getInstance();
     }
 }   

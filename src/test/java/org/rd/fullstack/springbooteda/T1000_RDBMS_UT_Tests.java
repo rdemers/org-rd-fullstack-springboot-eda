@@ -48,7 +48,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 /*
  * See POM.XML file
@@ -56,7 +55,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
  * - Unit tests VS integrated tests.
  */
 @SpringBootTest(classes = Application.class)
-@WebAppConfiguration
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("Database and repositories demo and tests.")
 public class T1000_RDBMS_UT_Tests {
