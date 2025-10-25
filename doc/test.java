@@ -23,10 +23,37 @@ public void whenGeneratingUUIDUsingNewJPAGenerationType_thenHibernateGeneratedUU
     Assertions.assertThat(saved).isNotNull();
     Assertions.assertThat(saved.version()).isEqualTo(4);
 }    
+
+
+
 }
 
 /*
- * 
+ * @Service
+public class KafkaProducer {
+
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
+    public KafkaProducer(KafkaTemplate<String, String> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void sendMessage(String topic, String message) {
+        kafkaTemplate.send(topic, message);
+    }
+}
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
+@Component
+public class KafkaConsumer {
+
+    @KafkaListener(topics = "my-topic", groupId = "my-group")
+    public void listen(String message) {
+        System.out.println("Message reçu : " + message);
+    }
+
+
  * @Id @GeneratedValue
 private UUID id;
 if you want the UUID to be generated.

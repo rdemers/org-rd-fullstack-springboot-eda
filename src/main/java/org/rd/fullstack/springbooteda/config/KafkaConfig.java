@@ -15,10 +15,22 @@
  */
 package org.rd.fullstack.springbooteda.config;
 
-import org.rd.fullstack.springbooteda.util.KafkaToolBox;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.rd.fullstack.springbooteda.util.KafkaBroker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 
+@EnableKafka
 @Configuration
 public class KafkaConfig {
 
@@ -27,7 +39,66 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaToolBox getKafkaToolBox() {
-        return KafkaToolBox.getInstance();
+    public KafkaBroker getKafkaToolBox() {
+        return KafkaBroker.getInstance();
     }
-}   
+
+    @Bean
+    public ProducerFactory<String, String> producerFactory() {       
+        return new DefaultKafkaProducerFactory<String, String>(producerConfigs());
+    }
+
+    @Bean
+    public Map<String, Object> producerConfigs() {
+        // For more properties, see : https://kafka.apache.org/documentation/#producerconfigs 
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        
+        return props;
+    }
+
+    //@Bean
+    public KafkaTemplate<String, String> kafkaTemplate() {
+        return new KafkaTemplate<String, String>(producerFactory());
+    }
+
+    //@Bean
+    public KafkaTemplate<String, String> stringTemplate(ProducerFactory<String, String> pf) {
+        return new KafkaTemplate<>(pf);
+    }
+
+    //@Bean
+    public KafkaTemplate<String, byte[]> bytesTemplate(ProducerFactory<String, byte[]> pf) {
+        return new KafkaTemplate<>(pf,
+            Collections.singletonMap(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class));
+    }
+
+    public void sendToKafka(final String data) {
+        final ProducerRecord<String, String> record = createRecord(data);
+//
+  //      try {
+            //kafkaTemplate().send(record).get(10, TimeUnit.SECONDS);
+            int l = 0;
+        handleSuccess(data);
+    //}
+    //catch (ExecutionException e) {
+        //handleFailure(data, record, e.getCause());
+    //}
+    //catch (TimeoutException | InterruptedException e) {
+        //handleFailure(data);
+    //}
+}
+
+    private void handleSuccess(String data) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleSuccess'");
+    }
+
+    private ProducerRecord<String, String> createRecord(String data) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'createRecord'");
+    }
+// https://docs.spring.io/spring-kafka/reference/kafka/sending-messages.html
+}
