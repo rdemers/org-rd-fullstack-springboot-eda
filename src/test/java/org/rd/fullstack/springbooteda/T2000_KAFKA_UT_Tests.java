@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.rd.fullstack.springbooteda.config.Application;
-import org.rd.fullstack.springbooteda.util.KafkaBroker;
+import org.rd.fullstack.springbooteda.util.KafkaSandbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +57,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class T2000_KAFKA_UT_Tests {
 
     @Autowired
-    private KafkaBroker kafkaBroker;   
+    private KafkaSandbox kafkaBroker;   
 
     private static final Logger logger = LoggerFactory.getLogger(T2000_KAFKA_UT_Tests.class);
 
@@ -89,51 +89,55 @@ public class T2000_KAFKA_UT_Tests {
     @Order(1)
     public void kafkaBrokerStartStopDemoTest() throws Exception {
 
-        assertFalse(kafkaBroker.isbStated());
+        assertFalse(kafkaBroker.isStarted());
         kafkaBroker.start();
 
-        assertTrue(kafkaBroker.isbStated());
+        assertTrue(kafkaBroker.isStarted());
         kafkaBroker.stop();
 
-        assertFalse(kafkaBroker.isbStated());
+        assertFalse(kafkaBroker.isStarted());
      }
 
     @Test
     @Order(2)
     public void kafkaBrokerPropertiesDemoTest() throws Exception {
 
-        assertFalse(kafkaBroker.isbStated());
+        assertFalse(kafkaBroker.isStarted());
         kafkaBroker.start();
 
         String properties = kafkaBroker.getBrokerProperties();
         assertNotNull(properties);
         logger.info(properties);
 
-        assertTrue(kafkaBroker.isbStated());
+        assertTrue(kafkaBroker.isStarted());
         kafkaBroker.stop();
 
-        assertFalse(kafkaBroker.isbStated());
+        assertFalse(kafkaBroker.isStarted());
      }
 
     @Test
     @Order(3)
     public void kafkaBrokerTopicsDemoTest() throws Exception {
 
-        assertFalse(kafkaBroker.isbStated());
+        assertFalse(kafkaBroker.isStarted());
         kafkaBroker.start();
 
         kafkaBroker.addTopics(new NewTopic("topic1", 10, (short)1));
-        kafkaBroker.addTopics(new NewTopic("topic2", 10, (short)1));
+        kafkaBroker.addTopics(new NewTopic("topic2", 10, (short)1),
+                              new NewTopic("topic3", 10, (short)1));
+
+        kafkaBroker.addTopic("topic4", 10, (short)1);
+        kafkaBroker.addTopic("topic5", 10, (short)1);
         Set<String> topics = kafkaBroker.getTopics();
 
         assertNotNull(topics);
-        assertEquals(2, topics.size());
+        assertEquals(5, topics.size());
 
         logger.info(topics.toString());
 
-        assertTrue(kafkaBroker.isbStated());
+        assertTrue(kafkaBroker.isStarted());
         kafkaBroker.stop();
 
-        assertFalse(kafkaBroker.isbStated());
+        assertFalse(kafkaBroker.isStarted());
      }
 }

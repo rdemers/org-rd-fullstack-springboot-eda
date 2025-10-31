@@ -22,7 +22,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.rd.fullstack.springbooteda.util.KafkaBroker;
+import org.rd.fullstack.springbooteda.util.KafkaSandbox;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -39,11 +39,11 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaBroker getKafkaToolBox() {
-        return KafkaBroker.getInstance();
+    public KafkaSandbox getKafkaToolBox() {
+        return new KafkaSandbox();
     }
 
-    @Bean
+    //@Bean
     public ProducerFactory<String, String> producerFactory() {       
         return new DefaultKafkaProducerFactory<String, String>(producerConfigs());
     }

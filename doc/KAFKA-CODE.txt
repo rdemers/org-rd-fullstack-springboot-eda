@@ -1,0 +1,347 @@
+@Bean
+public ProducerFactory<Long, Object> producerFactory() {
+    Map<String, Object> configProps = new HashMap<>();
+    configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+    configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
+    configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+    // Garder les informations de type dans les en-têtes
+    // (utile si tu veux désérialiser automatiquement côté consumer)
+    configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, true);
+
+    return new DefaultKafkaProducerFactory<>(configProps);
+}
+
+@Bean
+public KafkaTemplate<Long, Object> kafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
+}
+
+
+configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, true);
+
+
+
+package com.example.demo.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.LongDeserializer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@EnableKafka
+@Configuration
+public class KafkaConsumerConfig {
+
+    @Bean
+    public DefaultKafkaConsumerFactory<Long, Object> consumerFactory(ObjectMapper objectMapper) {
+        JsonDeserializer<Object> deserializer = new JsonDeserializer<>(Object.class, objectMapper, false);
+        deserializer.addTrustedPackages("*"); // Autorise toutes les classes à être désérialisées
+        deserializer.ignoreTypeHeaders(false); // On lit les _type headers envoyés par le producer
+
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "generic-consumer-group");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+
+        return new DefaultKafkaConsumerFactory<>(props, new LongDeserializer(), deserializer);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<Long, Object> kafkaListenerContainerFactory(
+            DefaultKafkaConsumerFactory<Long, Object> consumerFactory) {
+
+        ConcurrentKafkaListenerContainerFactory<Long, Object> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory);
+        return factory;
+    }
+}
+
+
+package com.example.demo.consumer;
+
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Component;
+
+@Component
+public class GenericEventConsumer {
+
+    @KafkaListener(topics = "events-topic", groupId = "generic-consumer-group")
+    public void listen(@Payload Object event) {
+        System.out.println("📥 Reçu un événement : " + event);
+        System.out.println("Type réel : " + event.getClass().getName());
+    }
+}
+
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: generic-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.example.demo.model"
+        spring.json.use.type.headers: true
+
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+
+
+
+package com.example.demo.config;
+
+import org.apache.kafka.common.serialization.LongDeserializer;
+import org.springframework.boot.autoconfigure.kafka.ConcurrentKafkaListenerContainerFactoryConfigurer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+
+@EnableKafka
+@Configuration
+public class KafkaConsumerConfig {
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<Long, Object> kafkaListenerContainerFactory(
+            ConcurrentKafkaListenerContainerFactoryConfigurer configurer,
+            ConsumerFactory<Long, Object> consumerFactory) {
+
+        ConcurrentKafkaListenerContainerFactory<Long, Object> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        configurer.configure(factory, consumerFactory);
+        return factory;
+    }
+}
+
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class KafkaPropertiesExample {
+
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
+    // Par exemple, l’afficher ou l’utiliser
+    @PostConstruct
+    public void logKafkaServer() {
+        System.out.println("Kafka connecté à : " + bootstrapServers);
+    }
+}
+
+
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: true
+
+
+
+
+package com.example.demo.config;
+
+import com.example.demo.model.UserEvent;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+
+
+
+Spring Boot auto-configure déjà le ProducerFactory et le KafkaTemplate si les propriétés spring.kafka.producer.* sont présentes.
+@Configuration
+@EnableKafka
+public class KafkaProducerConfig {
+
+    // Ici, Spring Boot injecte automatiquement la bonne factory
+    @Bean
+    public KafkaTemplate<Long, Object> kafkaTemplate(ProducerFactory<Long, Object> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
+    }
+}
+
+
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class KafkaPropertiesLogger {
+
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
+    @PostConstruct
+    public void printKafkaServers() {
+        System.out.println("✅ Kafka Producer connecté à : " + bootstrapServers);
+    }
+}
+
+
+package com.example.demo.service;
+
+import com.example.demo.model.UserEvent;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserEventProducer {
+
+    private final KafkaTemplate<Long, Object> kafkaTemplate;
+
+    public UserEventProducer(KafkaTemplate<Long, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void sendUserEvent(Long userId, String action) {
+        UserEvent event = new UserEvent(String.valueOf(userId), action, System.currentTimeMillis());
+        kafkaTemplate.send("events-topic", userId, event);
+        System.out.println("📤 Message envoyé : " + event);
+    }
+}
+
+
+
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+
+@SpringBootTest
+@EmbeddedKafka(partitions = 1, topics = { "events-topic" })
+public class UserEventProducerTest {
+
+    @DynamicPropertySource
+    static void overrideKafkaBootstrap(DynamicPropertyRegistry registry) {
+        registry.add("spring.kafka.bootstrap-servers",
+            () -> System.getProperty("spring.embedded.kafka.brokers"));
+    }
+
+    // Tes tests ici...
+}
+
+
+
+package com.example.demo;
+
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+
+public class ManualEmbeddedKafkaExample {
+
+    public static void main(String[] args) {
+        // 🔹 1️⃣ Créer un broker Kafka embarqué avec 1 broker et 1 partition
+        EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1, true, 1, "test-topic");
+        
+        // 🔹 2️⃣ Démarrer le broker
+        embeddedKafka.afterPropertiesSet(); // équivalent à "start()"
+
+        String bootstrapServers = embeddedKafka.getBrokersAsString();
+        System.out.println("🚀 Kafka embarqué démarré sur : " + bootstrapServers);
+
+        // 🔹 3️⃣ Créer un producer Kafka (simple)
+        var producerProps = Map.of(
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class
+        );
+
+        try (var producer = new KafkaProducer<String, String>(producerProps)) {
+            producer.send(new ProducerRecord<>("test-topic", "key1", "Hello Kafka Embedded!"));
+            producer.flush();
+            System.out.println("✅ Message envoyé !");
+        }
+
+        // 🔹 4️⃣ Créer un consumer Kafka pour lire le message
+        var consumerProps = Map.of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                ConsumerConfig.GROUP_ID_CONFIG, "test-group",
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class
+        );
+
+        try (var consumer = new KafkaConsumer<String, String>(consumerProps)) {
+            consumer.subscribe(List.of("test-topic"));
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(3));
+            records.forEach(record ->
+                System.out.printf("📥 Reçu : key=%s, value=%s, topic=%s%n",
+                        record.key(), record.value(), record.topic())
+            );
+        }
+
+        // 🔹 5️⃣ Arrêter le broker proprement
+        embeddedKafka.destroy();
+        System.out.println("🛑 Kafka embarqué arrêté.");
+    }
+}
+
+
+EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1, true, 1, "test-topic");
+
+// ⚡ FORCER LE PORT AVANT de démarrer le broker
+embeddedKafka.kafkaPorts(9093);
+
+// démarrer le broker
+embeddedKafka.afterPropertiesSet();
+
+System.out.println("Kafka embarqué démarré sur : " + embeddedKafka.getBrokersAsString());
+
+
+
+
+try (var socket = new java.net.ServerSocket(9093)) {
+    System.out.println("Port 9093 libre !");
+} catch (Exception e) {
+    System.out.println("Port 9093 déjà utilisé !");
+}
+
+
+
+@DynamicPropertySource
+static void overrideKafkaBootstrap(DynamicPropertyRegistry registry) {
+    EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1, true, 1, "events-topic");
+    embeddedKafka.kafkaPorts(9093);      // ⚡ port forcé
+    embeddedKafka.afterPropertiesSet();  // démarrage
+
+    registry.add("spring.kafka.bootstrap-servers", embeddedKafka::getBrokersAsString);
+}
+
+
+
+
+
