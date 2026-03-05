@@ -1,0 +1,175 @@
+{
+    "common" : {
+        "button" : {
+            "edit"   : "Modifier",
+            "delete" : "Supprimer",
+            "cancel" : "Annuler",
+            "ok"     : "Ok",
+            "add"    : "Ajouter",
+            "action" : "Action"
+        },
+        "message": {
+            "createsuccess": "Création réussie !",
+            "updatesuccess": "Modifications enregistrées !",
+            "deletesuccess": "Élément supprimé avec succès.",
+            "selectfailed" : "Erreur lors de la lecture des données.\n Message du serveur: {message}.",
+            "createfailed" : "Échec de la création de l'élément.\n Message du serveur: {message}.",
+            "updatefailed" : "Échec de la mise à jour de l'élément.\n Message du serveur: {message}.",
+            "deletefailed" : "Échec de la suppression de l'élément.\n Message du serveur: {message}."
+        },
+        "label" : {
+            "action"       : "Action",
+            "confirmation" : "Confirmation",
+            "nodata"       : "Aucune donnée disponible",
+            "askdelete"    : "Êtes-vous sûr de vouloir supprimer cet élément ?",
+            "all"          : "Tous",
+            "itemsperpage" : "Éléments par page",
+            "of"           : "de"
+        },
+        "alert" : {
+            "title" : "Exception interne",
+            "text"  : "Une erreur est survenue en accédant les services."
+        },
+        "rule" : {
+            "chars"             : "Caractères.",
+            "required"          : "Le champ {field} est obligatoire",
+            "integer"           : "Le champ {field} doit être entier",
+            "min"               : "{field} doit contenir au moins {min} caractères",
+            "max"               : "{field} doit contenir au plus {min} caractères",
+            "positive"          : "Le montant doit être positif",
+            "invalid"           : "Format invalide",
+            "precision"         : "Maximum 2 décimales",
+            "invalidamount"     : "Montant invalide (ex: 1234,56)",
+            "multipledecimals"  : "Un seul séparateur décimal autorisé",
+            "lettersnotallowed" : "Les lettres ne sont pas autorisées",
+            "maxdecimals"       : "Maximum {decimals} décimales"
+        }
+    },
+    "layout" : {
+        "theme-light"    : "Clair",
+        "theme-dark"     : "Foncé",
+        "home"           : "Bienvenue",
+        "database"       : "Base de données",
+        "infrastructure" : "Infrastructure",
+        "persons"        : "Personnes",
+        "products"       : "Produits",
+        "inventories"    : "Inventaires",
+        "requests"       : "Demandes",
+        "kafka"          : "Kafka",
+        "flink"          : "Flink",
+        "operations"     : "Operations",
+        "about"          : "A propos"
+    },
+    "index" : {
+        "welcome"  : "Bienvenue au Fullstack - SPRINGBOOT/EDA",
+        "sommaire" : "Cette application offre les bases essentielles pour travailler avec une architecture orientée événements (EDA). Have fun !!! ",
+        "techno"   : "Les technologies utilisées par cette application sont les suivantes:",
+        "techno1"  : "Spring Boot - Facilite la création d'applications JAVA/Services/REST.",
+        "techno2"  : "Apache Kafka – Une plateforme de streaming distribuée.",
+        "techno3"  : "Apache Flink - Une plateforme de traitement de flux.",
+        "techno4"  : "Nuxt - Le framework Vue intuitif.",
+        "techno5"  : "Vue - Le framework JavaScript progressif.",
+        "techno6"  : "Vuetify - Composantes UX/UI pour Vue.",
+        "scm"      : "Source Github"
+    },
+    "person" : {
+        "id"          : "ID",
+        "firstname"   : "Prénom",
+        "lastname"    : "Nom",
+        "balance"     : "Solde",
+        "title": {
+            "add": "Ajouter une personne",
+            "edit": "Modifier la personne"
+        }
+    },
+    "product" : {
+        "id"          : "ID",
+        "code"       : "Code",
+        "description": "Description",
+        "price"     : "Prix",
+        "title": {
+            "add": "Ajouter un produit",
+            "edit": "Modifier le produit"
+        }
+    },
+    "inventory" : {
+        "id"           : "ID",
+        "productcode"  : "Code du produit",
+        "productdescr" : "Description du produit",
+        "qty"          : "Quantité",
+        "title": {
+            "add" : "Ajouter à l'inventaire",
+            "edit": "Modifier l'inventaire"
+        }
+    },
+    "request" : {
+        "id"              : "ID",
+        "personfirstname" : "Prénom",
+        "personlastname"  : "Nom",
+        "productcode"     : "Code du produit",
+        "productdescr"    : "Description du produit",
+        "qty"             : "Quantité",
+        "stroperation"    : "Opération",
+        "strresult"       : "Résultat",
+        "title": {
+            "add" : "Ajouter à la demande",
+            "edit": "Modifier la demande"
+        }
+    },
+    "operation" : {
+        "credit"     : "Crédit",
+        "debit"      : "Débit",
+        "refill"     : "Ravitaillement",
+        "regenerate" : "Erreur interne. Contacter le support.",
+        "error"      : "Erreur d'opération",
+        "unknown"    : "Opération inconnue"
+    },
+    "result" : {
+        "pending"    : "En attente",
+        "back_order" : "Commande en souffrance",
+        "executed"   : "Exécuté",
+        "error"      : "Erreur d'opération",
+        "unknown"    : "Résultat inconnu"
+    },
+    "kafka" : {
+        "title"        : "Kafka sandbox dashboard",
+        "sync"         : "Dernière SYNC: ",
+        "cluster_id"   : "Noeud ID:",
+        "address"      : "Tcp/Ip:",
+        "topics"       : "TOPIQUES",
+        "no_topics"    : "Aucun topique !!!",
+        "name"         : "Nom",
+        "partitions"   : "Partitions",
+        "replicas"     : "Replicas",
+        "consumer"     : "GROUPEs CONSOMMATEUR & LAG",
+        "no_consumers" : "Aucun consommateur actif !!!",
+        "groupid"      : "Groupe ID",
+        "status"       : "Statut",
+        "lag"          : "Lag total",
+        "monitor"      : "Moniteur en direct"
+    },
+    "about" : {
+        "licence01" : "Licence Apache",
+        "licence02" : "Version 2.0, janvier 2004",
+        "licence03" : "http://www.apache.org/licenses/",
+        "licence04" : "CONDITIONS GÉNÉRALES D'UTILISATION, DE REPRODUCTION ET DE DISTRIBUTION",
+        "licence05" : "Copyright 2026 - Réal Demers",
+        "licence06" : "Licence sous la licence Apache, version 2.0 (la 'Licence');",
+        "licence07" : "vous ne pouvez utiliser ce fichier qu'en conformité avec la Licence.",
+        "licence08" : "Vous pouvez obtenir une copie de la Licence sur",
+        "licence09" : "Licence Apache",
+        "licence10" : "Sauf si requis par la loi applicable ou convenu par écrit, logiciel",
+        "licence11" : "distribué sous la licence est distribué sur une BASE 'EN L'ÉTAT'",
+        "licence12" : "SANS GARANTIE OU CONDITION D'AUCUNE SORTE, expresse ou tacite.",
+        "licence13" : "Voir la licence pour la langue spécifique régissant les autorisations et",
+        "licence14" : "limitations sous la Licence."
+    },
+    "error" : {
+        "title"       : "Fenêtre d'exception",
+        "exception"   : "Exception applicative",
+        "detail"      : "Détails Technique (Stacktrace)",
+        "status_code" : "Code statut",
+        "go_home"     : "Retour à la page d'accueil",
+        "msg_error"   : "Erreur interne. Appeler le support."
+    }
+}

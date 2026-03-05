@@ -1,0 +1,57 @@
+{"properties": [
+  {
+    "name": "org.rd.fullstack.springbooteda.kafka.sandbox.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Whether to start the cluster (Yes/No)."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.kafka.sandbox.clusters",
+    "type": "java.lang.Integer",
+    "description": "Number of nodes for the cluster."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.kafka.sandbox.cluster-partitions",
+    "type": "java.lang.Short",
+    "description": "Number of partitions for the cluster."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.kafka.sandbox.concurrency",
+    "type": "java.lang.Integer",
+    "description": "Specify the container concurrency."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Whether to start the cluster (Yes/No)."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.rest-port",
+    "type": "java.lang.Integer",
+    "description": "Rest endpoint port."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.job-manager-port",
+    "type": "java.lang.Integer",
+    "description": "Job manager port."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.task-manager-rpc-port",
+    "type": "java.lang.String",
+    "description": "Task manager RPC port."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.num-task-managers",
+    "type": "java.lang.Integer",
+    "description": "Number of task managers."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.num-slots-per-task-manager",
+    "type": "java.lang.Integer",
+    "description": "Number of slots per task manager."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.active-metrics",
+    "type": "java.lang.Boolean",
+    "description": "Activate metrics collection and exposition."
+  }
+]}

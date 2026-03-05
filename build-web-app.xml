@@ -1,0 +1,97 @@
+<!--
+ * Copyright 2026; Réal Demers.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ -->
+
+<project name="web-app-jamstack" basedir="." xmlns:if="ant:if" xmlns:unless="ant:unless">
+
+    <!-- Directories -->
+    <property name="src.dir"       location="src/frontend"/>
+    <property name="build.dir"     location="src/frontend/.output/public"/>
+    <property name="main-app.dir"  location="src/main/resources/static/app"/>
+    <property name="test-app.dir"  location="src/test/resources/static/app"/>
+    <property name="jamstack.flag" location="src/main/resources/static/app/.jamstack"/>
+
+    <!-- Auto detect npm executable -->
+    <condition property="npm.exec" value="npm.cmd">
+        <os family="windows"/>
+    </condition>
+    <condition property="npm.exec" value="npm">
+        <os family="unix"/>
+    </condition>
+
+    <!-- Detect environment -->
+    <target name="setup-env">
+        <available file="${jamstack.flag}" property="jamstack.app.present"/>
+
+        <echo level="info">--</echo>
+        <echo level="info">OS Name:         ${os.name}</echo>
+        <echo level="info">OS Architecture: ${os.arch}</echo>
+        <echo level="info">OS Version:      ${os.version}</echo>
+
+        <echo level="info">--</echo>
+        <echo if:set="jamstack.app.present" 
+              level="info">
+            STATE Web/App: The Web application/App is in place. Nothing to do.
+        </echo>
+        <echo unless:set="jamstack.app.present" 
+              level="info">
+            STATE Web/App: The Web/App application must be setup. Starting activities ...
+        </echo>
+    </target>
+
+    <!-- npm install -->
+    <target name="npm-install" depends="setup-env" unless="jamstack.app.present">
+        <echo level="info">--</echo>
+        <echo level="info">Updating npm packages...</echo>
+
+        <exec dir="${src.dir}" executable="${npm.exec}">
+            <arg value="install"/>
+        </exec>
+    </target>
+
+    <!-- npm generate -->
+    <target name="npm-generate" depends="npm-install" unless="jamstack.app.present">
+        <echo level="info">--</echo>
+        <echo level="info">Web/App transpilation and static generation...</echo>
+
+        <exec dir="${src.dir}" executable="${npm.exec}">
+            <arg value="run"/>
+            <arg value="generate"/>
+        </exec>
+    </target>
+
+    <!-- Copy built files -->
+    <target name="cp-web-app" depends="npm-generate" unless="jamstack.app.present">
+        <echo level="info">--</echo>
+        <echo level="info">Copying Web/App to final destinations...</echo>
+
+        <mkdir dir="${main-app.dir}"/>
+        <mkdir dir="${test-app.dir}"/>
+
+        <copy todir="${test-app.dir}">
+            <fileset dir="${build.dir}" includes="**"/>
+        </copy>
+
+        <copy todir="${main-app.dir}">
+            <fileset dir="${build.dir}" includes="**"/>
+        </copy>
+
+        <touch file="${jamstack.flag}"/>
+    </target>
+
+    <!-- Full build -->
+    <target name="build-web-app" 
+            depends="setup-env, npm-install, npm-generate, cp-web-app"/>
+</project>

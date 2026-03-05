@@ -1,0 +1,238 @@
+-----------------
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    consumer:
+      group-id: order-group
+      enable-auto-commit: false
+      isolation-level: read_committed
+
+    producer:
+      bootstrap-servers: localhost:9092
+      transaction-id-prefix: tx-consumer-
+
+    listener:
+      ack-mode: MANUAL
+      type: batch
+
+-----------------
+@Configuration
+public class KafkaConfig {
+
+    @Bean
+    public KafkaTransactionManager<String, String> kafkaTransactionManager(
+            ProducerFactory<String, String> pf) {
+        return new KafkaTransactionManager<>(pf);
+    }
+
+    @Bean
+    public PlatformTransactionManager chainedTransactionManager(
+            KafkaTransactionManager<String, String> kafkaTM,
+            JpaTransactionManager jpaTM) {
+        return new ChainedKafkaTransactionManager<>(kafkaTM, jpaTM);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String>
+    kafkaListenerContainerFactory(
+            ConsumerFactory<String, String> consumerFactory,
+            PlatformTransactionManager chainedTransactionManager) {
+
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+
+        factory.setConsumerFactory(consumerFactory);
+
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+        factory.getContainerProperties().setTransactionManager(chainedTransactionManager);
+
+        return factory;
+    }
+}
+-----------------
+@Component
+public class OrderConsumer {
+
+    @Autowired
+    private OrderService orderService;
+
+    @KafkaListener(
+        topics = "order-topic",
+        containerFactory = "kafkaListenerContainerFactory"
+    )
+    @Transactional  // << IMPORTANT: uses ChainedKafkaTransactionManager
+    public void listen(String message, Acknowledgment ack) {
+
+        // --- 1) Save into Database ---
+        orderService.saveOrder(message);
+
+        // --- 2) Commit Kafka offset only after DB commit is safe ---
+        ack.acknowledge();
+
+        // If anything throws → both DB and Kafka offset rollback
+    }
+}
+-----------------
+jpaTM is simply:
+@Bean
+public JpaTransactionManager jpaTransactionManager(EntityManagerFactory emf) {
+    return new JpaTransactionManager(emf);
+}
+-----------------
+Where does kafkaTM (KafkaTransactionManager) come from?
+
+@Bean
+public KafkaTransactionManager<String, String> kafkaTransactionManager(
+        ProducerFactory<String, String> pf) {
+    return new KafkaTransactionManager<>(pf);
+}
+-----------------
+
+=============================
+ACK/NAK
+=============================
+
+static KafkaProducer<String, String> producerack0;
+
+static Properties getProducerProperties() {
+    Properties producerProperties = new Properties();
+    producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+      KAFKA_CONTAINER.getBootstrapServers());
+    return producerProperties;
+}
+
+static void setUp() throws IOException, InterruptedException {
+    Properties producerProperties = getProducerProperties();
+    producerProperties.put(ProducerConfig.ACKS_CONFIG,
+      "0");
+    producerack0 = new KafkaProducer<>(producerProperties);
+}
+
+In this configuration, the producer doesn’t wait for a reply from the broker. It assumes that the message is sent successfully. If something goes wrong and the broker doesn’t receive the message, the producer is unaware of it, and the message is lost.
+
+However, because the producer doesn’t wait for any response from the server, it can send messages as fast as the network supports, achieving high throughput.
+
+---------------
+We can instead set property acks to 1:
+
+The producer receives a successful response from the broker the moment the leader replica receives the message. If the message can’t be written to the leader due to any error, the producer receives an error response and retries sending the message, avoiding the potential loss of data.
+
+We can still lose a message for other reasons, such as if the leader crashes before the system replicates the latest messages to the new leader.
+
+-------------------------
+We can also set property acks to all:
+
+The producer receives a success response from the broker once all in-sync replicas receive the message. This is the safest mode since we can make sure more than one broker has the message and that the message survives even in case of a crash.
+
+RETRY ….
+@Test
+void givenDefaultConfig_whenMessageCannotBeSent_thenKafkaProducerRetries() throws Exception {
+    // set topic config
+
+    Properties props = new Properties();
+    props.put(BOOTSTRAP_SERVERS_CONFIG, KAFKA_CONTAINER.getBootstrapServers());
+    props.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+    props.put(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+    KafkaProducer<String, String> producer = new KafkaProducer<>(props);
+	
+    ProducerRecord<String, String> record = new ProducerRecord<>("test-topic-1", "test-value");
+    assertThatThrownBy(() -> producer.send(record).get())
+      .isInstanceOf(ExecutionException.class)
+      .hasCauseInstanceOf(org.apache.kafka.common.errors.TimeoutException.class)     
+      .hasMessageContaining("Expiring 1 record(s) for test-topic-1-0");
+}
+---
+Manual
+-----
+
+@Test
+void givenCustomConfig_whenMessageCannotBeSent_thenKafkaProducerRetries() throws Exception {
+    // set topic config
+
+    Properties props = new Properties();
+    // other properties
+    props.put(RETRIES_CONFIG, 20);
+    props.put(RETRY_BACKOFF_MS_CONFIG, "500");
+    props.put(DELIVERY_TIMEOUT_MS_CONFIG, "5000");
+    KafkaProducer<String, String> producer = new KafkaProducer<>(props);
+
+    ProducerRecord<String, String> record = new ProducerRecord<>("test-topic-2", "test-value");
+    assertThatThrownBy(() -> producer.send(record).get())
+      .isInstanceOf(ExecutionException.class)
+      .hasCauseInstanceOf(org.apache.kafka.common.errors.TimeoutException.class)
+      .hasMessageContaining("Expiring 1 record(s) for test-topic-2-0");
+}
+
+----
+
+
+static Properties getConsumerProperties() {
+    Properties consumerProperties = new Properties();
+    consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+      KAFKA_CONTAINER.getBootstrapServers());
+    return consumerProperties;
+}
+
+Properties consumerProperties = getConsumerProperties(); 
+consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); 
+consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+
+try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
+    // ...
+}
+-------
+
+
+
+3.3. Enable Auto Commit
+The property enable.auto.commit controls whether the consumer commits offsets automatically, and it defaults to true:
+
+
+
+static Properties getConsumerProperties() {
+    Properties consumerProperties = new Properties();
+    consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+      KAFKA_CONTAINER.getBootstrapServers());
+    return consumerProperties;
+}
+
+Properties consumerProperties = getConsumerProperties(); 
+consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
+
+try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
+    // ...
+}
+If set to false, we can control when the system commits the offsets. This enables us to minimize duplicates and avoid missing data.
+----
+3.4. Auto Commit Interval
+In auto-commit configuration, the property auto.commit.interval.ms configures how frequently the Kafka system commits the offsets:
+
+static Properties getConsumerProperties() {
+    Properties consumerProperties = new Properties();
+    consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+      KAFKA_CONTAINER.getBootstrapServers());
+    return consumerProperties;
+}
+
+Properties consumerProperties = getConsumerProperties(); 
+consumerProperties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, 7000); 
+consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
+
+try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
+    // ...
+}
+
+The main difference is that MANUAL commits are processed in a batch after the listener has processed all records in a poll, while MANUAL_IMMEDIATE commits the offset immediately when the listener calls acknowledge() on the consumer thread. This means MANUAL_IMMEDIATE provides more immediate confirmation of a successful commit, whereas MANUAL defers the commit to the end of the batch to optimize performance. 
+MANUAL
+Commit timing: The acknowledgment is queued by the listener. Offsets are committed only after the listener has finished processing all records from a poll() operation.
+Benefit: Groups acknowledgments to reduce the overhead of frequent commits, potentially improving throughput.
+Scenario: Suitable when immediate acknowledgment isn't critical and you want to batch commits for efficiency. 
+MANUAL_IMMEDIATE
+Commit timing: The offset is committed immediately when the acknowledge() method is called on the listener thread.
+Benefit: Provides more immediate feedback on the commit's success. If using synchronous commits, it allows the application to catch exceptions from the commit itself, enabling immediate error handling.
+Scenario: Ideal for situations where you need to know immediately if a message has been successfully committed, even if it means slightly more overhead. 
+
+
+
+

@@ -1,0 +1,175 @@
+{
+    "common" : {
+        "button" : {
+            "edit"   : "Edit",
+            "delete" : "Delete",
+            "cancel" : "Cancel",
+            "ok"     : "Ok",
+            "add"    : "Add",
+            "action" : "Action"
+        },
+        "message": {
+            "createsuccess": "Creation successful!",
+            "updatesuccess": "Changes saved!",
+            "deletesuccess": "Item deleted successfully.",
+            "selectfailed" : "Error fetching data.\n Server message: {message}.",
+            "createfailed" : "Failed to create an item.\n Server message: {message}.",
+            "updatefailed" : "Failed to update item.\n Server message: {message}.",
+            "deletefailed" : "Failed to delete item.\n Server message: {message}."
+        },
+        "label" : {
+            "action"       : "Action",
+            "confirmation" : "Confirmation",
+            "nodata"       : "No data available",
+            "askdelete"    : "Are you sure you want to delete this item?",
+            "all"          : "All",
+            "itemsperpage" : "Items per page",
+            "of"           : "of"
+        },
+        "alert" : {
+            "title" : "Internal exception",
+            "text"  : "An error occurred while accessing the services."
+        },
+        "rule" : {
+            "chars"             : " characters.",
+            "required"          : "The {field} field is required",
+            "integer"           : "The {field} field must be an integer",
+            "min"               : "The {field} must contain at least {min} characters",
+            "max"               : "The {field} must contain at most {max} characters",
+            "positive"          : "The amount must be positive",
+            "invalid"           : "Invalid format",
+            "precision"         : "Maximum 2 decimal places",
+            "invalidamount"     : "Invalid amount (e.g., 1234.56)",
+            "multipledecimals"  : "Only one decimal separator allowed",
+            "lettersnotallowed" : "Letters are not allowed.",
+            "maxdecimals"       : "Maximum {decimals} decimals"
+        }
+    },
+    "layout" : {
+        "theme-light"    : "Light",
+        "theme-dark"     : "Dark",
+        "home"           : "Welcome",
+        "database"       : "Database",
+        "infrastructure" : "Infrastructure",
+        "persons"        : "Persons",
+        "products"       : "Products",
+        "inventories"    : "Inventories",
+        "requests"       : "Requests",
+        "kafka"          : "Kafka",
+        "flink"          : "Flink",
+        "operations"     : "Operations",
+        "about"          : "About"
+    },
+    "index" : {
+        "welcome"  : "Welcome to the Fullstack - SPRINGBOOT/EDA",
+        "sommaire" : "This application provides the essential foundations for working with an event-driven architecture (EDA). Have fun !!!",
+        "techno"   : "The technologies used by this application are:",
+        "techno1"  : "Spring Boot - Facilitates the creation of JAVA/Services/REST applications.",
+        "techno2"  : "Apache Kafka – A distributed streaming platform.",
+        "techno3"  : "Apache Flink - A stream processing platform.",
+        "techno4"  : "Nuxt - The intuitive Vue framework.",
+        "techno5"  : "Vue - The progressive JavaScript framework.",
+        "techno6"  : "Vuetify - UX/UI components for Vue.",
+        "scm"      : "Github source"
+    },
+    "person" : {
+        "id"          : "ID",
+        "firstname"   : "Firstname",
+        "lastname"    : "Lastname",
+        "balance"     : "Balance",
+        "title": {
+          "add": "Add a person",
+          "edit": "Edit person"
+        }
+    },
+    "product" : {
+        "id"          : "ID",
+        "code"        : "Code",
+        "description" : "Description",
+        "price"       : "Price",
+        "title": {
+            "add": "Add a product",
+            "edit": "Edit product"
+        }
+    },
+    "inventory" : {
+        "id"           : "ID",
+        "productcode"  : "Product Code",
+        "productdescr" : "Product Description",
+        "qty"          : "Quantity",
+        "title": {
+            "add" : "Add to Inventory",
+            "edit": "Edit Inventory"
+        }
+    },
+    "request" : {
+        "id"              : "ID",
+        "personfirstname" : "Firstname",
+        "personlastname"  : "Lastname",
+        "productcode"     : "Product Code",
+        "productdescr"    : "Product Description",
+        "qty"             : "Quantity",
+        "stroperation"    : "Operation",
+        "strresult"       : "Result",
+        "title": {
+            "add" : "Add to Request",
+            "edit": "Edit Request"
+        }
+    },
+    "operation" : {
+        "credit"     : "Credit",
+        "debit"      : "Debit",
+        "refill"     : "Refill",
+        "regenerate" : "Internal error. Call support.",
+        "error"      : "Operation error",
+        "unknown"    : "Unknown operation"
+    },
+    "result" : {
+        "pending"    : "Pending",
+        "back_order" : "Back Order",
+        "executed"   : "Executed",
+        "error"      : "Operation error",
+        "unknown"    : "Unknown result"
+    },
+    "kafka" : {
+        "title"        : "Kafka sandbox dashboard",
+        "sync"         : "Last SYNC: ",
+        "cluster_id"   : "Cluster ID:",
+        "address"      : "Tcp/Ip:",
+        "topics"       : "TOPICS",
+        "no_topics"    : "No topics !!!",
+        "name"         : "Name",
+        "partitions"   : "Partitions",
+        "replicas"     : "Replicas",
+        "consumer"     : "CONSUMER GROUPS & LAG",
+        "no_consumers" : "No active consumers !!!",
+        "groupid"      : "Group ID",
+        "status"       : "Status",
+        "lag"          : "Total Lag",
+        "monitor"      : "Live monitor"
+    },
+    "about" : {
+        "licence01" : "Apache License",
+        "licence02" : "Version 2.0, January 2004",
+        "licence03" : "http://www.apache.org/licenses/",
+        "licence04" : "TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION",
+        "licence05" : "Copyright 2026 - Réal Demers",
+        "licence06" : "Licensed under the Apache License, Version 2.0 (the 'License');",
+        "licence07" : "you may not use this file except in compliance with the License.",
+        "licence08" : "You may obtain a copy of the License at",
+        "licence09" : "Apache license",
+        "licence10" : "Unless required by applicable law or agreed to in writing, software",
+        "licence11" : "distributed under the License is distributed on an 'AS IS' BASIS,",
+        "licence12" : "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.",
+        "licence13" : "See the License for the specific language governing permissions and",
+        "licence14" : "limitations under the License."
+    },
+    "error" : {
+        "title"       : "Exception windows",
+        "exception"   : "Application exception",
+        "detail"      : "Technical Details (Stacktrace)",
+        "status_code" : "Status code",
+        "go_home"     : "Back to the homepage",
+        "msg_error"   : "Internal error. Call support."
+    }
+}

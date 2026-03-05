@@ -1,0 +1,6 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "maven.view": "hierarchical",
+    "kafka.clusters.selected": "internal-bG9jYWxob3N0OjUzNzI4"
+}

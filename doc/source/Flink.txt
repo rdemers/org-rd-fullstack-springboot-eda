@@ -1,0 +1,117 @@
+### 1. Les Endpoints de métriques globales
+
+Si vous ne voulez pas spécifier d'ID de Job, vous pouvez cibler les métriques 
+du **JobManager** ou des **TaskManagers** :
+
+* **Métriques du JobManager (Globales au cluster) :**
+`GET /jobmanager/metrics`
+
+*Utile pour : Utilisation CPU globale, mémoire JVM, nombre de jobs terminés/échoués.*
+* **Métriques des TaskManagers :**
+
+`GET /taskmanagers/metrics`
+*Utile pour : La consommation mémoire réelle des slots de calcul.*
+
+### 2. Le DTO pour une liste de métriques disponibles
+Avant de récupérer les *valeurs*, Flink peut vous donner la *liste* de toutes les métriques disponibles. 
+Le DTO reste le même (une liste d'objets avec un `id`).
+
+### 3. Exemple de code pour récupérer toutes les métriques du JobManager
+Voici comment modifier votre service pour lister tout ce qui est disponible, puis récupérer les valeurs associées.
+
+```java
+@Service
+public class FlinkGlobalMonitoringService {
+
+    private final RestTemplate restTemplate;
+    private final String FLINK_BASE_URL = "http://localhost:8081";
+
+    public FlinkGlobalMonitoringService(RestTemplateBuilder builder) {
+        this.restTemplate = builder.build();
+    }
+
+    // 1. Récupérer la liste des noms de métriques disponibles sur le JobManager
+    public List<String> getAvailableJobManagerMetrics() {
+        String url = FLINK_BASE_URL + "/jobmanager/metrics";
+        FlinkMetricsDTO[] response = restTemplate.getForObject(url, FlinkMetricsDTO[].class);
+        
+        return Arrays.stream(response)
+                     .map(FlinkMetricsDTO::getId)
+                     .collect(Collectors.toList());
+    }
+
+    // 2. Récupérer les valeurs pour un ensemble de métriques
+    public FlinkMetricsDTO[] getJobManagerMetricValues(List<String> metricIds) {
+        // On concatène les IDs : ?get=metrique1,metrique2
+        String metricsList = String.join(",", metricIds);
+        String url = FLINK_BASE_URL + "/jobmanager/metrics?get=" + metricsList;
+        
+        return restTemplate.getForObject(url, FlinkMetricsDTO[].class);
+    }
+}
+
+```
+
+### 4. Pourquoi on ne peut pas tout avoir "d'un coup" pour les Jobs ?
+
+Pour les jobs, Flink sépare les données car chaque job peut avoir des milliers de métriques (une par opérateur, par partition, etc.).
+
+**L'astuce pour votre dashboard Spring :**
+Si vous voulez un état global de votre application sans connaître le `jobId` à l'avance :
+
+1. Appelez `GET /jobs/overview`. Cet endpoint vous donne un résumé de tous les jobs (nom, état, temps d'exécution) sans avoir besoin de leurs IDs spécifiques dans l'URL.
+2. Dans le JSON reçu, bouclez sur les jobs dont le statut est `RUNNING` pour extraire leurs statistiques de base.
+
+### Résumé des URLs pour votre Dashboard :
+
+* **Santé du Cluster :** `http://localhost:8081/jobmanager/metrics?get=Status.JVM.Memory.Heap.Used,Status.JVM.CPU.Load`
+* **Vue d'ensemble des Jobs :** `http://localhost:8081/jobs/overview` (Pas besoin d'IDs ici, cela renvoie une liste).
+
+Est-ce que vous préférez que je vous montre comment traiter le JSON de `/jobs/overview` qui est souvent le plus complet pour un dashboard de démarrage ?
+
+
+@Service
+public class FlinkMonitoringService {
+
+    private final RestTemplate restTemplate;
+    private final String FLINK_BASE_URL = "http://localhost:8081";
+
+    public FlinkMonitoringService(RestTemplateBuilder builder) {
+        this.restTemplate = builder.build();
+    }
+
+    public void getJobMetrics(String jobId) {
+        // On demande plusieurs métriques d'un coup en les séparant par des virgules
+        String url = FLINK_BASE_URL + "/jobs/" + jobId + "/metrics?get=numRecordsInPerSecond,numRecordsOutPerSecond";
+        
+        FlinkMetricsDTO response = restTemplate.getForObject(url, FlinkMetricsDTO.class);
+        
+        if (response != null && response.getMetrics() != null) {
+            response.getMetrics().forEach(m -> 
+                System.out.println("Métrique: " + m.getId() + " = " + m.getValue())
+            );
+        }
+    }
+}
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class FlinkMetricsDTO {
+    private List<MetricValue> metrics;
+
+    public static class MetricValue {
+        private String id;
+        private String value;
+
+        // Getters / Setters
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
+    }
+
+    public List<MetricValue> getMetrics() { return metrics; }
+    public void setMetrics(List<MetricValue> metrics) { this.metrics = metrics; }
+}

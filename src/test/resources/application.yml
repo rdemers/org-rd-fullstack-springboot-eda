@@ -1,0 +1,104 @@
+#
+# R. Demers 2026.
+#
+server:
+  shutdown: graceful
+  port: 8080
+#
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: "info,health,prometheus"
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+#
+spring:
+  main:
+    cloud-platform: kubernetes
+#
+  lifecycle:
+    timeout-per-shutdown-phase: 45s
+#
+  datasource:
+    url: jdbc:hsqldb:mem:stagingdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.hsqldb.jdbc.JDBCDriver
+    username: sa
+    password:
+#
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      # data-locations: classpath:data.sql   # optional
+#
+  jpa:
+    # database-platform: org.hibernate.dialect.HSQLDialect
+    open-in-view: false
+    show-sql: true
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: none
+#
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries: 3
+      properties:
+        acks: all
+        linger.ms: 5
+        batch.size: 16384
+        spring.json.add.type.headers: true
+#
+    consumer:
+      group-id: org-rd-eda-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: true
+
+    listener:
+      ack-mode: manual_immediate
+#
+org:
+  rd:
+    fullstack:
+      springbooteda:
+        kafka:
+          sandbox:
+            enabled: true
+            clusters: 1
+            cluster-partitions: 100
+            concurrency: 10
+        flink:
+          sandbox:
+            enabled: true
+            rest-port: 0
+            job-manager-port: 0
+            task-manager-rpc-port: ""
+            num-task-managers: 1
+            num-slots-per-task-manager: 4
+            active-metrics: false
+#
+logging:
+  file:
+    name: log/springboot-eda.log
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: org.rd.fullstack.springboot-eda
+        version: unspecified
+        environment: DEV
+        node-name: DEV
+#

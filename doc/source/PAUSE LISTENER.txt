@@ -1,0 +1,72 @@
+PAUSE LISTENER
+
+Salut ! C'est une excellente question. En Spring Boot, on ne peut pas simplement "éteindre" l'annotation elle-même à chaud, mais tu peux tout à fait piloter le **Message Listener Container** qui gère tes consommateurs Kafka.
+
+La réponse courte est **oui**, et voici comment faire proprement.
+
+### 1. Utiliser le `KafkaListenerEndpointRegistry`
+
+C'est l'outil "chef d'orchestre" de Spring Kafka. Il répertorie tous tes containers de listeners et te permet de les manipuler par leur identifiant.
+
+**Étape A : Donne un ID à ton listener**
+Dans ton code, assure-toi que ton `@KafkaListener` possède un `id` unique.
+
+```java
+@KafkaListener(id = "monConsommateurId", topics = "mon-topic")
+public void listen(String message) {
+    // Ton traitement
+}
+
+```
+
+**Étape B : Pilote-le depuis un service**
+Tu peux injecter le `KafkaListenerEndpointRegistry` n'importe où (dans un contrôleur REST ou une tâche planifiée) pour mettre en pause ou redémarrer.
+
+```java
+@Service
+public class KafkaControlService {
+
+    @Autowired
+    private KafkaListenerEndpointRegistry registry;
+
+    public void pause() {
+        MessageListenerContainer container = registry.getListenerContainer("monConsommateurId");
+        if (container != null) {
+            container.pause(); // Arrête la consommation, mais garde la connexion active
+        }
+    }
+
+    public void resume() {
+        MessageListenerContainer container = registry.getListenerContainer("monConsommateurId");
+        if (container != null) {
+            container.resume(); // Reprend là où il s'était arrêté
+        }
+    }
+}
+
+```
+
+---
+
+### Pourquoi utiliser `pause()` plutôt que `stop()` ?
+
+Il est important de noter la nuance technique entre ces deux méthodes :
+
+| Méthode | Effet sur le Consumer | Impact sur Kafka |
+| --- | --- | --- |
+| **`pause()`** | Le thread s'arrête de demander des messages (`poll`). | Le consommateur reste "vivant" aux yeux du broker (pas de rebalance). |
+| **`stop()`** | Le container s'arrête complètement. | Le broker considère que le membre a quitté le groupe (déclenche un **Rebalance**). |
+
+---
+
+### 2. L'approche par événement (IdleEvent)
+
+Si tu veux que le listener se mette en pause **tout seul** s'il ne reçoit plus rien pendant un certain temps, tu peux configurer un `idleEventInterval` et écouter l'événement `ListenerContainerIdleEvent`. C'est très pratique pour économiser des ressources sur des topics peu actifs.
+
+---
+
+### Attention au "Session Timeout"
+
+Si tu appelles `pause()`, fais attention : Spring Kafka continue d'envoyer des "heartbeats" (battements de cœur) au broker en arrière-plan pour dire "Je suis toujours là, je fais juste une sieste". C'est l'avantage majeur de Spring Boot, car cela évite de perturber tout le groupe de consommateurs.
+
+**Est-ce que tu veux piloter cette pause manuellement via un point d'entrée API, ou est-ce que tu cherches à automatiser ça selon une condition précise ?**

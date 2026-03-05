@@ -1,0 +1,49 @@
+/*
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.util.backoff.FixedBackOff;
+
+// --- 1. KafkaTemplate pour la DLT ---
+KafkaTemplate<String, MyMessage> dltTemplate = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(producerProps));
+
+// --- 2. DeadLetterPublishingRecoverer ---
+DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
+    dltTemplate,
+    (ConsumerRecord<?, ?> record, Exception ex) ->
+        // Ici on peut faire un DLT par topic :
+        new TopicPartition(record.topic() + ".DLT", record.partition())
+);
+
+// --- 3. DefaultErrorHandler avec retry ---
+DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3));
+errorHandler.addNotRetryableExceptions(IllegalArgumentException.class);
+
+// --- 4. ContainerProperties avec ackMode ---
+ContainerProperties containerProps = new ContainerProperties("topicA");
+containerProps.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE); // ou autre ack mode
+
+// --- 5. Construction du container ---
+ConcurrentMessageListenerContainer<String, MyMessage> container =
+        new ConcurrentMessageListenerContainer<>(
+                new DefaultKafkaConsumerFactory<>(props), 
+                containerProps
+        );
+
+// --- 6. Set l’ErrorHandler pour le DLT ---
+container.setCommonErrorHandler(errorHandler);
+
+// --- 7. Setup du listener ---
+container.setupMessageListener((org.apache.kafka.clients.consumer.ConsumerRecord<String, MyMessage> record) -> {
+    // ton code de traitement
+    System.out.println("Message reçu : " + record.value());
+});
+
+// --- 8. Démarrage ---
+container.start();
+
+*/
