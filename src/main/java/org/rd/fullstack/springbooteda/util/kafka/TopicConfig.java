@@ -33,9 +33,10 @@ public record TopicConfig (
         String dltName,     // Dead Letter Topic name, optional.
 
         int partitions,     // Number of partitions for the topic.
-        short replicas,     // Number of replicas for the topic.        
-        long retryInterval, // Milliseconds to wait before retrying a failed message.
+        short replicas,     // Number of replicas for the topic.
+      
         long retryAttempts, // Number of times to retry sending a message.
+        long retryInterval, // Milliseconds to wait before retrying a failed message.
 
         Class<? extends Serializer<?>> keySerializer,
         Class<? extends Serializer<?>> valueSerializer,

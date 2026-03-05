@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -71,32 +70,33 @@ abstract class AbstractTopicHandler<T extends AbstractTopicHandler<T>> implement
     }
 
     public T addTopic(String name, String dltName, int partitions, short replicas, 
-                      long retryInterval, long retryAttempts) {
+                      long retryAttempts, long retryInterval) {
         return addTopic(name, dltName, partitions, replicas, retryInterval, retryAttempts, 
                 StringSerializer.class, StringSerializer.class,
                 StringDeserializer.class, StringDeserializer.class);
     }
 
     public T addTopic(String name, String dltName, int partitions, short replicas, 
-                long retryInterval, long retryAttempts, 
+                long retryAttempts, long retryInterval, 
                 Class<? extends Serializer<?>> keySerializer, 
                 Class<? extends Serializer<?>> valueSerializer,
                 Class<? extends Deserializer<?>> keyDeserializer, 
                 Class<? extends Deserializer<?>> valueDeserializer) {
         return addTopic(name, dltName, 
-                partitions, replicas, retryInterval, retryAttempts, 
+                partitions, replicas, retryAttempts, retryInterval, 
                 keySerializer, valueSerializer, keyDeserializer, 
                 valueDeserializer, Map.of(), Map.of());
     }
 
-    public T addTopic(String name, String dltName, int partitions, short replicas, long retryInterval, long retryAttempts,
+    public T addTopic(String name, String dltName, int partitions, short replicas, 
+                      long retryAttempts, long retryInterval, 
                 Class<? extends Serializer<?>> keySerializer, 
                 Class<? extends Serializer<?>> valueSerializer,
                 Class<? extends Deserializer<?>> keyDeserializer, 
                 Class<? extends Deserializer<?>> valueDeserializer,
                 Map<String, Object> extraProducerProps, Map<String, Object> extraConsumerProps) {
         TopicConfig topicConfig = new TopicConfig(name, dltName, 
-                partitions, replicas, retryInterval, retryAttempts, 
+                partitions, replicas, retryAttempts, retryInterval, 
                 keySerializer, valueSerializer, keyDeserializer, valueDeserializer, 
                 extraProducerProps, extraConsumerProps);
 

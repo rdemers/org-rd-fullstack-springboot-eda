@@ -321,13 +321,18 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> {
                 new ConcurrentMessageListenerContainer<>(
                     new DefaultKafkaConsumerFactory<>(buildConsumerConfig(groupId, cfg)), props);
 
-            // --- 1. KafkaTemplate pour la DLT ---
-            final String dltTarget = cfg.dltName().isBlank() ? KafkaConstant.CST_DEFAULT_DLT : cfg.dltName();
-            KafkaTemplate<K, V> dltTemplate = getKafkaTemplate(dltTarget);
+            if (topicName.compareTo(cfg.dltName()) != 0) {
+                // --- 1. KafkaTemplate pour la DLT ---
+                final String dltTarget = cfg.dltName().isBlank() ? KafkaConstant.CST_DEFAULT_DLT : cfg.dltName();
+                KafkaTemplate<K, V> dltTemplate 
+                    = getKafkaTemplate(dltTarget, (ackMode == AckMode.MANUAL_IMMEDIATE || 
+                                                   ackMode == AckMode.MANUAL) ? true : false);
 
-            // --- 2. DeadLetterPublishingRecoverer ---
-            DefaultErrorHandler errorHandler = buildErrorHandler(dltTemplate, cfg.retryInterval(), cfg.retryAttempts());            
-            container.setCommonErrorHandler(errorHandler);
+                // --- 2. DeadLetterPublishingRecoverer ---
+                DefaultErrorHandler errorHandler = buildErrorHandler(dltTemplate, cfg.retryInterval(), cfg.retryAttempts()); 
+                container.setCommonErrorHandler(errorHandler);
+            }
+
             container.setupMessageListener(listener);
             container.setConcurrency(concurrency);
             container.start();
