@@ -1,12 +1,16 @@
 # org-rd-fullstack-springboot-eda
 
-## Full-stack application with a Kafka/Flink/Hazelcast sandbox built on Spring Boot and Nuxt
+## Fullstack application with a Kafka/Flink/Hazelcast sandbox built on Spring Boot and Nuxt
 
 This project provides a fully featured sandbox environment for experimenting with the principles and concepts involved in developing resilient event-driven software components. It outlines the complete set of constraints, trade-offs, and challenges associated with the design and implementation of EDA artifacts.
 
 The project leverages Spring Boot, Nuxt, Apache Maven, Kafka, Flink, Hazelcast and Docker to build an OCI-compliant application container. It consists of a collection of microservices designed for deployment in AWS/EKS environments and includes a Nuxt-based web application (Vue/Vuetify) implemented according to Jamstack architectural principles.
 
 **Note:** In this configuration, Spring Boot is used solely to serve static HTTP content, effectively acting as a lightweight CDN.
+
+![alt text](./doc/asserts/springboot-eda.gif "Springboot-EDA")
+
+* Sources: [login.png](./doc/asserts/login.png), [AppCRUD.png](./doc/asserts/appcrud.png), [AppPDF.png](./doc/asserts/apppdf.png),[Swagger.png](./doc/asserts/swagger.png)
 
 ---
 
