@@ -2,25 +2,25 @@
 
 ## Fullstack application with a Kafka/Flink/Hazelcast sandbox built on Spring Boot and Nuxt
 
-This project provides a fully featured sandbox environment for experimenting with the principles and concepts involved in developing resilient event-driven software components. It outlines the complete set of constraints, trade-offs, and challenges associated with the design and implementation of EDA artifacts.
+This project provides a comprehensive sandbox environment for exploring the principles, patterns, and concepts involved in building resilient event-driven software systems. It highlights the full range of constraints, trade-offs, and challenges encountered when designing and implementing Event-Driven Architecture (EDA) components.
 
-The project leverages Spring Boot, Nuxt, Apache Maven, Kafka, Flink, Hazelcast and Docker to build an OCI-compliant application container. It consists of a collection of microservices designed for deployment in AWS/EKS environments and includes a Nuxt-based web application (Vue/Vuetify) implemented according to Jamstack architectural principles.
+The platform leverages Spring Boot, Nuxt, Apache Maven, Kafka, Flink, Hazelcast, and Docker to build OCI-compliant application containers. It consists of a collection of microservices designed for deployment on AWS/EKS and includes a web application implemented according to Static Site Generation (SSG) principles.
 
-**Note:** In this configuration, Spring Boot is used solely to serve static HTTP content, effectively acting as a lightweight CDN.
+**Note:** In this architecture, Spring Boot is used exclusively to serve static web content, effectively acting as a lightweight content delivery layer for the web application.
 
 ![alt text](./doc/asserts/springboot-eda.gif "Springboot-EDA")
 
-* Sources: [login.png](./doc/asserts/login.png), [AppCRUD.png](./doc/asserts/appcrud.png), [AppPDF.png](./doc/asserts/apppdf.png),[Swagger.png](./doc/asserts/swagger.png)
+* Sources: [login.png](./doc/asserts/login.png), [welcome.png](./doc/asserts/welcome.png), [persons.png](./doc/asserts/persons.png), [products.png](./doc/asserts/products.png), [inventories.png](./doc/asserts/inventories.png), [report.png](./doc/asserts/report.png), [requests.png](./doc/asserts/requests.png), [hazelcast_dashboard.png](./doc/asserts/hazelcast_dashboard.png), [kafka_dashboard.png](./doc/asserts/kafka_dashboard.png), [flink_dashboard.png](./doc/asserts/flink_dashboard.png), [operations_dashboard.png](./doc/asserts/operations_dashboard.png), [about.png](./doc/asserts/about.png).
 
 ---
 
 ## Important
 
-Building a web application that packages SOA services (BFF only) into a single artifact is neither explicitly recommended nor forbidden; it requires architectural judgment. When adopting this approach, SOA services should be strictly limited to Backend-for-Frontend (BFF) responsibilities.
+Building a web application that packages multiple SOA services (limited to Backend-for-Frontend services) into a single deployable artifact is neither inherently recommended nor discouraged; the decision ultimately depends on specific architectural requirements and trade-offs. When adopting this approach, SOA services should be strictly confined to Backend-for-Frontend (BFF) responsibilities.
 
-In this project, Kafka, Flink and Hazelcast services, as well as an HSQLDB database, are embedded. In a production-grade architecture, these components should preferably be provided as external services.
+For demonstration purposes, this project embeds Kafka, Flink, Hazelcast, and an HSQLDB database directly within the application environment. In production-grade architectures, these components should typically be deployed and managed as independent external services.
 
-This project is intended solely for learning and demonstration purposes.
+This project is intended exclusively for educational, experimentation, and demonstration purposes.
 
 ---
 
