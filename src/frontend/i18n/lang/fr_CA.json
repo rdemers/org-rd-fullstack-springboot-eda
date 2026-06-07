@@ -1,0 +1,304 @@
+{
+    "common" : {
+        "button" : {
+            "edit"   : "Modifier",
+            "delete" : "Supprimer",
+            "cancel" : "Annuler",
+            "ok"     : "Ok",
+            "add"    : "Ajouter",
+            "action" : "Action",
+            "report" : "Rapport",
+            "fill"    : "Remplir",
+            "reset"   : "Réinitialiser"
+        },
+        "message": {
+            "no-data"        : "Aucune donnée disponible.",
+            "create-success" : "Création réussie !",
+            "update-success" : "Modifications enregistrées !",
+            "delete-success" : "Élément supprimé avec succès.",
+            "select-failed"  : "Erreur lors de la lecture des données.\n Message du serveur: {message}.",
+            "create-failed"  : "Échec de la création de l'élément.\n Message du serveur: {message}.",
+            "update-failed"  : "Échec de la mise à jour de l'élément.\n Message du serveur: {message}.",
+            "delete-failed"  : "Échec de la suppression de l'élément.\n Message du serveur: {message}.",
+            "refill-success" : "Ravitaillement effectué avec succès !",
+            "refill-failed"  : "Échec du ravitaillement de l'inventaire.\n Message du serveur: {message}.",
+            "reset-success"  : "Toutes les requêtes ont été réinitialisées.",
+            "reset-failed"   : "Échec de la réinitialisation des requêtes.\n Message du serveur: {message}."
+        },
+        "label" : {
+            "action"         : "Action",
+            "confirmation"   : "Confirmation",
+            "no-data"        : "Aucune donnée disponible",
+            "ask-delete"     : "Êtes-vous sûr de vouloir supprimer cet élément ?",
+            "all"            : "Tous",
+            "items-per-page" : "Éléments par page",
+            "of"             : "de"
+        },
+        "alert" : {
+            "title" : "Exception interne",
+            "text"  : "Une erreur est survenue en accédant les services."
+        },
+        "rule" : {
+            "chars"               : "Caractères.",
+            "required"            : "Le champ {field} est obligatoire",
+            "integer"             : "Le champ {field} doit être entier",
+            "min"                 : "{field} doit contenir au moins {min} caractères",
+            "max"                 : "{field} doit contenir au plus {min} caractères",
+            "between"             : "Le champ {field} doit être entre {min} et {max}",
+            "positive"            : "Le montant doit être positif",
+            "invalid"             : "Format invalide",
+            "precision"           : "Maximum 2 décimales",
+            "invalid-amount"      : "Montant invalide (ex: 1234,56)",
+            "multiple-decimals"   : "Un seul séparateur décimal autorisé",
+            "letters-not-allowed" : "Les lettres ne sont pas autorisées",
+            "max-decimals"        : "Maximum {decimals} décimales"
+        }
+    },
+    "layout" : {
+        "theme-light"    : "Clair",
+        "theme-dark"     : "Foncé",
+        "home"           : "Bienvenue",
+        "database"       : "Base de données",
+        "infrastructure" : "Infrastructure",
+        "persons"        : "Personnes",
+        "products"       : "Produits",
+        "inventories"    : "Inventaires",
+        "requests"       : "Demandes",
+        "hazelcast"      : "Hazelcast",
+        "flink"          : "Flink",
+        "kafka"          : "Kafka",
+        "operations"     : "Operations",
+        "about"          : "A propos"
+    },
+    "login" : {
+        "alert" : {
+            "title" : "Authentification invalide",
+            "text"  : "Votre usager/mot de passe est invalide."
+        }, 
+        "title"       : "Fenêtre d'authentification",       
+        "information" : "Cette application est sécurisée.",
+        "login"       : "login",
+        "password"    : "mot de passe",
+        "required"    : "Le champ est obligatoire"
+    },
+    "index" : {
+        "welcome"   : "Bienvenue au Fullstack - SPRINGBOOT/EDA",
+        "sommaire"  : "Cette application offre les bases essentielles pour travailler avec une architecture orientée événements (EDA). Have fun !!! ",
+        "techno"    : "Les technologies utilisées par cette application sont les suivantes:",
+        "techno-01" : "Spring Boot - Framework pour JAVA/Services/REST.",
+        "techno-02" : "Apache Kafka – Une plateforme de streaming distribuée.",
+        "techno-03" : "Apache Flink - Une plateforme de traitement de flux.",
+        "techno-04" : "Nuxt - Le framework Vue intuitif.",
+        "techno-05" : "Vue - Le framework JavaScript progressif.",
+        "techno-06" : "Vuetify - Composantes UX/UI pour Vue.",
+        "scm"       : "Source Github"
+    },
+    "person" : {
+        "id"          : "ID",
+        "firstname"   : "Prénom",
+        "lastname"    : "Nom",
+        "balance"     : "Solde",
+        "refill-failed" : "Échec du ravitaillement des soldes.\n Message du serveur: {message}.",
+        "title": {
+            "add": "Ajouter une personne",
+            "edit": "Modifier la personne"
+        }
+    },
+    "product" : {
+        "id"          : "ID",
+        "code"        : "Code",
+        "description" : "Description",
+        "price"       : "Prix",
+        "title": {
+            "add": "Ajouter un produit",
+            "edit": "Modifier le produit"
+        }
+    },
+    "inventory" : {
+        "id"            : "ID",
+        "product-code"  : "Code du produit",
+        "product-descr" : "Description du produit",
+        "qty"           : "Quantité",
+        "title": {
+            "add" : "Ajouter à l'inventaire",
+            "edit": "Modifier l'inventaire"
+        },
+        "report" : {
+            "title"    : "Rapport d'inventaire",
+            "subtitle" : "Contrôle et corroboration"
+        }
+    },
+    "request" : {
+        "id"               : "ID",
+        "person"           : "Personne",
+        "person-firstname" : "Prénom",
+        "person-lastname"  : "Nom",
+        "product"          : "Produit",
+        "product-code"     : "Code du produit",
+        "product-descr"    : "Description du produit",
+        "qty"              : "Quantité",
+        "operation"        : "Opération",
+        "result"           : "Résultat",
+        "title": {
+            "add" : "Ajouter à la demande",
+            "edit": "Modifier la demande"
+        }
+    },
+    "operation" : {
+        "credit"     : "Crédit",
+        "debit"      : "Débit",
+        "refill"     : "Ravitaillement",
+        "error"      : "Erreur"
+    },
+    "result" : {
+        "pending"     : "En attente",
+        "back-order"  : "Commande en souffrance",
+        "executed"    : "Exécutée",
+        "error"       : "Erreur d'opération"
+    },
+    "pipeline" : {
+        "available" : "Disponible",
+        "executing" : "En exécution",
+        "completed" : "Terminée",
+        "exception" : "Exception",
+        "unknown"   : "Inconnue"
+    },
+    "hazelcast" : {
+        "title"              : "Hazelcast sandbox dashboard",
+        "sync"               : "Dernière SYNC: ",
+        "cluster-id"         : "Noeud ID:",
+        "members"            : "Membres",
+        "address"            : "Adresse TCP/IP",
+        "uuid"               : "Identification",
+        "local"              : "Local",
+        "lite"               : "Lite",
+        "no-members"         : "Aucun membre !!!",
+        "no-maps"            : "Aucune map !!!",
+        "map-stats"          : "Statistiques des maps",
+        "map-name"           : "Nom",
+        "owned"              : "Détenue",
+        "backup"             : "Copie",
+        "hits"               : "Hits",
+        "misses"             : "Misses",
+        "locks"              : "Verrous",
+        "heap"               : "Mémoire/Heap",
+        "partitions"         : "Partitions",
+        "total-partitions"   : "Total/Disponible",
+        "local-partitions"   : "Local/Disponible",
+        "cluster-safe"       : "Sécurité du cluster",
+        "migration"          : "Migration/Distribution",
+        "migrating"          : "En migration",
+        "stable"             : "Stable",
+        "partition-coverage" : "Couverture des partitions",
+        "monitor"            : "Moniteur en direct"
+    },  
+    "kafka" : {
+        "title"        : "Kafka sandbox dashboard",
+        "sync"         : "Dernière SYNC: ",
+        "cluster-id"   : "Noeud ID:",
+        "address"      : "Tcp/Ip:",
+        "topics"       : "TOPIQUES",
+        "no-topics"    : "Aucun topique !!!",
+        "name"         : "Nom",
+        "partitions"   : "Partitions",
+        "replicas"     : "Replicas",
+        "consumer"     : "GROUPES CONSOMMATEUR & LAG",
+        "no-consumers" : "Aucun consommateur actif !!!",
+        "groupid"      : "Groupe ID",
+        "status"       : "Statut",
+        "lag"          : "Lag total",
+        "monitor"      : "Moniteur en direct"
+    },
+    "flink" : {
+        "title"         : "Flink sandbox dashboard",
+        "sync"          : "Dernière SYNC: ",
+        "cluster-id"    : "Noeud ID:",
+        "address"       : "Tcp/Ip:",
+        "summary"       : "SUMMARY",
+        "task-managers" : "Gestionnaire de tâches",
+        "slots-state"   : "Slots (Total/Disponible)",
+        "jobs-state"    : "Jobs (Exe./compl./Ann./Échec)",
+        "version"       : "Version (Version/Commit)",
+        "jobs"          : "JOBS ACTUELLES ET ANTÉRIEURES",
+        "no-jobs"       : "Aucune JOBS",
+        "job-name"      : "Nom job/ID",
+        "job-status"    : "Statut",
+        "job-since"     : "Depuis",
+        "detail"        : "Détail (API Flink)",
+        "monitor"       : "Moniteur en direct"
+    },
+    "operations" : {
+        "title"               : "Opérations sandbox dashboard",
+        "sync"                : "Dernière SYNC: ",
+        "subtitle"            : "Gestion des opérations",
+        "pipeline"            : "État",
+        "result"              : "Résultats",
+        "options"             : "Options",
+        "actions"             : "Actions",
+        "pending"             : "En attente",
+        "backOrder"           : "En souffrance",
+        "executed"            : "Exécutée",
+        "error"               : "En Erreur",
+        "unknown"             : "Inconnue",
+        "stats"               : "Statistiques",
+        "exception"           : "Exception",
+        "published"           : "Publiées",
+        "processed"           : "Traitées",
+        "processed-error"     : "Traitées (erreur)",
+        "start"               : "Démarrer le pipeline",
+        "reset"               : "Initialiser le pipeline",
+        "pipeline-started"    : "Pipeline démarré avec succès !",
+        "pipeline-reset"      : "Pipeline initialisé avec succès !",
+        "reset-exception"     : "Erreur lors de l'initialisation du pipeline.\n Message du serveur: {message}.",
+        "start-exception"     : "Erreur lors du démarrage du pipeline.\n Message du serveur: {message}.",
+        "pause-exception"     : "Erreur lors de la pause/reprise du listener.\n Message du serveur: {message}.",
+        "pause-kafka"         : "Pause kafka",
+        "pause-kafka-desc"    : "Mettre en pause le cluster kafka",
+        "kafka-keys"          : "Activer clés",
+        "kafka-keys-desc"     : "Activer clés topique/kafka",
+        "replay"              : "Activer replay",
+        "replay-desc"         : "Rejouer les requêtes du pipeline",
+        "latence-insert"      : "Insérer latence",
+        "latence-insert-desc" : "Insérer une latence des opérations"
+    },
+    "about" : {
+        "licence-01" : "Licence Apache",
+        "licence-02" : "Version 2.0, janvier 2004",
+        "licence-03" : "http://www.apache.org/licenses/",
+        "licence-04" : "CONDITIONS GÉNÉRALES D'UTILISATION, DE REPRODUCTION ET DE DISTRIBUTION",
+        "licence-05" : "Copyright 2026 - Réal Demers",
+        "licence-06" : "Licence sous la licence Apache, version 2.0 (la 'Licence');",
+        "licence-07" : "vous ne pouvez utiliser ce fichier qu'en conformité avec la Licence.",
+        "licence-08" : "Vous pouvez obtenir une copie de la Licence sur",
+        "licence-09" : "Licence Apache",
+        "licence-10" : "Sauf si requis par la loi applicable ou convenu par écrit, logiciel",
+        "licence-11" : "distribué sous la licence est distribué sur une BASE 'EN L'ÉTAT'",
+        "licence-12" : "SANS GARANTIE OU CONDITION D'AUCUNE SORTE, expresse ou tacite.",
+        "licence-13" : "Voir la licence pour la langue spécifique régissant les autorisations et",
+        "licence-14" : "limitations sous la Licence."
+    },
+    "error" : {
+        "title"       : "Fenêtre d'exception",
+        "exception"   : "Exception applicative",
+        "detail"      : "Détails Technique (Stacktrace)",
+        "status-code" : "Code statut",
+        "go-home"     : "Retour à la page d'accueil",
+        "msg-error"   : "Erreur interne. Appeler le support.",
+        "unknown"     : "Erreur inconnue."
+    },
+    "vrd-pdfviewer" : {
+        "page"              : "Page ",
+        "of"                : " de ",
+        "loading"           : "Chargement...",
+        "no-canvas"         : "Canvas non supporté.",
+        "no-source"         : "Aucune source définie.",
+        "no-node-supported" : "Node n'est pas supporté.",
+        "unknown"           : "Exception inconnue.",
+        "prevPage"          : "Page précédente",
+        "nextPage"          : "Page suivante",
+        "pageInput"         : "Aller à la page",
+        "zoomIn"            : "Zoom avant",
+        "zoomOut"           : "Zoom arrière",
+        "print"             : "Imprimer"
+    }
+}

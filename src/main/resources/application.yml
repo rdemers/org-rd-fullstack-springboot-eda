@@ -1,0 +1,158 @@
+#
+# R. Demers 2026.
+#
+server:
+  shutdown: graceful
+  port: 8080
+#
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: "info,health,prometheus"
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+#
+spring:
+  main:
+    cloud-platform: kubernetes
+#
+  lifecycle:
+    timeout-per-shutdown-phase: 45s
+#
+  datasource:
+    # HSQLDB file-based database configuration.
+    #
+    # URL segments:
+    #   file:./target/hsqldb/stagingdb -> file DB under target/, so it is transient and
+    #                                     wiped by `mvn clean`. Unlike `mem:`, a file DB
+    #                                     persists across restarts (data AND settings).
+    #   hsqldb.tx=mvlocks              -> concurrency model: MVCC reads (readers never
+    #                                     block) + locks on writes. Only honored at first
+    #                                     creation for a file DB (see SET DATABASE below).
+    #   hsqldb.lock_timeout=0          -> do not wait for a lock; a contended write fails
+    #                                     immediately instead of blocking.
+    #   shutdown=true                  -> shut the DB down cleanly when the last connection
+    #                                     closes (i.e. on application shutdown).
+    #
+    # Fresh state on every startup:
+    #   - schema.sql (sql.init.mode=always) does DROP TABLE IF EXISTS ... / CREATE, so the
+    #     schema and data are reset on each boot.
+    #   - schema.sql also runs `SET DATABASE TRANSACTION CONTROL MVLOCKS;` to FORCE the
+    #     concurrency model on every startup, because a file DB persists this setting in its
+    #     .properties and would otherwise ignore the hsqldb.tx URL property after creation.
+    #
+    # Note: this DB is for learning/demo only, not production.
+    #
+    # Important: we try to mimic a 2PL (Two-Phase Locking) database to expose concurrency
+    #            anomalies (e.g. the inventory race), but HSQLDB's behavior still differs
+    #            from a true 2PL engine (Oracle, MySQL/InnoDB, PostgreSQL). Switch the tx
+    #            mode to LOCKS (URL + SET DATABASE) for stricter write serialization, or to
+    #            mvcc to surface serialization-conflict (40001) errors instead.
+    #
+    # Alternatives (in-memory; recreated from scratch on every JVM start):
+    #url: jdbc:hsqldb:mem:stagingdb;DB_CLOSE_DELAY=-1
+    #url: jdbc:hsqldb:mem:stagingdb;hsqldb.tx=mvcc;hsqldb.lock_timeout=0
+    #url: jdbc:hsqldb:mem:stagingdb;hsqldb.tx=mvlocks;hsqldb.lock_timeout=0
+    url: jdbc:hsqldb:file:./target/hsqldb/stagingdb;hsqldb.tx=mvlocks;hsqldb.lock_timeout=0;shutdown=true
+    driver-class-name: org.hsqldb.jdbc.JDBCDriver
+    username: sa
+    password:
+#
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      # data-locations: classpath:data.sql   # optional
+#
+  jpa:
+    # database-platform: org.hibernate.dialect.HSQLDialect
+    open-in-view: false
+    show-sql: false
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: none
+#
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries: 3
+      properties:
+        acks: all
+        linger.ms: 5
+        batch.size: 16384
+        spring.json.add.type.headers: true
+#
+    consumer:
+      group-id: org-rd-eda-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: "org.rd.fullstack.springbooteda.dto"
+        spring.json.use.type.headers: true
+
+    listener:
+      ack-mode: manual_immediate
+#
+org:
+  rd:
+    fullstack:
+      springbooteda:
+        secret: ${JWT_SECRET:the.beautiful.secret.key.to.change}
+        expiration: ${JWT_EXPIRATION:28800000}   # 8 hours (ms)
+        authorities: rd.roles
+        kafka:
+          sandbox:
+            enabled: true
+            clusters: 1
+            cluster-partitions: 128
+            concurrency: 8
+        flink:
+          sandbox:
+            enabled: true
+            rest-port: 0
+            job-manager-port: 0
+            task-manager-rpc-port: ""
+            num-task-managers: 4
+            num-slots-per-task-manager: 4
+            active-metrics: false
+        hazelcast:
+          sandbox:
+            enabled: true
+            instance-name: springboot-eda-instance
+            cluster-name: springboot-eda-cluster
+            port: 5701
+            port-count: 20
+            port-auto-increment: true
+            join:
+              multicast:
+                enabled: false
+              tcp-ip:
+                enabled: true
+                members: localhost:5701
+            cp-subsystem:
+              cp-member-count: 0 # 0 means no CP members.
+              session-heartbeat-interval-seconds: 5
+              session-time-to-live-seconds: 300
+#
+logging:
+  file:
+    name: log/springboot-eda.log
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: org.rd.fullstack.springboot-eda
+        version: unspecified
+        environment: DEV
+        node-name: DEV
+#

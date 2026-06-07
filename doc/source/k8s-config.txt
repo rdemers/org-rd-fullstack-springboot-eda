@@ -1,0 +1,559 @@
+Bonne question — et tu fais bien de penser à ça dès maintenant, ça évite des déploiements fragiles.
+
+## 📍 Où mettre ton fichier de deployment ?
+
+Il n’y a **pas d’obligation stricte**, mais en pratique on voit presque toujours ces conventions :
+
+### Option propre (recommandée)
+
+```
+/k8s
+  └── deployment.yaml
+  └── service.yaml
+```
+
+### Alternatives courantes
+
+* `/deploy`
+* `/infra/kubernetes`
+* `/helm` (si tu utilises Helm plus tard)
+
+👉 L’important : **séparer le code applicatif du déploiement**, mais garder ça versionné dans le repo.
+
+---
+
+## ⚙️ Prérequis côté Spring Boot
+
+Pour que les probes fonctionnent bien, assure-toi d’avoir :
+
+```properties
+management.endpoints.web.exposure.include=health,info
+management.endpoint.health.probes.enabled=true
+```
+
+Et idéalement :
+
+```properties
+management.endpoint.health.show-details=always
+```
+
+Spring Boot expose alors :
+
+* `/actuator/health/liveness`
+* `/actuator/health/readiness`
+
+---
+
+## 🧩 Exemple complet de `deployment.yaml`
+
+Voici un exemple réaliste et prêt pour EKS :
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: springboot-app
+  template:
+    metadata:
+      labels:
+        app: springboot-app
+    spec:
+      terminationGracePeriodSeconds: 30  # délai de grâce pour shutdown
+      containers:
+        - name: springboot-app
+          image: ton-repo/springboot-app:latest
+          ports:
+            - containerPort: 8080
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 2
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 2
+
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+```
+
+---
+
+## 🧠 Explication rapide (utile en prod)
+
+### 🔹 `terminationGracePeriodSeconds`
+
+* Kubernetes attend avant de tuer le pod
+* Permet à Spring Boot de finir les requêtes
+
+### 🔹 `preStop`
+
+* Donne un petit buffer (ex: 10s)
+* Permet au load balancer d’arrêter d’envoyer du trafic
+
+### 🔹 `readinessProbe`
+
+* "Est-ce que je peux recevoir du trafic ?"
+* Si FAIL → retiré du load balancer
+
+### 🔹 `livenessProbe`
+
+* "Est-ce que je suis vivant ?"
+* Si FAIL → Kubernetes redémarre le pod
+
+---
+
+## ⚠️ Erreurs fréquentes
+
+* ❌ oublier `/actuator/health/readiness`
+* ❌ délais trop courts → redémarrages en boucle
+* ❌ pas de `terminationGracePeriodSeconds` → requêtes coupées brutalement
+
+---
+
+## 💡 Petit conseil avancé (important en prod)
+
+Avec Spring Boot, ajoute aussi :
+
+```properties
+server.shutdown=graceful
+spring.lifecycle.timeout-per-shutdown-phase=30s
+```
+
+Ça aligne parfaitement avec Kubernetes 👍
+
+---
+
+Si tu veux, je peux te faire :
+
+* un `service.yaml`
+* un `ingress.yaml` (ALB AWS)
+* ou une version Helm propre pour industrialiser tout ça
+
+Tu es rendu à quel niveau : test local ou déjà pipeline CI/CD ?
+
+////////////////////////////////////////////////////////////////
+
+Parfait, tu es au bon moment pour structurer ça proprement — c’est là que beaucoup de projets deviennent difficiles à maintenir s’ils improvisent.
+
+Je vais te donner un **setup simple, propre et réaliste pour CI/CD avec EKS**.
+
+---
+
+# 🧱 Structure recommandée du repo
+
+Pour un pipeline, je te conseille clairement ceci :
+
+```
+/src
+/pom.xml
+/Dockerfile
+
+/k8s
+  deployment.yaml
+  service.yaml
+
+/.github/workflows   (ou /gitlab-ci.yml selon ton outil)
+```
+
+👉 Pourquoi ?
+
+* Le pipeline va **build → push → deploy**
+* Kubernetes reste versionné avec ton code
+* Tu peux faire évoluer facilement vers Helm plus tard
+
+---
+
+# 🐳 Dockerfile (Spring Boot)
+
+Exemple simple et efficace :
+
+```dockerfile
+FROM eclipse-temurin:21-jdk-jammy
+WORKDIR /app
+COPY target/*.jar app.jar
+ENTRYPOINT ["java","-jar","/app/app.jar"]
+```
+
+---
+
+# ⚙️ Pipeline CI/CD (exemple GitHub Actions)
+
+Voici un pipeline complet :
+
+name: Build & Deploy to EKS
+
+on:
+push:
+branches: [ "main" ]
+
+jobs:
+build-deploy:
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
+
+  - name: Setup Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: 'temurin'
+      java-version: '21'
+
+  - name: Build JAR
+    run: mvn clean package -DskipTests
+
+  - name: Login to ECR
+    uses: aws-actions/amazon-ecr-login@v2
+
+  - name: Build & Push Docker image
+    run: |
+      IMAGE=ton-compte.dkr.ecr.ca-central-1.amazonaws.com/springboot-app:${{ github.sha }}
+      docker build -t $IMAGE .
+      docker push $IMAGE
+      echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+  - name: Update kubeconfig
+    run: aws eks update-kubeconfig --region ca-central-1 --name ton-cluster
+
+  - name: Deploy to Kubernetes
+    run: |
+      sed -i "s|IMAGE_PLACEHOLDER|$IMAGE|g" k8s/deployment.yaml
+      kubectl apply -f k8s/
+```
+
+---
+
+# 🧩 Adaptation du deployment.yaml
+
+Dans ton YAML, remplace l’image par :
+
+```yaml
+image: IMAGE_PLACEHOLDER
+```
+
+👉 Le pipeline injecte automatiquement la bonne version.
+
+---
+
+# 🔐 Points importants (souvent oubliés)
+
+### 1. IAM / Permissions
+
+Ton runner doit avoir accès à :
+
+* ECR (push image)
+* EKS (kubectl)
+
+---
+
+### 2. Zero downtime (important)
+
+Ajoute dans ton deployment :
+
+```yaml
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+```
+
+👉 Ça évite les interruptions.
+
+---
+
+### 3. Health checks obligatoires
+
+Tu les as déjà (readiness/liveness) → parfait pour CI/CD.
+
+---
+
+### 4. Versionnement image (CRITIQUE)
+
+Ne jamais utiliser `latest` en CI/CD :
+
+```bash
+springboot-app:${{ github.sha }}
+```
+
+👉 traçabilité complète.
+
+---
+
+# 🧠 Pipeline réel (ce qui se passe)
+
+1. Code push
+2. Build Maven
+3. Build Docker
+4. Push vers ECR
+5. Inject image dans YAML
+6. `kubectl apply`
+7. Kubernetes fait rolling update
+8. Readiness check valide les pods
+
+---
+
+# 💡 Amélioration (niveau supérieur)
+
+Quand tu seras prêt :
+
+### 🔹 Helm
+
+* templates dynamiques
+* multi-environnements (dev/staging/prod)
+
+### 🔹 ArgoCD (GitOps)
+
+* plus de `kubectl apply`
+* Kubernetes sync directement depuis Git
+
+---
+
+# ⚠️ Pièges fréquents en CI/CD EKS
+
+* ❌ kubeconfig mal configuré
+* ❌ security groups bloquent le cluster
+* ❌ readiness probe trop agressif → rollback infini
+* ❌ image trop lourde → déploiement lent
+
+---
+
+# 🚀 Conclusion
+
+Tu es déjà sur une bonne trajectoire :
+
+* YAML dans `/k8s` ✔
+* Probes ✔
+* Graceful shutdown ✔
+* Pipeline automatisé ✔
+
+---
+
+Si tu veux, prochaine étape logique :
+👉 je peux te faire une version **Helm + valeurs dev/prod**
+👉 ou t’ajouter un **Ingress AWS ALB prêt pour production**
+
+Tu vises un déploiement multi-env (dev/staging/prod) ou juste un environnement pour l’instant ?
+
+////////////////////////////////////////////////////////
+
+Oui — et ici je vais être direct : **dans 99 % des cas, oui, tu dois ajouter un Service Kubernetes**. Sans ça, ton Deployment existe… mais **personne ne peut parler à tes pods proprement**.
+
+---
+
+# 🧭 À quoi sert un Service ?
+
+Un `Deployment` crée des pods **éphémères** (IP qui changent).
+
+Le `Service` fournit :
+
+* une **IP stable**
+* un **load balancing interne**
+* un point d’accès pour d’autres services ou un Ingress
+
+👉 Sans Service :
+
+* ton app n’est pas accessible (ou fragile via IP directe)
+
+---
+
+# 🧩 Exemple concret de `service.yaml`
+
+Voici le minimum propre pour Spring Boot :
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-app
+spec:
+  selector:
+    app: springboot-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
+```
+
+---
+
+# 🔍 Explication rapide
+
+### 🔹 `selector`
+
+Doit matcher ton Deployment :
+
+```yaml
+labels:
+  app: springboot-app
+```
+
+---
+
+### 🔹 `port` vs `targetPort`
+
+* `port: 80` → port exposé dans Kubernetes
+* `targetPort: 8080` → port réel de ton app Spring Boot
+
+---
+
+### 🔹 `type: ClusterIP`
+
+* accès **interne seulement**
+* parfait pour architecture microservices ou via Ingress
+
+---
+
+# 🌐 Et pour exposer à l’extérieur ?
+
+Tu as 2 options :
+
+## Option 1 — recommandé (AWS)
+
+👉 **Ingress + ALB**
+
+* propre
+* scalable
+* HTTPS facile
+
+## Option 2 — rapide (test)
+
+```yaml
+type: LoadBalancer
+```
+
+⚠️ AWS va créer un ELB → coûte $ + moins flexible
+
+---
+
+# ⚙️ Intégration dans ton pipeline
+
+Ton step reste simple :
+
+```bash
+kubectl apply -f k8s/
+```
+
+👉 Il appliquera :
+
+* deployment.yaml
+* service.yaml
+
+---
+
+# 🧠 Bonnes pratiques
+
+### ✔ Nom identique
+
+Garde le même nom :
+
+```yaml
+name: springboot-app
+```
+
+---
+
+### ✔ Labels cohérents
+
+Dans Deployment :
+
+```yaml
+labels:
+  app: springboot-app
+```
+
+Dans Service :
+
+```yaml
+selector:
+  app: springboot-app
+```
+
+---
+
+### ✔ Pas de `NodePort` en prod
+
+* utile localement
+* pas propre sur AWS
+
+---
+
+# ⚠️ Pièges fréquents
+
+* ❌ selector ne match pas → aucun trafic
+* ❌ mauvais port → timeout
+* ❌ oubli du Service → app inaccessible
+
+---
+
+# 🚀 Conclusion
+
+👉 Oui, ajoute absolument un `service.yaml`
+👉 C’est la **colonne vertébrale réseau** de ton déploiement
+
+---
+
+Si tu veux aller plus loin, prochaine étape logique :
+
+* 🔐 Ingress AWS ALB (avec HTTPS)
+* 🌍 DNS (Route53)
+* 🔄 autoscaling (HPA)
+
+Tu veux que je te fasse un **Ingress AWS prêt à l’emploi** pour compléter ton setup ?
+
+///////////////////////////////////////////////
+
+Parfait 👍 — tu es bien équipé pour un premier déploiement propre.
+
+Petit rappel rapide avant de lancer :
+
+* Vérifie que tes endpoints `/actuator/health/readiness` et `/liveness` répondent bien
+* Assure-toi que l’image est bien poussée dans ECR
+* Confirme que les labels `app:` matchent entre Deployment et Service
+* Surveille avec :
+
+```bash
+kubectl get pods
+kubectl describe pod <nom>
+kubectl logs <nom>
+```
+
+Si ça coince, ce sera souvent :
+
+* un problème de probe
+* ou de permissions AWS / kubeconfig
+
+Bonne chance pour le test 🚀
+Si quelque chose bloque, reviens avec l’erreur exacte — on va régler ça rapidement.
+
+À+
+

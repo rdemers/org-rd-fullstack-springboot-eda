@@ -1,0 +1,132 @@
+{"properties": [
+  {
+    "name": "org.rd.fullstack.springbooteda.kafka.sandbox.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Whether to start the cluster (Yes/No)."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.kafka.sandbox.clusters",
+    "type": "java.lang.Integer",
+    "description": "Number of nodes for the cluster."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.kafka.sandbox.cluster-partitions",
+    "type": "java.lang.Short",
+    "description": "Number of partitions for the cluster."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.kafka.sandbox.concurrency",
+    "type": "java.lang.Integer",
+    "description": "Specify the container concurrency."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Whether to start the cluster (Yes/No)."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.rest-port",
+    "type": "java.lang.Integer",
+    "description": "Rest endpoint port."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.job-manager-port",
+    "type": "java.lang.Integer",
+    "description": "Job manager port."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.task-manager-rpc-port",
+    "type": "java.lang.String",
+    "description": "Task manager RPC port."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.num-task-managers",
+    "type": "java.lang.Integer",
+    "description": "Number of task managers."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.num-slots-per-task-manager",
+    "type": "java.lang.Integer",
+    "description": "Number of slots per task manager."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.flink.sandbox.active-metrics",
+    "type": "java.lang.Boolean",
+    "description": "Activate metrics collection and exposition."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.authorities",
+    "type": "java.lang.String",
+    "description": "The autorization tag name."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.expiration",
+    "type": "java.lang.String",
+    "description": "The expiration date."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.secret",
+    "type": "java.lang.String",
+    "description": "The secret key."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Whether to start the cluster (Yes/No)."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.instance-name",
+    "type": "java.lang.String",
+    "description": "The Hazelcast instance name."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.cluster-name",
+    "type": "java.lang.String",
+    "description": "The Hazelcast cluster name."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.port",
+    "type": "java.lang.Integer",
+    "description": "The Hazelcast port."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.port-count",
+    "type": "java.lang.Integer",
+    "description": "The number of ports to use for Hazelcast."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.port-auto-increment",
+    "type": "java.lang.Boolean",
+    "description": "Whether to auto-increment the Hazelcast port."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.join.multicast.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Whether to enable multicast joining for Hazelcast."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.join.tcp-ip.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Whether to enable TCP/IP joining for Hazelcast."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.join.tcp-ip.members",
+    "type": "java.lang.String",
+    "description": "The list of TCP/IP members for Hazelcast joining."
+  },
+  {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.cp-subsystem.cp-member-count",
+    "type": "java.lang.Integer",
+    "description": "The number of CP members for the Hazelcast CP subsystem."
+  },
+    {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.cp-subsystem.session-heartbeat-interval-seconds",
+    "type": "java.lang.Integer",
+    "description": "The interval (in seconds) for session heartbeats in the Hazelcast CP subsystem."
+  },
+    {
+    "name": "org.rd.fullstack.springbooteda.hazelcast.sandbox.cp-subsystem.session-time-to-live-seconds",
+    "type": "java.lang.Integer",
+    "description": "The time (in seconds) after which an inactive session in the Hazelcast CP subsystem will be closed."
+  }
+]}
