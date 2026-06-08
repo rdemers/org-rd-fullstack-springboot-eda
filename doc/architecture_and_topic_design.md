@@ -15,7 +15,6 @@
 - [Finding the middle ground](#finding-the-middle-ground)
 - [How this project applies it](#how-this-project-applies-it)
 - [Pitfalls & best practices](#pitfalls--best-practices)
-- [Sources & further reading](#sources--further-reading)
 
 ## Overview
 
@@ -194,7 +193,7 @@ flowchart LR
     L --> Proc[PipelineProcessorSrv]
 ```
 
-For how partitioning interacts with elastic scaling and pod shutdown on EKS, see the related note [dist_scale_and_shutdown.md](./source/dist_scale_and_shutdown.md).
+For how partitioning interacts with elastic scaling and pod shutdown on EKS, see the related note [dist_scale_and_shutdown.md](./dist_scale_and_shutdown.md).
 
 ## Pitfalls & best practices
 

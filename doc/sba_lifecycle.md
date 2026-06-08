@@ -1,6 +1,6 @@
 # Spring Boot Application Lifecycle
 
-> Part of the **Kafka Engineering Guide** of `org-rd-fullstack-springboot-eda`. See the [project README](../../README.md).
+> Part of the **Kafka Engineering Guide** of `org-rd-fullstack-springboot-eda`. See the [project README](../README.md).
 
 When you start a Spring Boot application, a lot happens behind the scenes before your code is ready to execute or serve requests. Just like Spring beans, the application itself follows a **well-defined lifecycle**. Understanding the **Spring Boot application lifecycle** gives you better control over:
 

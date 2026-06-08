@@ -17,7 +17,6 @@
 - [An accounting aside: double-entry, debit and credit](#an-accounting-aside-double-entry-debit-and-credit)
 - [How this project applies it](#how-this-project-applies-it)
 - [Pitfalls & best practices](#pitfalls--best-practices)
-- [Sources & further reading](#sources--further-reading)
 
 ## Overview
 
@@ -38,7 +37,7 @@ If the process dies between the two commits, the resources are left inconsistent
 - DB committed, event not published → downstream never learns about the change.
 - Event published, DB rolled back → downstream acts on a change that does not exist.
 
-A two-phase commit (2PC) across Kafka and the database — e.g. a chained transaction manager — *looks* like a fix, but the sources are explicit that it can still fail in certain windows, leaves resources inconsistent, and adds latency to every transaction. The `ChainedKafkaTransactionManager` sketch in [DoubleCommit.txt](./source/DoubleCommit.txt) illustrates the chaining approach; it narrows the window but does not make the two commits atomic.
+A two-phase commit (2PC) across Kafka and the database — e.g. a chained transaction manager — *looks* like a fix, but the sources are explicit that it can still fail in certain windows, leaves resources inconsistent, and adds latency to every transaction.
 
 ```mermaid
 sequenceDiagram
@@ -136,7 +135,7 @@ True end-to-end exactly-once across a DB and Kafka is not achievable without ato
 - The transactional outbox guarantees the **outbound event** is published exactly once relative to the committed state.
 - A residual at-least-once action (the upstream POST) remains; it is pushed onto the callee to make idempotent.
 
-In this project the "effectively-once" guarantee comes from idempotency in the processor rather than an outbox: [`PipelineProcessorSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineProcessorSrv.java) skips any request whose `result` is no longer `PENDING`/`BACK_ORDER`, so a redelivered message is recognised as already handled.
+In this project the "effectively-once" guarantee comes from idempotency in the processor rather than an outbox: [`PipelineSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineSrv.java) skips any request whose `result` is no longer `PENDING`/`BACK_ORDER`, so a redelivered message is recognised as already handled.
 
 ## Database locking and race conditions
 
@@ -151,8 +150,6 @@ Idempotency stops *duplicate* processing. It does **not** stop a **lost-update**
 Two threads can both pass step 2 on the same stale read, then both apply step 3, producing a value below zero — a silent oversell.
 
 ### The control mechanisms
-
-The RDBMS offers complementary tools (see [rdbms-locking.md](./source/rdbms-locking.md)):
 
 - **Pessimistic locking** — lock the row on read so others wait. In SQL, `SELECT ... FOR UPDATE`; in JPA, `@Lock(LockModeType.PESSIMISTIC_WRITE)`. Strict consistency, lower concurrency.
 
@@ -178,7 +175,7 @@ The RDBMS offers complementary tools (see [rdbms-locking.md](./source/rdbms-lock
 
 ### Isolation level changes the symptom
 
-The race's *visibility* depends on the engine's concurrency family, not just on the code. As analysed in [RaceCondition.md](./source/RaceCondition.md):
+The race's *visibility* depends on the engine's concurrency family, not just on the code.
 
 | Engine / mode | Behaviour on two concurrent same-row updates | Symptom |
 |---|---|---|
@@ -190,7 +187,7 @@ This is why the project runs correctly on HSQLDB despite the bug: HSQLDB's defau
 
 ## Spring transaction management
 
-Spring exposes the same DB transaction in several styles (see [TransactionManagement.md](./source/TransactionManagement.md)):
+Spring exposes the same DB transaction in several styles.
 
 | Approach | Simplicity | Fine control | When |
 |---|---|---|---|
@@ -208,7 +205,7 @@ Two attributes matter most:
 
 ## An accounting aside: double-entry, debit and credit
 
-The inventory naming mirrors double-entry bookkeeping (see [comptable.md](./source/comptable.md)). Inventory is an **asset** account, and for assets the rule (mnemonic *DEAD CLIC* — **D**ebit increases **E**xpenses/**A**ssets/**D**ividends) is:
+The inventory naming mirrors double-entry bookkeeping. Inventory is an **asset** account, and for assets the rule (mnemonic *DEAD CLIC* — **D**ebit increases **E**xpenses/**A**ssets/**D**ividends) is:
 
 | Operation | Effect on inventory (an asset) | Project method |
 |---|---|---|
@@ -219,9 +216,9 @@ So in this project `DEBIT` *adds* stock and `CREDIT` *removes* it — consistent
 
 ## How this project applies it
 
-Relevant files (all verified to exist):
+Relevant files:
 
-- [`PipelineProcessorSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineProcessorSrv.java)
+- [`PipelineSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineSrv.java)
 - [`InventoryRepository`](../src/main/java/org/rd/fullstack/springbooteda/dao/InventoryRepository.java)
 - [`Inventory`](../src/main/java/org/rd/fullstack/springbooteda/dto/Inventory.java)
 - [`Request`](../src/main/java/org/rd/fullstack/springbooteda/dto/Request.java)

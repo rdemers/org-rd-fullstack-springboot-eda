@@ -20,7 +20,6 @@
 - [Relationship to idempotency and exactly-once](#relationship-to-idempotency-and-exactly-once)
 - [How this project applies it](#how-this-project-applies-it)
 - [Pitfalls & best practices](#pitfalls--best-practices)
-- [Sources & further reading](#sources--further-reading)
 
 ## Overview
 
@@ -179,7 +178,7 @@ In short: idempotency + sequencing make state *safe to recompute*; corroboration
 
 This sandbox is database-centric: the relational `Request` and `Inventory` tables are the authoritative state, and Kafka messages trigger their mutation. Two artefacts are central to corroboration here.
 
-**The pipeline processor** — [`PipelineProcessorSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineProcessorSrv.java) — processes each request in its own JPA transaction and is explicitly **idempotent**: a request whose result is no longer `PENDING`/`BACK_ORDER` has already been handled and is skipped. This is precisely the property that makes the at-least-once redelivery of the Kafka error handler safe, and that would make a replay-based reconciliation job safe to run.
+**The pipeline processor** — [`PipelineProcessorSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/ProcessorSrv.java) — processes each request in its own JPA transaction and is explicitly **idempotent**: a request whose result is no longer `PENDING`/`BACK_ORDER` has already been handled and is skipped. This is precisely the property that makes the at-least-once redelivery of the Kafka error handler safe, and that would make a replay-based reconciliation job safe to run.
 
 ```java
 // PipelineProcessorSrv.process(...) — idempotency guard
@@ -208,8 +207,6 @@ Practical corroboration uses for this aggregate in the sandbox:
 - **Pipeline progress / heartbeat:** a stable, non-zero `nbrPending` over time means the pipeline has stalled — a control-event-style signal computed cheaply on demand.
 - **Completeness check:** the sum of all buckets must equal the total number of submitted requests. The explicit `nbrUnknown` bucket (anything outside `10/20/30/99` or `NULL`) is a built-in invariant tripwire for corrupt or unexpected state values.
 - **Cross-source reconciliation:** the count of `EXECUTED` requests reconciled against inventory movements is the project's concrete "derived view vs source of truth" check.
-
-For the broader governance framing of these signals — data products, ownership, and health — see the companion guide [Data Mesh, health indicators and data corroboration](./DataMesh_Health_Indicators_and_data_corroboration.md).
 
 ## Pitfalls & best practices
 

@@ -18,7 +18,6 @@
 - [EKS vs ECS/Pods operational considerations](#eks-vs-ecspods-operational-considerations)
 - [How this project applies it](#how-this-project-applies-it)
 - [Pitfalls & best practices](#pitfalls--best-practices)
-- [Sources & further reading](#sources--further-reading)
 
 ## Overview
 
@@ -244,15 +243,7 @@ public class KafkaControlService {
 | `pause()` | Stops requesting records in `poll()`, but the consumer stays alive and keeps heartbeating. | Member stays in the group — **no rebalance**. |
 | `stop()` | Stops the container entirely. | Member leaves the group — **triggers a rebalance**. |
 
-So for "stop consuming for a while without disturbing the group", use `pause()`/`resume()`. Because heartbeats continue, the broker treats it as a member taking a nap; the session timeout is not at risk. As `app-control-pane.md` puts it: keep a control plane so you can `pause` and investigate without being overwhelmed.
-
-Patterns built on this:
-
-- **Idle auto-pause** — set `idleEventInterval` and react to `ListenerContainerIdleEvent` (e.g. pause a container on a low-traffic topic to save resources, resume on demand).
-- **Drain-first, then stop** — `pause()` the container, let in-flight processing finish, then `stop()`/`destroy()`. Avoids abandoning a record mid-business-logic.
-- **External shutdown signal** — coordinate progressive drains across replicas via a feature flag, DB row, or Redis TTL the listener consults before processing.
-
-> The `doc/source/kafka-listener-lifecycle.zip` is a small standalone Spring Boot sample (a `KafkaListenerLifecycleController`, an `AdminController`, an `OrderListener`, a custom `DownstreamHealthIndicator`) that demonstrates exactly this registry-driven pause/resume/stop wiring. It is reference material only and is not part of this project's build.
+So for "stop consuming for a while without disturbing the group", use `pause()`/`resume()`. Because heartbeats continue, the broker treats it as a member taking a nap; the session timeout is not at risk.
 
 ## Scaling consumers vs partitions
 

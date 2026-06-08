@@ -1,6 +1,6 @@
 # Sandbox guides — Kafka, Flink and Hazelcast
 
-> Part of the **Kafka Engineering Guide** of `org-rd-fullstack-springboot-eda`. See the [project README](../../README.md).
+> Part of the **Kafka Engineering Guide** of `org-rd-fullstack-springboot-eda`. See the [project README](../README.md).
 
 **Scope:** documents the three embedded "sandbox" components — Kafka, Flink and Hazelcast — that this learning project runs in-process: their purpose, enable/disable flags, builder API, lifecycle, dashboards, and how Spring wires them as beans.
 
@@ -30,9 +30,9 @@ Each engine is wrapped in a small **builder-style "sandbox"** class (`KafkaSandb
 - implements `AutoCloseable` with explicit `start()` / `stop()` lifecycle;
 - is created as a Spring `@Bean` from a matching `@Configuration` class that reads `application.yml`;
 - can be toggled on or off through a `…sandbox.enabled` flag;
-- exposes a `getDashboardData()` method surfaced over REST by [`HealthController`](../../src/main/java/org/rd/fullstack/springbooteda/controller/HealthController.java).
+- exposes a `getDashboardData()` method surfaced over REST by [`HealthController`](../src/main/java/org/rd/fullstack/springbooteda/controller/HealthController.java).
 
-> **Production note.** As the [project README](../../README.md) states: *"In this project, Kafka and Flink services, as well as an HSQLDB database, are embedded. In a production-grade architecture, these components should preferably be provided as external services."* The sandboxes are for local development, demos and integration tests — not for production workloads. The Kafka sandbox is the only one that can be pointed at an external cluster (via `bootstrapServers(...)`).
+> **Production note.** As the [project README](../README.md) states: *"In this project, Kafka and Flink services, as well as an HSQLDB database, are embedded. In a production-grade architecture, these components should preferably be provided as external services."* The sandboxes are for local development, demos and integration tests — not for production workloads. The Kafka sandbox is the only one that can be pointed at an external cluster (via `bootstrapServers(...)`).
 
 ```mermaid
 flowchart LR
@@ -54,7 +54,7 @@ flowchart LR
 
 ### What it is
 
-[`KafkaSandbox`](../../src/main/java/org/rd/fullstack/springbooteda/util/kafka/KafkaSandbox.java) is a self-contained Kafka environment built on Spring Kafka's `EmbeddedKafkaKraftBroker`. It manages a broker, a topic registry (each topic optionally paired with a Dead-Letter Topic), cached producers and `KafkaTemplate`s, programmatic listeners with a `DefaultErrorHandler` + DLT recoverer, consumer-group offset administration and a dashboard. It extends `AbstractTopicHandler` and implements `AutoCloseable`, so it works well in a `try (var sb = KafkaSandbox.builder()...build()) { ... }` block.
+[`KafkaSandbox`](../src/main/java/org/rd/fullstack/springbooteda/util/kafka/KafkaSandbox.java) is a self-contained Kafka environment built on Spring Kafka's `EmbeddedKafkaKraftBroker`. It manages a broker, a topic registry (each topic optionally paired with a Dead-Letter Topic), cached producers and `KafkaTemplate`s, programmatic listeners with a `DefaultErrorHandler` + DLT recoverer, consumer-group offset administration and a dashboard. It extends `AbstractTopicHandler` and implements `AutoCloseable`, so it works well in a `try (var sb = KafkaSandbox.builder()...build()) { ... }` block.
 
 ### Why embedded
 
@@ -77,8 +77,8 @@ org:
 
 The broker is selected by a `BrokerLifecycle` strategy at `build()` time:
 
-- [`EmbeddedBrokerLifecycle`](../../src/main/java/org/rd/fullstack/springbooteda/util/kafka/EmbeddedBrokerLifecycle.java) — in-process KRaft broker (default);
-- [`ExternalBrokerLifecycle`](../../src/main/java/org/rd/fullstack/springbooteda/util/kafka/ExternalBrokerLifecycle.java) — used when `bootstrapServers(url)` is set on the builder, to connect to a Docker/Confluent/MSK cluster.
+- [`EmbeddedBrokerLifecycle`](../src/main/java/org/rd/fullstack/springbooteda/util/kafka/EmbeddedBrokerLifecycle.java) — in-process KRaft broker (default);
+- [`ExternalBrokerLifecycle`](../src/main/java/org/rd/fullstack/springbooteda/util/kafka/ExternalBrokerLifecycle.java) — used when `bootstrapServers(url)` is set on the builder, to connect to a Docker/Confluent/MSK cluster.
 
 ### Key builder options
 
@@ -92,7 +92,7 @@ The broker is selected by a `BrokerLifecycle` strategy at `build()` time:
 | `clusters(int)` | `1` | **Deprecated no-op** — forced to 1. |
 | `addTopic(name, …)` | — | Register a topic (+ optional DLT) in the registry; many overloads on `AbstractTopicHandler`. |
 
-The richest `addTopic` overload accepts `name`, `dltName`, `partitions`, `replicas`, `retryAttempts`, `retryInterval`, key/value serializers, key/value deserializers and extra producer/consumer property maps. Each topic is modelled by the immutable [`TopicConfig`](../../src/main/java/org/rd/fullstack/springbooteda/util/kafka/TopicConfig.java) record; transactional concerns (e.g. `transactional.id`) are modelled explicitly rather than hidden in property maps.
+The richest `addTopic` overload accepts `name`, `dltName`, `partitions`, `replicas`, `retryAttempts`, `retryInterval`, key/value serializers, key/value deserializers and extra producer/consumer property maps. Each topic is modelled by the immutable [`TopicConfig`](../src/main/java/org/rd/fullstack/springbooteda/util/kafka/TopicConfig.java) record; transactional concerns (e.g. `transactional.id`) are modelled explicitly rather than hidden in property maps.
 
 ```java
 KafkaSandbox sandbox = KafkaSandbox.builder()
@@ -130,7 +130,7 @@ stateDiagram-v2
 
 ### Dashboard & observability
 
-`getDashboardData()` returns a [`KafkaDashboard`](../../src/main/java/org/rd/fullstack/springbooteda/util/kafka/KafkaDashboard.java): cluster id/IP, broker count, controller, per-topic summaries and per-group lag (computed from current offsets vs. log-end offsets). It is exposed at `GET /api/kafkaDashboardData`. `getConsumerGroupMonitor()`, `getTopics()` and `seekConsumerGroupOffsets(...)` provide further introspection and offset control.
+`getDashboardData()` returns a [`KafkaDashboard`](../src/main/java/org/rd/fullstack/springbooteda/util/kafka/KafkaDashboard.java): cluster id/IP, broker count, controller, per-topic summaries and per-group lag (computed from current offsets vs. log-end offsets). It is exposed at `GET /api/kafkaDashboardData`. `getConsumerGroupMonitor()`, `getTopics()` and `seekConsumerGroupOffsets(...)` provide further introspection and offset control.
 
 ### Gotchas
 
@@ -144,7 +144,7 @@ stateDiagram-v2
 
 ### What it is
 
-[`FlinkSandbox`](../../src/main/java/org/rd/fullstack/springbooteda/util/flink/FlinkSandbox.java) wraps an Apache Flink `MiniCluster` — an in-process cluster with a JobManager and a configurable number of TaskManagers and slots. It implements `AutoCloseable`, has thread-safe `start()`/`stop()`, and exposes the REST endpoint, cluster overview and job listing.
+[`FlinkSandbox`](../src/main/java/org/rd/fullstack/springbooteda/util/flink/FlinkSandbox.java) wraps an Apache Flink `MiniCluster` — an in-process cluster with a JobManager and a configurable number of TaskManagers and slots. It implements `AutoCloseable`, has thread-safe `start()`/`stop()`, and exposes the REST endpoint, cluster overview and job listing.
 
 ### Why embedded
 
@@ -196,7 +196,7 @@ FlinkDashboard dash = flink.getDashboardData();
 
 ### Dashboard & observability
 
-`getDashboardData()` returns a [`FlinkDashboard`](../../src/main/java/org/rd/fullstack/springbooteda/util/flink/FlinkDashboard.java) built from `requestClusterOverview()` and `listJobs()`: connected TaskManagers, total/available slots, running/finished/cancelled/failed job counts, Flink version/commit, and a per-job list (id, name, state, start time). Exposed at `GET /api/flinkDashboardData`. With `activeMetrics`, the cluster also serves Flink's own REST metrics endpoints (e.g. `/jobmanager/metrics`, `/jobs/overview`) — see [Flink.txt](../source/Flink.txt) for example queries.
+`getDashboardData()` returns a [`FlinkDashboard`](../src/main/java/org/rd/fullstack/springbooteda/util/flink/FlinkDashboard.java) built from `requestClusterOverview()` and `listJobs()`: connected TaskManagers, total/available slots, running/finished/cancelled/failed job counts, Flink version/commit, and a per-job list (id, name, state, start time). Exposed at `GET /api/flinkDashboardData`. With `activeMetrics`, the cluster also serves Flink's own REST metrics endpoints (e.g. `/jobmanager/metrics`, `/jobs/overview`) — see [Flink.txt](../source/Flink.txt) for example queries.
 
 ### Gotchas
 
@@ -207,7 +207,7 @@ FlinkDashboard dash = flink.getDashboardData();
 
 ### What it is
 
-[`HazelcastSandbox`](../../src/main/java/org/rd/fullstack/springbooteda/util/hazelcast/HazelcastSandbox.java) wraps an embedded Hazelcast instance. It can run as a `SERVER` member or as a `CLIENT` (see [`Mode`](../../src/main/java/org/rd/fullstack/springbooteda/util/hazelcast/Mode.java)), configures the network/join, declares `IMap`s, and optionally enables the CP (Raft) subsystem. In this project it stores the distributed `PipelineContext` in an `IMap`.
+[`HazelcastSandbox`](../src/main/java/org/rd/fullstack/springbooteda/util/hazelcast/HazelcastSandbox.java) wraps an embedded Hazelcast instance. It can run as a `SERVER` member or as a `CLIENT` (see [`Mode`](../src/main/java/org/rd/fullstack/springbooteda/util/hazelcast/Mode.java)), configures the network/join, declares `IMap`s, and optionally enables the CP (Raft) subsystem. In this project it stores the distributed `PipelineContext` in an `IMap`.
 
 ### Why embedded
 
@@ -265,7 +265,7 @@ CPSubsystem cp = hz.getCPSubsystem();
 
 ### Dashboard & observability
 
-`getDashboardData()` returns a [`HazelcastDashboard`](../../src/main/java/org/rd/fullstack/springbooteda/util/hazelcast/HazelcastDashboard.java): instance/cluster name, cluster state and time, member list, per-map stats (owned/backup entries, hits, operation counts, locked entries, heap cost, timestamps) and partition info (total/local partitions, cluster-safe / local-member-safe / migration-in-progress). Exposed at `GET /api/hazelcastDashboardData`.
+`getDashboardData()` returns a [`HazelcastDashboard`](../src/main/java/org/rd/fullstack/springbooteda/util/hazelcast/HazelcastDashboard.java): instance/cluster name, cluster state and time, member list, per-map stats (owned/backup entries, hits, operation counts, locked entries, heap cost, timestamps) and partition info (total/local partitions, cluster-safe / local-member-safe / migration-in-progress). Exposed at `GET /api/hazelcastDashboardData`.
 
 ### Gotchas
 
@@ -275,20 +275,20 @@ CPSubsystem cp = hz.getCPSubsystem();
 
 ## How this project wires the sandboxes
 
-Each sandbox is created as a Spring `@Bean` from a `@Configuration` class under [`config/`](../../src/main/java/org/rd/fullstack/springbooteda/config/), which binds `application.yml` values via `@Value` and passes the `…sandbox.enabled` flag to `autoStart(...)`:
+Each sandbox is created as a Spring `@Bean` from a `@Configuration` class under [`config/`](../src/main/java/org/rd/fullstack/springbooteda/config/), which binds `application.yml` values via `@Value` and passes the `…sandbox.enabled` flag to `autoStart(...)`:
 
 | Engine | Sandbox class | Config class | `enabled` flag |
 |---|---|---|---|
-| Kafka | [`KafkaSandbox`](../../src/main/java/org/rd/fullstack/springbooteda/util/kafka/KafkaSandbox.java) | [`KafkaConfig`](../../src/main/java/org/rd/fullstack/springbooteda/config/KafkaConfig.java) | `…kafka.sandbox.enabled` |
-| Flink | [`FlinkSandbox`](../../src/main/java/org/rd/fullstack/springbooteda/util/flink/FlinkSandbox.java) | [`FlinkConfig`](../../src/main/java/org/rd/fullstack/springbooteda/config/FlinkConfig.java) | `…flink.sandbox.enabled` |
-| Hazelcast | [`HazelcastSandbox`](../../src/main/java/org/rd/fullstack/springbooteda/util/hazelcast/HazelcastSandbox.java) | [`HazelcastConfig`](../../src/main/java/org/rd/fullstack/springbooteda/config/HazelcastConfig.java) | `…hazelcast.sandbox.enabled` |
+| Kafka | [`KafkaSandbox`](../src/main/java/org/rd/fullstack/springbooteda/util/kafka/KafkaSandbox.java) | [`KafkaConfig`](../src/main/java/org/rd/fullstack/springbooteda/config/KafkaConfig.java) | `…kafka.sandbox.enabled` |
+| Flink | [`FlinkSandbox`](../src/main/java/org/rd/fullstack/springbooteda/util/flink/FlinkSandbox.java) | [`FlinkConfig`](../src/main/java/org/rd/fullstack/springbooteda/config/FlinkConfig.java) | `…flink.sandbox.enabled` |
+| Hazelcast | [`HazelcastSandbox`](../src/main/java/org/rd/fullstack/springbooteda/util/hazelcast/HazelcastSandbox.java) | [`HazelcastConfig`](../src/main/java/org/rd/fullstack/springbooteda/config/HazelcastConfig.java) | `…hazelcast.sandbox.enabled` |
 
 Notable wiring details:
 
 - **`KafkaConfig`** registers the project topics (`CST_TOPIC_PROCESSOR`, `CST_TOPIC_FLINK_IN`, `CST_TOPIC_FLINK_OUT`, each with a `-dlt` companion), and also defines a Spring `KafkaTemplate`, `ProducerFactory`, `ConsumerFactory`, a `ConcurrentKafkaListenerContainerFactory` (so `@KafkaListener` works) and a lazy `DefaultErrorHandler` sourced from `kafkaSandbox.getDefaultErrorHandler()`. The Spring producer/consumer configs are deliberately aligned with `KafkaSandbox` (idempotence, `acks=all`, `read_committed`, bounded `max.poll.records`).
 - **`FlinkConfig`** maps the YAML ports/TM/slot/metrics values onto the builder.
 - **`HazelcastConfig`** always builds in `Mode.SERVER` and registers the two project maps (`CST_MAPNAME_CTX`, `CST_MAPNAME_STATE`).
-- **[`HealthController`](../../src/main/java/org/rd/fullstack/springbooteda/controller/HealthController.java)** autowires all three sandboxes and exposes `GET /api/kafkaDashboardData`, `/api/flinkDashboardData`, `/api/hazelcastDashboardData`, plus liveness/readiness toggles.
+- **[`HealthController`](../src/main/java/org/rd/fullstack/springbooteda/controller/HealthController.java)** autowires all three sandboxes and exposes `GET /api/kafkaDashboardData`, `/api/flinkDashboardData`, `/api/hazelcastDashboardData`, plus liveness/readiness toggles.
 
 ## Pitfalls & best practices
 
@@ -302,4 +302,4 @@ Notable wiring details:
 
 ## Sources & further reading
 
-- [Project README](../../README.md) — overall project description and the embedded-vs-external production note.
+- [Project README](../README.md) — overall project description and the embedded-vs-external production note.

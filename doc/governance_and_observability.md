@@ -2,7 +2,7 @@
 
 > Part of the **Kafka Engineering Guide** of `org-rd-fullstack-springboot-eda`. See the [project README](../README.md).
 
-**Scope:** Governance and observability for event-driven architecture (EDA): the four Data Mesh principles and how they contrast with Data Fabric, data governance in streaming systems, Spring Boot health indicators and liveness/readiness probes, Actuator and Prometheus observability, the common failure modes of Kafka projects, and a short overview of data corroboration (the deep dive lives in a [sibling document](./data_corrob.md)).
+**Scope:** Governance and observability for event-driven architecture (EDA): the four Data Mesh principles and how they contrast with Data Fabric, data governance in streaming systems, Spring Boot health indicators and liveness/readiness probes, Actuator and Prometheus observability, the common failure modes of Kafka projects, and a short overview of data corroboration.
 
 ## Table of contents
 
