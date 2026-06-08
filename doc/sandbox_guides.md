@@ -302,9 +302,4 @@ Notable wiring details:
 
 ## Sources & further reading
 
-- [kafkaSandbox.md](../source/kafkaSandbox.md) — original `KafkaSandbox` feature/usage documentation.
-- [KafkaSandbox-Review.txt](../source/KafkaSandbox-Review.txt) — design review (God-class critique, offset-seek and shutdown notes) and pause/stop + Kubernetes lifecycle discussion.
-- [kafka-sandbox-refactor.zip](../source/kafka-sandbox-refactor.zip) — prototype refactor splitting `KafkaSandbox` into broker providers + registries/services (reference only).
-- [Flink.txt](../source/Flink.txt) — Flink REST metrics endpoints and example monitoring service.
-- [Synthese.md](../source/Synthese.md) — consolidated Kafka engineering guide (architecture, lifecycle, reliability, governance).
 - [Project README](../../README.md) — overall project description and the embedded-vs-external production note.

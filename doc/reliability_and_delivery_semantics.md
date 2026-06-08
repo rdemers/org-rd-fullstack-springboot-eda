@@ -213,11 +213,5 @@ Net effect: the producer side is exactly-once *to the topic* (idempotent + trans
 
 ## Sources & further reading
 
-- [kafka-consume-produce-at-least-once-delivery.pdf](./source/kafka-consume-produce-at-least-once-delivery.pdf) — at-least-once default, failure/timeout windows, at-most-once and exactly-once alternatives.
-- [kafka-transactions.pdf](./source/kafka-transactions.pdf) — exactly-once semantics, transactional flow, Transaction Coordinator, `transactional.id`, `read_committed`, Spring `@Transactional` + `KafkaTransactionManager`.
-- [kafka-streams-transactions-exactly-once-messaging.pdf](./source/kafka-streams-transactions-exactly-once-messaging.pdf) — Streams EOS, state store / changelog atomicity, `exactly_once_v2`, performance trade-offs.
-- [kafka-message-batch-consumer-retry.pdf](./source/kafka-message-batch-consumer-retry.pdf) — batch consume behaviour, mid-batch failure/exception scenarios, retry vs DLT.
-- [Async.pdf](./source/Async.pdf) — Spring `@Async` semantics (the pipeline's `start()` runs asynchronously).
-- [KAFKA-TRX.txt](./source/KAFKA-TRX.txt) — EOS consume→produce pipeline notes, `sendOffsetsToTransaction`, idempotence + transactions, medallion (bronze/silver/gold) example.
-- [Kafka_note.pdf](./source/Kafka_note.pdf) — general Kafka reference notes.
+- Related guide: [Consumer Acknowledgement & Idempotency](./consumer_acknowledgement_and_idempotency.md) — the DB-commit-vs-Kafka-ack window and the at-least-once + idempotency pattern.
 - Project code: [`PipelineSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineSrv.java), [`PipelineProcessorSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineProcessorSrv.java), [`KafkaConfig`](../src/main/java/org/rd/fullstack/springbooteda/config/KafkaConfig.java), [`KafkaSandbox`](../src/main/java/org/rd/fullstack/springbooteda/util/kafka/KafkaSandbox.java), [`KafkaConstants`](../src/main/java/org/rd/fullstack/springbooteda/util/kafka/KafkaConstants.java).

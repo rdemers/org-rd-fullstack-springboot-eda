@@ -221,8 +221,3 @@ For the broader governance framing of these signals — data products, ownership
 - **Mind the transaction boundary**: exactly-once shrinks the divergence window but does not remove the need for corroboration across stores it cannot enroll.
 - **Alert on the cheap signal, investigate with the deep one** — don't run full replays on every tick.
 - **Account for in-flight work**: a transient `nbrPending` is normal; only a *persistently* non-decreasing pending count indicates a stall.
-
-## Sources & further reading
-
-- [kafka-corrobation.md](./source/kafka-corrobation.md) — corroboration and reconciliation patterns in EDA.
-- [kafka-data-integritymd](./source/kafka-data-integritymd) — Kafka acknowledgment, at-least-once delivery, and data-loss prevention with Spring Boot.

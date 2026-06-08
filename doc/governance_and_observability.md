@@ -262,9 +262,6 @@ For the governance framing behind these dashboards, cross-read the [Data Mesh / 
 
 ## Sources & further reading
 
-- [Health Indicators in Spring Boot.pdf](./source/Health%20Indicators%20in%20Spring%20Boot.pdf) — `HealthIndicator` API, custom indicators, statuses, HTTP mapping, health vs metrics.
-- [Top_Six_Kafka_Projects_Fail.pdf](./source/Top_Six_Kafka_Projects_Fail.pdf) — the six recurring Kafka failure modes, including lack of governance and unpredictable outages.
-- [kafka-corrobation.md](./source/kafka-corrobation.md) — source material for the data corroboration overview.
 - [Data Mesh / Data Fabric note](./datamesh_datafabric.md) — organizational vs technical framing and the hybrid approach.
 - [Data corroboration](./data_corrob.md) — sibling deep dive into corroboration mechanisms.
 - [Project README](../README.md) — run instructions and the full list of Actuator endpoints.

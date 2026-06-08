@@ -1,5 +1,7 @@
 # EDA - Datamesh/DataFabric
 
+> Part of the **Kafka Engineering Guide** of `org-rd-fullstack-springboot-eda`. See the [project README](../README.md).
+
 ## Introduction
 
 In modern enterprises, the ability to manage, integrate, and extract value from data is a critical competitive advantage. Both DataMesh and DataFabric provide frameworks to address these challenges.

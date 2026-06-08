@@ -36,8 +36,6 @@ A topic's partitions are the fundamental unit of parallelism and scalability:
 - Consumers in the same group divide the partitions among themselves, processing them in parallel.
 - Ordering is guaranteed **only within a single partition**, never across partitions.
 
-![Kafka partitions](./asserts/eda_kafka-partitions.jpg)
-
 The partition a record lands in is decided by its **partition key**. Records sharing a key always route to the same partition, which is exactly what preserves per-key ordering. Records with no key are distributed by the producer across the available partitions (round-robin / sticky batching).
 
 ```mermaid
@@ -216,10 +214,3 @@ For how partitioning interacts with elastic scaling and pod shutdown on EKS, see
 - Don't increase partition count casually on a live keyed topic; `hash % N` changes and reshuffles key placement, disturbing in-flight ordering.
 - Don't build a fat pipe carrying unrelated event types; the partition-key problem becomes unsolvable and consumers fill with discard logic.
 - Don't rely on a topic as a broad data-sharing channel for sensitive data; publish only what consumers need.
-
-## Sources & further reading
-
-- [kafka-partitions.md](./source/kafka-partitions.md) — partitions, consumers and ordering guarantees.
-- [topic_design_thin_fat_pipe.md](./source/topic_design_thin_fat_pipe.md) — thin vs fat pipe topic design trade-offs.
-- [dist_scale_and_shutdown.md](./source/dist_scale_and_shutdown.md) — distribution, scaling and graceful shutdown on EKS.
-- Image: [`EDA-Kafka-Partitions.png`](./asserts/eda_kafka-partitions.jpg).

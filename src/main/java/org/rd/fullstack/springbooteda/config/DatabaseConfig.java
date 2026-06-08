@@ -52,16 +52,16 @@ public class DatabaseConfig {
             // The persons entities.
             logger.info("Persons ...");
 
-            personRepository.save(new Person("John", "Wick", new BigDecimal("1000.00")));
-            personRepository.save(new Person("Jack", "Sparrow", new BigDecimal("1000.00")));
-            personRepository.save(new Person("Conan", "Barbarian", new BigDecimal("1000.00")));
-            personRepository.save(new Person("Suzan", "Storm", new BigDecimal("1000.00")));
-            personRepository.save(new Person("Johnny", "Cash", new BigDecimal("1000.00")));
-            personRepository.save(new Person("Tony", "Stark", new BigDecimal("1000.00")));
-            personRepository.save(new Person("Sophia", "Madria", new BigDecimal("1000.00")));
-            personRepository.save(new Person("James", "Bond", new BigDecimal("1000.00")));
-            personRepository.save(new Person("Jolene", "Spinoza", new BigDecimal("1000.00")));
-            personRepository.save(new Person("Monica", "Spears", new BigDecimal("1000.00")));
+            personRepository.save(new Person("John", "Wick", new BigDecimal("2000.00")));
+            personRepository.save(new Person("Jack", "Sparrow", new BigDecimal("2000.00")));
+            personRepository.save(new Person("Conan", "Barbarian", new BigDecimal("2000.00")));
+            personRepository.save(new Person("Suzan", "Storm", new BigDecimal("2000.00")));
+            personRepository.save(new Person("Johnny", "Cash", new BigDecimal("2000.00")));
+            personRepository.save(new Person("Tony", "Stark", new BigDecimal("2000.00")));
+            personRepository.save(new Person("Sophia", "Madria", new BigDecimal("2000.00")));
+            personRepository.save(new Person("James", "Bond", new BigDecimal("2000.00")));
+            personRepository.save(new Person("Jolene", "Spinoza", new BigDecimal("2000.00")));
+            personRepository.save(new Person("Monica", "Spears", new BigDecimal("2000.00")));
             personRepository.flush();
 
             // The products entities.

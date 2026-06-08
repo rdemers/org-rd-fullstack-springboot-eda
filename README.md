@@ -42,13 +42,14 @@ The following software must be installed on your workstation in order to build a
 
 This guide compiles best practices for designing, developing, and operating robust Kafka consumers, particularly in containerized environments (EKS).
 
-![alt text](./doc/asserts/eda_shark.png "EDA-Shark")
+![alt text](./doc/asserts/Kafka-eda-facts.png "Kafka-EDA-Facts")
 
 ### Thematic Index
 
 * [Architecture & Topic Design](./doc/architecture_and_topic_design.md)
 * [Lifecycle & Operations](./doc/lifecycle_and_operations.md)
 * [Reliability & Delivery Semantics](./doc/reliability_and_delivery_semantics.md)
+* [Consumer Acknowledgement & Idempotency](./doc/consumer_acknowledgement_and_idempotency.md)
 * [Persistence & Transaction Patterns](./doc/persistence_and_transaction_patterns.md)
 * [Governance & Observability](./doc/governance_and_observability.md)
 * [Data Corroboration](./doc/data_corroboration.md)
