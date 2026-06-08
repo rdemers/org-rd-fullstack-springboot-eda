@@ -42,6 +42,8 @@ The following software must be installed on your workstation in order to build a
 
 This guide compiles best practices for designing, developing, and operating robust Kafka consumers, particularly in containerized environments (EKS).
 
+![alt text](./doc/asserts/eda_shark.png "EDA-Shark")
+
 ### Thematic Index
 
 * [Architecture & Topic Design](./doc/architecture_and_topic_design.md)
