@@ -6,7 +6,8 @@ This project provides a comprehensive sandbox environment for exploring the prin
 
 The platform leverages Spring Boot, Nuxt, Apache Maven, Kafka, Flink, Hazelcast, and Docker to build OCI-compliant application containers. It consists of a collection of microservices designed for deployment on AWS/EKS and includes a web application implemented according to Static Site Generation (SSG) principles.
 
-**Note:** In this architecture, Spring Boot is used exclusively to serve static web content, effectively acting as a lightweight content delivery layer for the web application.
+**Note:** In this architecture, Spring Boot bundles the backend services and the web frontend into a single deployable artifact. While exposing the application's services, it also serves the frontend's static assets, effectively functioning as a lightweight content delivery layer.
+
 
 ![alt text](./doc/asserts/springboot-eda.gif "Springboot-EDA")
 
