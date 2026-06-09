@@ -234,7 +234,7 @@ Event delivery does **not** guarantee global consistency. Delivery semantics, co
 
 Underpinning all of them: **idempotency and business-level sequencing** (per-aggregate sequence numbers, gap detection) and **contractual business invariants** (e.g. stock never negative, balances consistent).
 
-> This is a deliberately short overview. The full treatment — mechanisms, trade-offs, and a recommended layered strategy — is in the dedicated deep-dive: **[Data corroboration](./data_corrob.md)**.
+> This is a deliberately short overview. The full treatment — mechanisms, trade-offs, and a recommended layered strategy — is in the dedicated deep-dive: **[Data corroboration](./data_corroboration.md)**.
 
 ## How this project applies it
 
@@ -257,11 +257,11 @@ For the governance framing behind these dashboards, cross-read the [Data Mesh / 
 - **Guard detail exposure.** Use `show-details: when_authorized` (or `never`) in production so stack traces and internal details are not leaked publicly.
 - **Govern topics from day one.** Document owner, schema, and use case per topic; enforce schema compatibility. Ungoverned topics are the most common — and most expensive — failure mode.
 - **Tune timeouts deliberately.** Too low causes premature termination and message loss; too high delays failure detection. Test configuration changes (replication factor, partitions) before production.
-- **Treat delivery and correctness separately.** Add idempotency, sequencing, and a corroboration layer; do not assume an event consumed is a state that matches reality. See [Data corroboration](./data_corrob.md).
+- **Treat delivery and correctness separately.** Add idempotency, sequencing, and a corroboration layer; do not assume an event consumed is a state that matches reality. See [Data corroboration](./data_corroboration.md).
 - **Scrape metrics on the management port.** Keep `8081` internal/secured; expose only what monitoring needs.
 
 ## Sources & further reading
 
 - [Data Mesh / Data Fabric note](./datamesh_datafabric.md) — organizational vs technical framing and the hybrid approach.
-- [Data corroboration](./data_corrob.md) — sibling deep dive into corroboration mechanisms.
+- [Data corroboration](./data_corroboration.md) — sibling deep dive into corroboration mechanisms.
 - [Project README](../README.md) — run instructions and the full list of Actuator endpoints.

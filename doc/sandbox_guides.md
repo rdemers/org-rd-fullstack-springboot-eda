@@ -135,7 +135,7 @@ stateDiagram-v2
 ### Gotchas
 
 - **Single cluster only.** `clusters(int)` is a deprecated no-op (a bug in `EmbeddedKafkaKraftBroker`); any value other than 1 is ignored with a warning.
-- **Unbounded caches & coarse locking.** Producer/template/listener caches never shrink and several operations synchronize on `this`. Fine for dev/test, not for long-running use. See the review notes in [KafkaSandbox-Review.txt](../source/KafkaSandbox-Review.txt) (the "God class" critique and the suggested split into registries/services, which the [`kafka-sandbox-refactor.zip`](../source/kafka-sandbox-refactor.zip) prototypes).
+- **Unbounded caches & coarse locking.** Producer/template/listener caches never shrink and several operations synchronize on `this`. Fine for dev/test, not for long-running use.
 - **`seekConsumerGroupOffsets` uses `assign()` + `poll()`.** It writes offsets directly without joining the group; the `poll()` can occasionally consume a record depending on timing.
 - **`getDefaultErrorHandler()` has a side effect** — it lazily creates the default DLT topic.
 - **`getBrokerMetrics()` is embedded-only** and throws `UnsupportedOperationException` against an external broker.
@@ -196,7 +196,7 @@ FlinkDashboard dash = flink.getDashboardData();
 
 ### Dashboard & observability
 
-`getDashboardData()` returns a [`FlinkDashboard`](../src/main/java/org/rd/fullstack/springbooteda/util/flink/FlinkDashboard.java) built from `requestClusterOverview()` and `listJobs()`: connected TaskManagers, total/available slots, running/finished/cancelled/failed job counts, Flink version/commit, and a per-job list (id, name, state, start time). Exposed at `GET /api/flinkDashboardData`. With `activeMetrics`, the cluster also serves Flink's own REST metrics endpoints (e.g. `/jobmanager/metrics`, `/jobs/overview`) — see [Flink.txt](../source/Flink.txt) for example queries.
+`getDashboardData()` returns a [`FlinkDashboard`](../src/main/java/org/rd/fullstack/springbooteda/util/flink/FlinkDashboard.java) built from `requestClusterOverview()` and `listJobs()`: connected TaskManagers, total/available slots, running/finished/cancelled/failed job counts, Flink version/commit, and a per-job list (id, name, state, start time). Exposed at `GET /api/flinkDashboardData`. With `activeMetrics`, the cluster also serves Flink's own REST metrics endpoints (e.g. `/jobmanager/metrics`, `/jobs/overview`).
 
 ### Gotchas
 

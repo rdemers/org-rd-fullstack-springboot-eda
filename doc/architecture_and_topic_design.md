@@ -179,7 +179,7 @@ This sandbox is built to let you *see* these effects rather than just read about
 
   [`KafkaSandbox`](../src/main/java/org/rd/fullstack/springbooteda/util/kafka/KafkaSandbox.java) warns when requested concurrency exceeds the partition count, because the surplus threads would never receive a partition — the `min(partitions, concurrency)` ceiling in action. The default concurrency is 3 (`CST_NBR_CONCURRENCY`), comfortably below the 8 partitions.
 
-- **Consumer-side context shows ordering effects.** [`PipelineSrv.listen(...)`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineSrv.java) logs the topic, partition and offset for every record, so you can watch how keyed vs unkeyed publishing changes which partition a given product's records land on, and how that interacts with the configured concurrency. Processing is delegated to [`PipelineProcessorSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineProcessorSrv.java) inside its own transaction.
+- **Consumer-side context shows ordering effects.** [`PipelineSrv.listen(...)`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineSrv.java) logs the topic, partition and offset for every record, so you can watch how keyed vs unkeyed publishing changes which partition a given product's records land on, and how that interacts with the configured concurrency. Processing is delegated to [`PipelineSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/PipelineSrv.java) inside its own transaction.
 
 ```mermaid
 flowchart LR

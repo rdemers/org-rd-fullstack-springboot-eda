@@ -178,7 +178,7 @@ In short: idempotency + sequencing make state *safe to recompute*; corroboration
 
 This sandbox is database-centric: the relational `Request` and `Inventory` tables are the authoritative state, and Kafka messages trigger their mutation. Two artefacts are central to corroboration here.
 
-**The pipeline processor** — [`PipelineProcessorSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/ProcessorSrv.java) — processes each request in its own JPA transaction and is explicitly **idempotent**: a request whose result is no longer `PENDING`/`BACK_ORDER` has already been handled and is skipped. This is precisely the property that makes the at-least-once redelivery of the Kafka error handler safe, and that would make a replay-based reconciliation job safe to run.
+**The processor** — [`ProcessorSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/ProcessorSrv.java) — processes each request in its own JPA transaction and is explicitly **idempotent**: a request whose result is no longer `PENDING`/`BACK_ORDER` has already been handled and is skipped. This is precisely the property that makes the at-least-once redelivery of the Kafka error handler safe, and that would make a replay-based reconciliation job safe to run.
 
 ```java
 // PipelineProcessorSrv.process(...) — idempotency guard
