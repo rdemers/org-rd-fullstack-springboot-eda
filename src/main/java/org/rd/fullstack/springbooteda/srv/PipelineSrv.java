@@ -237,6 +237,7 @@ public class PipelineSrv {
         final PipelineContext context  = getPipelineContext();
         final boolean         useKey   = Boolean.TRUE.equals(context.getKey());
         final boolean         replay   = Boolean.TRUE.equals(context.getReplay());
+        final String          batchId  = UUID.randomUUID().toString();
         final String          replayId = replay ? UUID.randomUUID().toString() : KafkaConstants.CST_NONE;
 
         if (replay)
@@ -248,14 +249,17 @@ public class PipelineSrv {
         template.executeInTransaction(ops -> {
             for (Map.Entry<String, String> message : outbound) {
                 final String key = useKey ? message.getKey() : null;
+                final List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
+                
+                headers.add(new RecordHeader(KafkaConstants.CST_HEADER_BATCH_ID, 
+                    batchId.getBytes(StandardCharsets.UTF_8)));
+                if (replay)
+                    headers.add(new RecordHeader(KafkaConstants.CST_HEADER_REPLAY_ID, 
+                        replayId.getBytes(StandardCharsets.UTF_8)));
 
-                final List<org.apache.kafka.common.header.Header> headers = replay
-                    ? List.of(new RecordHeader(KafkaConstants.CST_HEADER_REPLAY_ID,
-                        replayId.getBytes(StandardCharsets.UTF_8))) : null;
-
-                logger.info("Publishing for key/payload: {}/{} - replay-id: {}.",
+                logger.info("Publishing for key/payload: {}/{} - batch-id: {}, replay-id: {}.",
                     useKey ? message.getKey() : KafkaConstants.CST_NONE, message.getValue(),
-                    replay ? replayId : KafkaConstants.CST_NONE);
+                    batchId, replay ? replayId : KafkaConstants.CST_NONE);
 
                 ops.send(new ProducerRecord<>(
                     KafkaConstants.CST_TOPIC_PROCESSOR, null, key, message.getValue(), headers));

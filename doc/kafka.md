@@ -1,6 +1,8 @@
-# 📘 Kafka Engineering Guide
+# Kafka
 
 > Part of the **Kafka Engineering Guide** of `org-rd-fullstack-springboot-eda`. See the [project README](../README.md).
+
+**Scope:** the consolidated, end-to-end engineering guide for running Kafka consumers on Spring Boot in containerized (Kubernetes/EKS) environments — Kafka fundamentals, topic and partition design, consumer groups and partitioning, lifecycle and operations, delivery semantics, deduplication and transactions, persistence patterns, scaling in EKS, governance and observability, sandbox testing, and a reference configuration. The thematic chapters of the guide expand each of these topics in dedicated documents.
 
 ## Stream Processing, EDA Resilience & EKS Deployment
 

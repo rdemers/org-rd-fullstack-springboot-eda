@@ -31,6 +31,7 @@ public class KafkaConstants {
     // Record header carrying the replay correlation id (one UUID per publication when the
     // "replay" option is enabled).
     public static final String  CST_HEADER_REPLAY_ID = "replay-id";
+    public static final String  CST_HEADER_BATCH_ID  = "batch-id";
     public static final String  CST_TOPIC_FLINK_IN   = "APP-Flink-Input";
     public static final String  CST_TOPIC_FLINK_OUT  = "APP-Flink-Output";
 

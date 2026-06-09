@@ -2,6 +2,8 @@
 
 > Part of the **Kafka Engineering Guide** of `org-rd-fullstack-springboot-eda`. See the [project README](../README.md).
 
+**Scope:** how Data Mesh and Data Fabric address enterprise data management from two different angles — Data Mesh as an organizational and governance paradigm (decentralization, data as a product, team autonomy, self-service platform) and Data Fabric as the technical infrastructure layer (integration, virtualization, unified services, AI/ML automation) — how the two combine into a hybrid strategy, and the pivotal role Event-Driven Architecture plays in enabling both.
+
 ## Introduction
 
 In modern enterprises, the ability to manage, integrate, and extract value from data is a critical competitive advantage. Both DataMesh and DataFabric provide frameworks to address these challenges.

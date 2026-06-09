@@ -53,10 +53,13 @@ This guide compiles best practices for designing, developing, and operating robu
 * [Consumer Acknowledgement & Idempotency](./doc/consumer_acknowledgement_and_idempotency.md)
 * [Persistence & Transaction Patterns](./doc/persistence_and_transaction_patterns.md)
 * [Governance & Observability](./doc/governance_and_observability.md)
+* [Scale and shutdown in distributed environments](./doc/dist_scale_and_shutdown.md)
 * [Data Corroboration](./doc/data_corroboration.md)
 
 Other useful information:
 
+* [Relational Database Schema](./doc/database.md)
+* [Kafka](./doc/kafka.md)
 * [Sandbox Guides (Kafka / Flink / Hazelcast)](./doc/sandbox_guides.md)
 * [Springboot Application Lifecycle](./doc/sba_lifecycle.md)
 * [Datamesh/DataFabric](./doc/datamesh_datafabric.md)

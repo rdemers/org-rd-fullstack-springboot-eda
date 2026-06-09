@@ -18,6 +18,7 @@
     <v-col cols="12" md="8" sm="10">
       <v-card class="logo-wrapper pa-4 mb-6" flat color="transparent">
         <div class="logo-item"><vrd-springboot-logo/></div>
+        <div class="logo-item"><vrd-hazelcast-logo/></div>
         <div class="logo-item"><vrd-kafka-logo/></div>
         <div class="logo-item"><vrd-flink-logo/></div>
         <div class="logo-item"><vrd-nuxt-logo/></div>
@@ -67,11 +68,12 @@
     const { t } = useI18n();
     const items = [
         { techno: "SpringBoot", description: "index.techno-01", url: "https://spring.io/projects/spring-boot" },
-        { techno: "Kafka",      description: "index.techno-02", url: "https://kafka.apache.org/" },
-        { techno: "Flink",      description: "index.techno-03", url: "https://flink.apache.org/" },
-        { techno: "Nuxt",       description: "index.techno-04", url: "https://nuxt.com" },
-        { techno: "Vue",        description: "index.techno-05", url: "https://vuejs.org" },
-        { techno: "Vuetify",    description: "index.techno-06", url: "https://next.vuetifyjs.com" }
+        { techno: "Hazelcast",  description: "index.techno-02", url: "https://hazelcast.com/" },
+        { techno: "Kafka",      description: "index.techno-03", url: "https://kafka.apache.org/" },
+        { techno: "Flink",      description: "index.techno-04", url: "https://flink.apache.org/" },
+        { techno: "Nuxt",       description: "index.techno-05", url: "https://nuxt.com" },
+        { techno: "Vue",        description: "index.techno-06", url: "https://vuejs.org" },
+        { techno: "Vuetify",    description: "index.techno-07", url: "https://next.vuetifyjs.com" }
     ];
 </script>
 

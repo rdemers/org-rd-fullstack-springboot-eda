@@ -1,6 +1,10 @@
-# Consumer Processes and Threads in EKS
+# Scale and shutdown in distributed environments
 
 > Part of the **Kafka Engineering Guide** of `org-rd-fullstack-springboot-eda`. See the [project README](../README.md).
+
+**Scope:** how Kafka consumer parallelism scales in Kubernetes/EKS — the relationship between pods, threads and partitions, and why partition count caps achievable parallelism — and why the ephemeral nature of pods makes graceful shutdown a hard requirement, with concrete Spring Boot / Spring Kafka patterns for stopping consumers and flushing producers cleanly to avoid rebalances, duplicates and message loss.
+
+## Processes and Threads in EKS
 
 In a Kubernetes environment such as **Amazon EKS**, Kafka consumers are typically deployed as **multiple pod replicas**. Each pod runs a **consumer process**, and within that process, the application may use one or more **threads** to process records.
 
@@ -33,11 +37,6 @@ To mitigate these risks, Kafka applications running in EKS must:
 Similarly, Kafka producers must ensure that buffered records are flushed and acknowledged before the pod terminates, preventing message loss.
 
 Proper implementation of **graceful shutdown logic** ensures that Kafka workloads remain resilient, consistent, and predictable, even in a highly dynamic and elastic Kubernetes environment.
-
----
-
-Parfait 👍
-Voici des **exemples concrets avec Spring Boot / Spring Kafka**, adaptés à **EKS** et centrés sur le **graceful shutdown** des **consommateurs** et **producteurs** Kafka.
 
 ---
 

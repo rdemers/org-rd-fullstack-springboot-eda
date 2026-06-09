@@ -86,11 +86,12 @@
         "sommaire"  : "This application provides the essential foundations for working with an event-driven architecture (EDA). Have fun !!!",
         "techno"    : "The technologies used by this application are:",
         "techno-01" : "Spring Boot - Framework for JAVA/Services/REST.",
-        "techno-02" : "Apache Kafka – A distributed streaming platform.",
-        "techno-03" : "Apache Flink - A stream processing platform.",
-        "techno-04" : "Nuxt - The intuitive Vue framework.",
-        "techno-05" : "Vue - The progressive JavaScript framework.",
-        "techno-06" : "Vuetify - UX/UI components for Vue.",
+        "techno-02" : "Hazelcast - A distributed computing platform.",
+        "techno-03" : "Apache Kafka – A distributed streaming platform.",
+        "techno-04" : "Apache Flink - A stream processing platform.",
+        "techno-05" : "Nuxt - The intuitive Vue framework.",
+        "techno-06" : "Vue - The progressive JavaScript framework.",
+        "techno-07" : "Vuetify - UX/UI components for Vue.",
         "scm"       : "Github source"
     },
     "person" : {
