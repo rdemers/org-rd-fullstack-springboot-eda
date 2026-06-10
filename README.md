@@ -56,7 +56,7 @@ This guide compiles best practices for designing, developing, and operating robu
 * [Scale and shutdown in distributed environments](./doc/dist_scale_and_shutdown.md)
 * [Data Corroboration](./doc/data_corroboration.md)
 
-Other useful information:
+Other useful information (contains some duplicate content and requires cleanup):
 
 * [Relational Database Schema](./doc/database.md)
 * [Kafka](./doc/kafka.md)
