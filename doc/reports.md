@@ -28,6 +28,8 @@ This is the project-level fix described in
 and listed first in
 [Mitigations](./persistence_and_transaction_patterns.md#mitigations-in-order-of-preference).
 
+![alt text](./asserts/Withkey-Report.png "Withkey Report")
+
 Source: [`WithKey-Report.pdf`](./asserts/WithKey-Report.pdf)
 
 ## Example of a report result without a Kafka key
@@ -50,5 +52,7 @@ processing of the same product and reintroduced the race. This is exactly the fa
 covered in
 [Ordering guarantees and business semantics](./architecture_and_topic_design.md#ordering-guarantees-and-business-semantics)
 and in [Database locking and race conditions](./persistence_and_transaction_patterns.md#database-locking-and-race-conditions).
+
+![alt text](./asserts/NoKey-Report.png "NoKey Report")
 
 Source: [`NoKey-Report.pdf`](./asserts/NoKey-Report.pdf)
