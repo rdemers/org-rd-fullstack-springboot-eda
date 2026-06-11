@@ -63,6 +63,7 @@ Other useful information (contains some duplicate content and requires cleanup):
 * [Sandbox Guides (Kafka / Flink / Hazelcast)](./doc/sandbox_guides.md)
 * [Springboot Application Lifecycle](./doc/sba_lifecycle.md)
 * [Datamesh/DataFabric](./doc/datamesh_datafabric.md)
+* [Example inventory reports](./doc/reports.md)
 
 ---
 
@@ -159,5 +160,28 @@ When the application is running, the following endpoints are available
 ---
 
 ## Conclusion
+
+The login window will recognize these users:
+
+```java
+@Bean
+    UserUtils userUtils() {
+        UserUtils userUtils = new UserUtils();
+        PasswordEncoder passwordEncoder = passwordEncoder();
+
+        userUtils.add("root", passwordEncoder.encode("root"),
+                Arrays.asList(Role.ROLE_SELECT, Role.ROLE_INSERT, Role.ROLE_UPDATE, Role.ROLE_DELETE));
+
+        userUtils.add("support", passwordEncoder.encode("support"),
+                Arrays.asList(Role.ROLE_SELECT, Role.ROLE_UPDATE));
+
+        userUtils.add("guest", passwordEncoder.encode("guest"),
+                Arrays.asList(Role.ROLE_SELECT));
+
+        return userUtils;
+    }
+```
+
+Source: [`SecurityConfig`](./src/main/java/org/rd/fullstack/springbooteda/config/SecurityConfig.java)
 
 Enjoy experimenting!
