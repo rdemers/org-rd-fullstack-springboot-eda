@@ -53,6 +53,6 @@ covered in
 [Ordering guarantees and business semantics](./architecture_and_topic_design.md#ordering-guarantees-and-business-semantics)
 and in [Database locking and race conditions](./persistence_and_transaction_patterns.md#database-locking-and-race-conditions).
 
-![alt text](./asserts/NoKey-Report.png "NoKey Report")
+![alt text](./asserts/Nokey-Report.png "NoKey Report")
 
 Source: [`NoKey-Report.pdf`](./asserts/NoKey-Report.pdf)
