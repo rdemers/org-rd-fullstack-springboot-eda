@@ -1,0 +1,39 @@
+# ----------------------------------------------------------------------------------------
+# org.rd.fullstack.springboot-eda — Prometheus scraping (OPTIONAL)
+# ----------------------------------------------------------------------------------------
+#
+# Scrapes Micrometer/Actuator metrics from the management port 8081 at /actuator/prometheus
+# (governance_and_observability.md "Observability: Actuator and Prometheus"). This is where
+# JVM, HTTP and Kafka client metrics live — including the lag/rebalance metrics the docs call
+# out: kafka_consumer_records_lag_max, kafka_consumer_rebalance_total,
+# kafka_listener_seconds_max, kafka_consumer_poll_time_max, kafka_listener_failures_total.
+#
+# PRECONDITION: the Prometheus Operator is installed (CRD monitoring.coreos.com/v1).
+# It selects the headless management Service (springboot-eda-management) from
+# deploy/eks/springboot-eda.yaml.
+#
+# Apply with:
+#   kubectl apply -f deploy/eks/servicemonitor.yaml
+# ----------------------------------------------------------------------------------------
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: springboot-eda
+  namespace: springboot-eda
+  labels:
+    app.kubernetes.io/name: springboot-eda
+    # Match the label your Prometheus instance uses to discover ServiceMonitors, e.g.:
+    release: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+      - springboot-eda
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: springboot-eda
+      app.kubernetes.io/component: management
+  endpoints:
+    - port: management          # named port on springboot-eda-management Service (8081)
+      path: /actuator/prometheus
+      interval: 15s
+      scrapeTimeout: 10s
