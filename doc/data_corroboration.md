@@ -25,6 +25,8 @@
 
 In an event-driven architecture (EDA), no single mechanism guarantees that every consumer and downstream store ends up with the same view of reality. Message delivery semantics, consumer crashes, partition rebalances, and transient network faults can all produce **divergence** between systems that are supposed to agree.
 
+![alt text](./asserts/corroboration.png "Corroboration")
+
 **Data corroboration** is the deliberate practice of confirming that two or more representations of the same facts are consistent: a source of truth and a derived projection, two independent consumers, or a recomputed state and a persisted state. It complements — but does not replace — delivery guarantees and idempotency. Where idempotency prevents a single message from corrupting state, corroboration *detects* when state has drifted anyway and gives you the evidence to repair it.
 
 The key mindset shift is this:
