@@ -45,6 +45,8 @@ This guide compiles best practices for designing, developing, and operating robu
 
 ![alt text](./doc/asserts/eda-shark-iceberg.png "EDA-Iceberg-Shark")
 
+**Note:** The sharks are named Bronze, Silver, and Gold. The Medallion Architecture implementation team. 😄
+
 ### Thematic Index
 
 * [Architecture & Topic Design](./doc/architecture_and_topic_design.md)
