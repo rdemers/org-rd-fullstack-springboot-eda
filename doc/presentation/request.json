@@ -1,0 +1,15 @@
+{
+    "header":{
+        "eventId":"IFSD-5ZHM-HO4A-D6AA-AAAA-AAAA-24C2",
+        "version":"1.0",
+        "batchId":"0e9b2243-b7fc-4926-8a77-e50fcaeb1562",
+        "replayId":"<none>"
+        },
+    "payload":{
+        "requestId":0,"personId":3,"productId":5,
+        "qty":10,"operation":10,"result":10
+        },
+    "footer":{
+        "signature":"55c2be8d5a4 ... 01d9ddf192fac2e9b4"
+        }
+}

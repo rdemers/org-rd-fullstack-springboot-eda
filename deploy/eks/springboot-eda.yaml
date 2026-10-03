@@ -1,0 +1,329 @@
+# ----------------------------------------------------------------------------------------
+# org.rd.fullstack.springboot-eda — Amazon EKS deployment manifest
+# ----------------------------------------------------------------------------------------
+#
+# This manifest deploys the Spring Boot + Nuxt (single-artifact) application to Amazon EKS,
+# honouring the operational specifications described in the project documentation:
+#
+#   - doc/lifecycle_and_operations.md   (probes, SIGTERM/grace window, traffic draining)
+#   - doc/dist_scale_and_shutdown.md    (graceful shutdown, preStop, scaling vs partitions)
+#   - doc/governance_and_observability.md (management port 8081, Prometheus, liveness/readiness)
+#
+# Key facts taken from src/main/resources/application.yml:
+#   - server.port .............................. 8080  (application + Nuxt static assets + API)
+#   - management.server.port ................... 8081  (Actuator: info, health, prometheus)
+#   - server.shutdown .......................... graceful
+#   - spring.lifecycle.timeout-per-shutdown-phase  45s
+#   - spring.main.cloud-platform ............... kubernetes  (activates liveness/readiness states)
+#   - kafka bootstrap-servers .................. ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+#   - jwt secret / expiration .................. ${JWT_SECRET} / ${JWT_EXPIRATION}
+#
+# IMPORTANT (see README "Important"): for demonstration this image embeds Kafka, Flink,
+# Hazelcast and HSQLDB *inside* the JVM. With the embedded sandbox enabled each replica is
+# fully self-contained and does NOT share a consumer group, so meaningful horizontal scaling
+# (and lag-based autoscaling) requires externalising Kafka — disable the sandbox and point
+# KAFKA_BOOTSTRAP_SERVERS at MSK/an external cluster. See the ConfigMap notes below and
+# deploy/eks/autoscaling-keda.yaml. With the sandbox enabled, keep replicas: 1.
+#
+# Apply with:
+#   kubectl apply -f deploy/eks/springboot-eda.yaml
+#
+# R. Demers; 2026.
+# ----------------------------------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: springboot-eda
+  labels:
+    app.kubernetes.io/part-of: org-rd-fullstack-springboot-eda
+---
+# ----------------------------------------------------------------------------------------
+# Non-secret configuration. Relaxed-binding env vars override application.yml.
+# ----------------------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: springboot-eda-config
+  namespace: springboot-eda
+  labels:
+    app.kubernetes.io/name: springboot-eda
+data:
+  # Embedded sandbox (demo default). To run a production-style, horizontally scalable
+  # deployment, set this to "false" and point KAFKA_BOOTSTRAP_SERVERS at an external
+  # cluster (e.g. Amazon MSK). Relaxed binding maps to
+  # org.rd.fullstack.springbooteda.kafka.sandbox.enabled.
+  ORG_RD_FULLSTACK_SPRINGBOOTEDA_KAFKA_SANDBOX_ENABLED: "true"
+
+  # Kafka bootstrap servers. With the embedded sandbox this is unused (the broker runs
+  # in-process); when the sandbox is disabled, set it to your MSK/Kafka endpoint, e.g.:
+  #   b-1.msk.xxxx.kafka.<region>.amazonaws.com:9092,b-2...:9092
+  KAFKA_BOOTSTRAP_SERVERS: "localhost:9092"
+
+  # Cap the JVM heap to a fraction of the container memory limit so the kernel does not
+  # OOMKill the pod (see lifecycle_and_operations.md: "OOMKill from tight limits.memory").
+  JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70.0 -XX:+UseG1GC"
+---
+# ----------------------------------------------------------------------------------------
+# Secrets. Placeholder values only — DO NOT commit real secrets. In production source these
+# from AWS Secrets Manager via the External Secrets Operator or the AWS Secrets & Config
+# Provider (ASCP) CSI driver, and remove this resource.
+# ----------------------------------------------------------------------------------------
+apiVersion: v1
+kind: Secret
+metadata:
+  name: springboot-eda-secrets
+  namespace: springboot-eda
+  labels:
+    app.kubernetes.io/name: springboot-eda
+type: Opaque
+stringData:
+  # Override org.rd.fullstack.springbooteda.secret (JWT signing key) — change this value.
+  JWT_SECRET: "the.beautiful.secret.key.to.change"
+  # org.rd.fullstack.springbooteda.expiration — 8 hours in ms.
+  JWT_EXPIRATION: "28800000"
+---
+# ----------------------------------------------------------------------------------------
+# Deployment. EKS deploy unit is Deployment -> Pod (see EKS vs ECS table in
+# dist_scale_and_shutdown.md).
+# ----------------------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-eda
+  namespace: springboot-eda
+  labels:
+    app.kubernetes.io/name: springboot-eda
+    app.kubernetes.io/part-of: org-rd-fullstack-springboot-eda
+spec:
+  # Keep at 1 while the embedded Kafka/Flink/Hazelcast sandbox is enabled (each replica is
+  # self-contained). Scale only after externalising Kafka; keep replicas <= partition count.
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: springboot-eda
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: springboot-eda
+        app.kubernetes.io/part-of: org-rd-fullstack-springboot-eda
+      annotations:
+        # Fallback scrape annotations (used when no Prometheus Operator ServiceMonitor is
+        # installed). Metrics live on the management port 8081 (governance_and_observability.md).
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      # The grace window must exceed the longest in-flight unit + teardown. The app's
+      # spring.lifecycle.timeout-per-shutdown-phase is 45s, so allow at least that plus the
+      # preStop sleep (10s) and margin (dist_scale_and_shutdown.md "Set the grace window to
+      # the real worst case").
+      terminationGracePeriodSeconds: 75
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: springboot-eda
+          # Replace with your ECR image, e.g.:
+          #   <aws_account_id>.dkr.ecr.<region>.amazonaws.com/org-rd-fullstack/springboot-eda:1.0.0
+          image: org-rd-fullstack/springboot-eda:unspecified
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080      # application + Nuxt static site + REST/Swagger
+              protocol: TCP
+            - name: management
+              containerPort: 8081      # Actuator: health probes + Prometheus
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: springboot-eda-config
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: springboot-eda-secrets
+                  key: JWT_SECRET
+            - name: JWT_EXPIRATION
+              valueFrom:
+                secretKeyRef:
+                  name: springboot-eda-secrets
+                  key: JWT_EXPIRATION
+            # Pod identity — available for Kafka static group membership (group.instance.id)
+            # as described in dist_scale_and_shutdown.md "Mitigating rebalances".
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          lifecycle:
+            preStop:
+              # Absorb the Endpoints/iptables propagation delay before SIGTERM so no request
+              # is routed to a draining pod (lifecycle_and_operations.md).
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+          # --- Probes (all on the management port 8081, per governance_and_observability.md) ---
+          # Startup probe MUST exist for Spring Boot or liveness can kill the JVM before it
+          # finishes booting — the #1 cause of CrashLoopBackOff (lifecycle_and_operations.md).
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: management
+            periodSeconds: 5
+            failureThreshold: 60        # up to ~5 min to boot (embedded sandbox is heavy)
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: management
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: management
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 5
+          resources:
+            # Embedded Kafka + Flink + Hazelcast + JVM is memory-hungry. Right-size from real
+            # metrics; requests drive scheduling, limits guard the node.
+            requests:
+              cpu: "500m"
+              memory: "1536Mi"
+            limits:
+              cpu: "2"
+              memory: "2560Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false   # app writes log/ and target/hsqldb (HSQLDB file DB)
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: app-runtime
+              mountPath: /application/log
+            - name: app-data
+              mountPath: /application/target
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: app-runtime
+          emptyDir: {}
+        - name: app-data
+          emptyDir: {}
+---
+# ----------------------------------------------------------------------------------------
+# Service — application traffic (port 8080). ClusterIP; exposure to the internet is handled
+# by the Ingress/ALB below. The management port 8081 is intentionally NOT exposed here so it
+# stays internal (governance_and_observability.md: "Keep 8081 internal/secured").
+# ----------------------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-eda
+  namespace: springboot-eda
+  labels:
+    app.kubernetes.io/name: springboot-eda
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: springboot-eda
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+# ----------------------------------------------------------------------------------------
+# Service — management/metrics (port 8081), internal only. Used by Prometheus / the
+# ServiceMonitor (see deploy/eks/servicemonitor.yaml). Headless to target pods directly.
+# ----------------------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-eda-management
+  namespace: springboot-eda
+  labels:
+    app.kubernetes.io/name: springboot-eda
+    app.kubernetes.io/component: management
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: springboot-eda
+  ports:
+    - name: management
+      port: 8081
+      targetPort: management
+      protocol: TCP
+---
+# ----------------------------------------------------------------------------------------
+# Ingress — AWS Load Balancer Controller (ALB). The ALB health check targets the readiness
+# probe on the management port (8081) — this is the "readiness-like" check in the EKS vs ECS
+# model. Adjust host, certificate ARN and subnets for your environment.
+# Requires: AWS Load Balancer Controller installed in the cluster.
+# ----------------------------------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: springboot-eda
+  namespace: springboot-eda
+  labels:
+    app.kubernetes.io/name: springboot-eda
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    # ALB health check -> readiness probe on the management port.
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-port: "8081"
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health/readiness
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "10"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
+    # Give in-flight requests time to drain when a target is deregistered (matches preStop).
+    alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=30
+    # For HTTPS, add a certificate and an HTTPS listener:
+    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:<region>:<acct>:certificate/<id>
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: springboot-eda
+                port:
+                  number: 80
+---
+# ----------------------------------------------------------------------------------------
+# PodDisruptionBudget — cap simultaneous voluntary disruptions (node drains, rollouts) so
+# the service stays available (dist_scale_and_shutdown.md "Counter-measures ... Pod
+# Disruption Budgets"). With replicas: 1 this allows the single pod to be evicted only when
+# a replacement can be scheduled; raise minAvailable once you scale out.
+# ----------------------------------------------------------------------------------------
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: springboot-eda
+  namespace: springboot-eda
+  labels:
+    app.kubernetes.io/name: springboot-eda
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: springboot-eda
