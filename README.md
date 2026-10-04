@@ -86,51 +86,19 @@ mvn dependency:resolve -Dclassifier=javadoc      # Download dependency Javadocs.
 
 mvn spring-boot:build-image                      # Build an OCI image using Paketo Buildpacks.
                                                  # Alternatively, use the Dockerfile for custom builds.
+java -jar target/springboot-eda-unspecified.jar  # Run the packaged JAR directly.
 
-java -jar target/springboot-eda-unspecified.jar # Run the packaged JAR directly.
-
-# Docker image
-docker build --no-cache .                        # Build an OCI image from the current directory.
-docker build --no-cache -t org-rd-fullstack/springboot-eda:unspecified .
-                                                 # Build and tag the Docker image.
-docker build --platform linux/arm64 -t org-rd-fullstack/springboot-eda:arm64 .
-docker tag org-rd-fullstack/springboot-eda:arm64 username/org-rd-fullstack-springboot-eda:arm64
-docker push username/org-rd-fullstack-springboot-eda:arm64   
-
-docker build --platform linux/amd64 -t org-rd-fullstack/springboot-eda:amd64 .
-docker tag org-rd-fullstack/springboot-eda:amd64 username/org-rd-fullstack-springboot-eda:amd64
-docker push username/org-rd-fullstack-springboot-eda:amd64
-
-docker run -it -p8080:8080 -p8081:8081 org-rd-fullstack/springboot-eda:unspecified   
-                                                 # Run the Docker image with port mappings.
-# Docker middleware
-docker buildx build --platform linux/arm64 -f Dockerfile.eda-middleware -t org-rd-fullstack/eda-middleware:arm64 .
-docker tag org-rd-fullstack/eda-middleware:arm64 username/org-rd-fullstack-eda-middleware:arm64
-docker push username/org-rd-fullstack-eda-middleware:arm64    
-
-docker buildx build --platform linux/amd64 -f Dockerfile.eda-middleware -t org-rd-fullstack/eda-middleware:amd64 .
-docker tag org-rd-fullstack/eda-middleware:amd64 username/org-rd-fullstack-eda-middleware:amd64
-docker push username/org-rd-fullstack-eda-middleware:amd64
-
-docker system prune -a                           # Remove unused Docker data (use with caution).
-docker image ls                                  # List local Docker images.
-docker rmi -f <imageID>                          # Force remove an image by ID.
-
-# Image inspection
-dive org-rd-fullstack/springboot-eda:unspecified
-                                                 # Inspect image layers.
-                                                 # See: https://github.com/wagoodman/dive.
-
-# Spring Boot layer tools
 java -Djarmode=layertools \
   -jar target/springboot-eda-unspecified.jar list
-                                                 # List JAR layers.
+                                                 # Spring Boot layer tools. List JAR layers.
 
 java -Djarmode=layertools \
   -jar target/springboot-eda-unspecified.jar extract \
   --destination target/tmp
-                                                 # Extract JAR layers to a directory.
+                                                 # Spring Boot layer tools. Extract JAR layers to a directory.
 ```
+
+---
 
 ## Nuxt4 – Getting Started
 
@@ -178,6 +146,93 @@ When the application is running, the following endpoints are available:
 * [Apache/Flink Job Details](http://localhost:{port}/jobs/{jobId})
 * [Apache/Flink Job Exceptions](http://localhost:{port}/jobs/{jobId}/exceptions)
 * [Apache/Flink Job Checkpoints](http://localhost:{port}/jobs/{jobId}/checkpoints)
+
+---
+
+## Docker – Getting Started
+
+```bash
+
+# Docker project : org-rd-fullstack/springboot-eda 
+
+docker build --no-cache .                        # Build an OCI image from the current directory.
+docker build --no-cache \
+ -t org-rd-fullstack/springboot-eda:your-tag-name . 
+                                                 # Build and tag the Docker image.
+docker build --platform linux/arm64 \
+ -t org-rd-fullstack/springboot-eda:arm64 .      
+                                                 # Build a ARM64 (MacOS) image and tag the Docker image.
+
+docker tag org-rd-fullstack/springboot-eda:arm64 \
+ your-username/org-rd-fullstack-springboot-eda:arm64
+                                                 # Tag the Docker image for a publication.
+
+docker push your-username/org-rd-fullstack-springboot-eda:arm64   
+                                                 # Push the Docker image to the repository.
+
+docker build --platform linux/amd64 \
+ -t org-rd-fullstack/springboot-eda:amd64 .
+                                                 # Build a AMD64 (Windows) image and tag the Docker image.
+
+docker tag org-rd-fullstack/springboot-eda:amd64 \
+ your-username/org-rd-fullstack-springboot-eda:amd64
+                                                 # Tag the Docker image for a publication.
+
+docker push username/org-rd-fullstack-springboot-eda:amd64
+                                                 # Push the Docker image to the repository.
+
+docker run -it -p8080:8080 -p8081:8081 org-rd-fullstack/springboot-eda:your-tag-name   
+                                                 # Run the Docker image with port mappings.
+
+# Docker middleware : org-rd-fullstack/eda-middleware
+
+docker buildx build --platform linux/arm64 \
+ -f Dockerfile.eda-middleware -t org-rd-fullstack/eda-middleware:arm64
+                                                 # Build a ARM64 (MacOS) image and tag the Docker image.
+
+docker tag org-rd-fullstack/eda-middleware:arm64 \ 
+ your-username/org-rd-fullstack-eda-middleware:arm64
+                                                 # Tag the Docker image for a publication.
+
+docker push username/org-rd-fullstack-eda-middleware:arm64
+                                                 # Push the Docker image to the repository.    
+
+docker buildx build --platform linux/amd64 \
+ -f Dockerfile.eda-middleware -t org-rd-fullstack/eda-middleware:amd64
+
+docker tag org-rd-fullstack/eda-middleware:amd64 \
+ your-username/org-rd-fullstack-eda-middleware:amd64
+                                                 # Tag the Docker image for a publication.
+
+docker push username/org-rd-fullstack-eda-middleware:amd64
+                                                 # Push the Docker image to the repository.
+
+docker run -it --rm --name eda-middleware \
+ -p 5432:5432 -p 9092:9092 -p 5701:5701 \
+ -p 6123:6123 -p 8081:8081 \
+ -e POSTGRES_PASSWORD=postgres \
+ org-rd-fullstack/eda-middleware:your-tag-name
+                                                 # Run the Docker image with port mappings.
+
+docker system prune -a                           # Remove unused Docker data (use with caution).
+docker image ls                                  # List local Docker images.
+docker rmi -f <imageID>                          # Force remove an image by ID.
+
+dive org-rd-fullstack/springboot-eda:unspecified # Inspect image layers.
+                                                 # See: https://github.com/wagoodman/dive.
+```
+
+---
+
+## Docker Hub – Getting Started
+
+* [Docker Hub](https://hub.docker.com/repositories/rdemers)
+* [More information - Dockerfile](Dockerfile)
+* [More information - Dockerfile.eda-middleware](Dockerfile.eda-middleware)
+
+Docker images are available for ARM64(MacOS) and AMD64(Windows). However, if you wish to use this image for development (accessing services such as Kafka, Flink, and Hazelcast), you could also "enable host networking" option, as shown here.
+
+![Docker-Network-Settings](./doc/asserts/docker-network-settings.png)
 
 ---
 

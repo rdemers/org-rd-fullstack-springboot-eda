@@ -88,39 +88,7 @@ mvn spring-boot:build-image                      # Construit une image OCI avec 
                                                  # Alternativement, utilisez le Dockerfile pour les
                                                  # constructions personnalisées.
 
-java -jar target/springboot-eda-unspecified.jar # Exécute directement le JAR empaqueté.
-
-# Docker image
-docker build --no-cache .                        # Construit une image OCI à partir du répertoire courant.
-docker build --no-cache -t org-rd-fullstack/springboot-eda:unspecified .
-                                                 # Construit et marque l'image Docker.
-docker build --platform linux/arm64 -t org-rd-fullstack/springboot-eda:arm64 .
-docker tag org-rd-fullstack/springboot-eda:arm64 username/org-rd-fullstack-springboot-eda:arm64
-docker push username/org-rd-fullstack-springboot-eda:arm64   
-
-docker build --platform linux/amd64 -t org-rd-fullstack/springboot-eda:amd64 .
-docker tag org-rd-fullstack/springboot-eda:amd64 username/org-rd-fullstack-springboot-eda:amd64
-docker push username/org-rd-fullstack-springboot-eda:amd64
-
-docker run -it -p8080:8080 -p8081:8081 org-rd-fullstack/springboot-eda:unspecified   
-                                                 # Exécute l'image docker avec les mappages de port.
-# Docker middleware
-docker buildx build --platform linux/arm64 -f Dockerfile.eda-middleware -t org-rd-fullstack/eda-middleware:arm64 .
-docker tag org-rd-fullstack/eda-middleware:arm64 username/org-rd-fullstack-eda-middleware:arm64
-docker push username/org-rd-fullstack-eda-middleware:arm64    
-
-docker buildx build --platform linux/amd64 -f Dockerfile.eda-middleware -t org-rd-fullstack/eda-middleware:amd64 .
-docker tag org-rd-fullstack/eda-middleware:amd64 username/org-rd-fullstack-eda-middleware:amd64
-docker push username/org-rd-fullstack-eda-middleware:amd64 
-
-docker system prune -a                           # Supprime les données Docker inutilisées (à utiliser avec prudence).
-docker image ls                                  # Liste les images Docker locales.
-docker rmi -f <imageID>                          # Force la suppression d'une image par ID.
-
-# Image inspection
-dive org-rd-fullstack/springboot-eda:unspecified
-                                                 # Inspecter les couches de l'image OCI.
-                                                 # See: https://github.com/wagoodman/dive.
+java -jar target/springboot-eda-unspecified.jar  # Exécute directement le JAR empaqueté.
 
 # Spring Boot layer tools
 java -Djarmode=layertools \
@@ -159,17 +127,6 @@ npm i nuxi                                       # Installer le module nuxi (opt
 npx nuxi init frontend                           # Créer une nouvelle application Nuxt dans le répertoire « frontend ».
 ```
 
-## Docker Hub – Getting Started
-
-* [Docker Hub](https://hub.docker.com/repositories/rdemers)
-* [Plus d'information ici - Dockerfile](../../Dockerfile)
-
-L'image docker disponible est multi-plateforme (x86 et Arm). Cependant, si vous désirez utiliser cette image pour faire du développement (accès aux services: kafka, flink et hazelcast), vous devez vous assurer d'activer l'option "enable host networking" comme démontré ci-contre.
-
-![Docker-Network-Settings](../asserts/docker-network-settings.png)
-
----
-
 Lorsque l'application est en cours d'exécution, les URLS suivants sont disponibles.
 
 * [Application web Nuxt4](http://localhost:8080/app)
@@ -186,6 +143,93 @@ Lorsque l'application est en cours d'exécution, les URLS suivants sont disponib
 * [Détails du job Apache/Flink](http://localhost:{port}/jobs/{jobId})
 * [Exceptions du job Apache/Flink](http://localhost:{port}/jobs/{jobId}/exceptions)
 * [Points de contrôle (checkpoints) du job Apache/Flink](http://localhost:{port}/jobs/{jobId}/checkpoints)
+
+---
+
+## Docker – Guide de démarrage
+
+```bash
+
+# Projet docker : org-rd-fullstack/springboot-eda 
+
+docker build --no-cache .                        # Construire une image OCI à partir du répertoire courant.
+docker build --no-cache \
+ -t org-rd-fullstack/springboot-eda:your-tag-name . 
+                                                 # Construire et mettre une étiquette sur une image docker.
+docker build --platform linux/arm64 \
+ -t org-rd-fullstack/springboot-eda:arm64 .      
+                                                 # Construire une image docker ARM64 (MacOS) et mettre son étiquette.
+
+docker tag org-rd-fullstack/springboot-eda:arm64 \
+ your-username/org-rd-fullstack-springboot-eda:arm64
+                                                 # Mettre une étiquette pour la publication.
+
+docker push your-username/org-rd-fullstack-springboot-eda:arm64   
+                                                 # Publier une image docker à votre dépôt.
+
+docker build --platform linux/amd64 \
+ -t org-rd-fullstack/springboot-eda:amd64 .
+                                                 # Construire une image docker AMD64 (Windows) et mettre son étiquette.
+
+docker tag org-rd-fullstack/springboot-eda:amd64 \
+ your-username/org-rd-fullstack-springboot-eda:amd64
+                                                 # Mettre une étiquette pour la publication.
+
+docker push username/org-rd-fullstack-springboot-eda:amd64
+                                                 # Publier une image docker à votre dépôt.
+
+docker run -it -p8080:8080 -p8081:8081 org-rd-fullstack/springboot-eda:your-tag-name   
+                                                 # Exécuter l'image docker avec le mapping du port.
+
+# Intergiciel docker : org-rd-fullstack/eda-middleware
+
+docker buildx build --platform linux/arm64 \
+ -f Dockerfile.eda-middleware -t org-rd-fullstack/eda-middleware:arm64
+                                                 # Build a ARM64 (MacOS) image and tag the Docker image.
+
+docker tag org-rd-fullstack/eda-middleware:arm64 \ 
+ your-username/org-rd-fullstack-eda-middleware:arm64
+                                                 # Tag the Docker image for a publication.
+
+docker push username/org-rd-fullstack-eda-middleware:arm64
+                                                 # Push the Docker image to the repository.    
+
+docker buildx build --platform linux/amd64 \
+ -f Dockerfile.eda-middleware -t org-rd-fullstack/eda-middleware:amd64
+
+docker tag org-rd-fullstack/eda-middleware:amd64 \
+ your-username/org-rd-fullstack-eda-middleware:amd64
+                                                 # Tag the Docker image for a publication.
+
+docker push username/org-rd-fullstack-eda-middleware:amd64
+                                                 # Push the Docker image to the repository.
+
+docker run -it --rm --name eda-middleware \
+ -p 5432:5432 -p 9092:9092 -p 5701:5701 \
+ -p 6123:6123 -p 8081:8081 \
+ -e POSTGRES_PASSWORD=postgres \
+ org-rd-fullstack/eda-middleware:your-tag-name
+                                                 # Exécuter l'image docker avec le mapping des ports.
+
+docker system prune -a                           # Supprimer les données Docker inutilisées (à utiliser avec précaution).
+docker image ls                                  # Lister les images Docker locales.
+docker rmi -f <imageID>                          # Forcer la suppression d'une image par son ID.
+
+dive org-rd-fullstack/springboot-eda:unspecified # Inspecter les couches de l'image docker.
+                                                 # See: https://github.com/wagoodman/dive.
+```
+
+---
+
+## Docker Hub – Guide de Démarrage
+
+* [Docker Hub](https://hub.docker.com/repositories/rdemers)
+* [More information - Dockerfile](../../Dockerfile)
+* [More information - Dockerfile.eda-middleware](../../Dockerfile.eda-middleware)
+
+Les images docker sont disponibles pour ARM64(MacOS) et AMD64(Windows). Cependant, si vous désirez utiliser cette image pour faire du développement (accès aux services: kafka, flink et hazelcast), vous pouvez également activer "enable host networking" comme démontré ci-contre.
+
+![Docker-Network-Settings](../asserts/docker-network-settings.png)
 
 ---
 
