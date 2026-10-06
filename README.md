@@ -69,6 +69,7 @@ Supporting references:
 * [Datamesh/DataFabric](./doc/datamesh_datafabric.md)
 * [Example inventory reports](./doc/reports.md)
 * [Docker guides](./doc/docker_guides.md)
+* [PowerPoint presentation in PDF format](./doc/org-rd-fullstack-springboot-eda-en.pdf)
 
 ---
 
