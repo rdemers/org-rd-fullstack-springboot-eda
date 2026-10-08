@@ -32,7 +32,6 @@ import org.rd.fullstack.springbooteda.dto.EventMessage;
 import org.rd.fullstack.springbooteda.dto.Request;
 import org.rd.fullstack.springbooteda.srv.DataGeneratorSrv;
 import org.rd.fullstack.springbooteda.srv.ProcessorSrv;
-import org.rd.fullstack.springbooteda.util.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
