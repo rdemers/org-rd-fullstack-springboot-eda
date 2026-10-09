@@ -17,6 +17,8 @@ package org.rd.fullstack.springbooteda.dto;
 
 import java.time.Instant;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.rd.fullstack.springbooteda.util.EventType;
 import org.rd.fullstack.springbooteda.util.EventTypeConverter;
 import org.rd.fullstack.springbooteda.util.Result;
@@ -53,8 +55,8 @@ public class JrnEvent {
     @Column(name = "batch_id", nullable = false, length = 64)
     private String batchId;
 
-    @Column(name = "payload_hash", nullable = false, length = 64)
-    private String payloadHash;
+    @Column(name = "payload", nullable = false, columnDefinition = "LONGVARCHAR")
+    private String payload;
 
     @Column(name = "event_type", nullable = false)
     @Convert(converter = EventTypeConverter.class)
@@ -64,9 +66,11 @@ public class JrnEvent {
     @Convert(converter = ResultConverter.class)
     private Result result;
 
+    @JdbcTypeCode(SqlTypes.TIMESTAMP_UTC)
     @Column(name = "received_at", nullable = false)
     private Instant receivedAt;
 
+    @JdbcTypeCode(SqlTypes.TIMESTAMP_UTC)
     @Column(name = "processed_at")
     private Instant processedAt;
 
@@ -77,7 +81,7 @@ public class JrnEvent {
         this.consumerId  = null;
         this.eventId     = null;
         this.batchId     = null;
-        this.payloadHash = null;
+        this.payload     = null;
         this.eventType   = null;
         this.result      = null;
         this.receivedAt  = null;
@@ -85,13 +89,13 @@ public class JrnEvent {
     }
 
     public JrnEvent(String consumerId, String eventId, String batchId,
-                    String payloadHash, EventType eventType, Result result, 
+                    String payload, EventType eventType, Result result, 
                     Instant receivedAt, Instant processedAt) {
         this();
         this.consumerId  = consumerId;
         this.eventId     = eventId;
         this.batchId     = batchId;
-        this.payloadHash = payloadHash;
+        this.payload     = payload;
         this.eventType   = eventType;
         this.result      = result;
         this.receivedAt  = receivedAt;
@@ -138,12 +142,12 @@ public class JrnEvent {
         this.batchId = batchId;
     }
 
-    public String getPayloadHash() {
-        return this.payloadHash;
+    public String getPayload() {
+        return this.payload;
     }
 
-    public void setPayloadHash(String payloadHash) {
-        this.payloadHash = payloadHash;
+    public void setPayload(String payload) {
+        this.payload = payload;
     }
 
     public EventType getEventType() {
@@ -184,7 +188,7 @@ public class JrnEvent {
         this.consumerId  = jrnEvent.getConsumerId();
         this.eventId     = jrnEvent.getEventId();
         this.batchId     = jrnEvent.getBatchId();
-        this.payloadHash = jrnEvent.getPayloadHash();
+        this.payload     = jrnEvent.getPayload();
         this.eventType   = jrnEvent.getEventType();
         this.result      = jrnEvent.getResult();
         this.receivedAt  = jrnEvent.getReceivedAt();
@@ -197,7 +201,7 @@ public class JrnEvent {
                ", consumerId=" + this.consumerId +
                ", eventId=" + this.eventId +
                ", batchId=" + this.batchId +
-               ", payloadHash=" + this.payloadHash +
+               ", payload=" + this.payload +
                ", eventType=" + this.eventType +
                ", result=" + this.result +
                ", receivedAt=" + String.valueOf(this.receivedAt) +

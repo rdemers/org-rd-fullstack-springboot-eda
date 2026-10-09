@@ -236,7 +236,7 @@ public class T1000_DBJPA_UT_Tests {
         jEvent1 = jrnEventRepository.saveAndFlush(
             new JrnEvent("consumerId-test", "eventId-01", "batchId-01",
                          "payloadHash", EventType.PROCESSING_REQUESTED, Result.ERROR, 
-                         Instant.now(), null));
+                         Instant.now(), null)); // UTC.
 
         assertNotNull(jEvent1);
         logger.info("JrnEvent - Save/insert: {}.", jEvent1);

@@ -152,11 +152,11 @@
         "consumer-id"  : "Consumer",
         "event-id"     : "Event ID",
         "batch-id"     : "Batch ID",
-        "payload-hash" : "Payload Hash",
+        "payload"      : "Payload",
         "event-type"   : "Evt Type",
         "result"       : "Result",
-        "received-at"  : "TS Received",
-        "processed-at" : "TS Processed",
+        "received-at"  : "TS Received (UTC)",
+        "processed-at" : "TS Processed (UTC)",
         "title": {
             "view" : "Event Detail"
         }

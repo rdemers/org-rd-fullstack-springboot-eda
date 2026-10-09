@@ -18,7 +18,7 @@ export default interface JrnEvent {
     consumerId:  string;
     eventId:     string;
     batchId:     string;
-    payloadHash: string;
+    payload:     string;
     eventType:   number;
     result:      number;
     receivedAt:  string;

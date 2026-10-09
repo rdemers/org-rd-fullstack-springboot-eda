@@ -63,6 +63,7 @@ This guide compiles best practices for designing, developing, and operating robu
 
 Supporting references:
 
+* [Inbox and Outbox Design Patterns](./doc/inbox_outbox_patterns.md)
 * [Relational Database Schema](./doc/database.md)
 * [Sandbox Guides (Kafka / Flink / Hazelcast)](./doc/sandbox_guides.md)
 * [Flink Guide (processing / checkpointing / DLT / pause&resume)](./doc/flink_guides.md)

@@ -150,7 +150,7 @@ public class DatabaseConfig {
                 jrnEventRepository.save(new JrnEvent("consumerId-fake", 
                         tokenToolskit.encode(token, TokenToolskit.Format.TOKEN_AND_MAC), 
                         "batchId-01","payloadHash", EventType.PROCESSING_REQUESTED, 
-                        Result.ERROR, Instant.now(), null));
+                        Result.ERROR, Instant.now(), null)); // UTC.
             }                            
             jrnEventRepository.flush();
             logger.info("Generation completed.");

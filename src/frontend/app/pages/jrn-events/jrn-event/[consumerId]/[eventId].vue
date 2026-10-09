@@ -52,8 +52,8 @@
                   </v-chip>
                 </v-col>
                 <v-col cols="12" sm="6">
-                  <div class="text-caption text-medium-emphasis">{{ t('jrn-event.payload-hash') }}</div>
-                  <div class="text-body-1">{{ jrnEvent.payloadHash }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ t('jrn-event.payload') }}</div>
+                  <div class="text-body-1">{{ jrnEvent.payload }}</div>
                 </v-col>
               </v-row>
               <v-row>
@@ -107,7 +107,7 @@
     const isFetching  = ref(true);
 
     function formatDateTime(value: string | null): string {
-        return value ? new Date(value).toLocaleString() : "";
+        return value ? new Date(value).toLocaleString("en-US", { timeZone: "UTC" }) : "";
     }
 
     async function load() {

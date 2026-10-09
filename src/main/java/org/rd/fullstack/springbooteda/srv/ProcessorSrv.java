@@ -213,7 +213,7 @@ public class ProcessorSrv {
         if (jrnEvent != null) {
             jrnEvent.setResult(result);
             if (processed)
-                jrnEvent.setProcessedAt(Instant.now());
+                jrnEvent.setProcessedAt(Instant.now()); // UTC
             jrnEventRepository.save(jrnEvent);
             jrnEventRepository.flush();
         }
@@ -313,12 +313,10 @@ public class ProcessorSrv {
                     jrnEvent.setEventId(eventId);
                     jrnEvent.setConsumerId(KafkaConstants.CST_TOPIC_GROUP);
                     jrnEvent.setBatchId(header.getBatchId());
-                    jrnEvent.setPayloadHash(payloadHash != null ? payloadHash
-                        : HexFormat.of().formatHex(digest
-                            .digest(JsonMapper.writeToJson(request).getBytes(StandardCharsets.UTF_8))));
+                    jrnEvent.setPayload(HexFormat.of().formatHex(digest.digest(JsonMapper.writeToJson(request).getBytes(StandardCharsets.UTF_8))));
                     jrnEvent.setEventType(EventType.PROCESSING_REQUESTED);
                     jrnEvent.setResult(Result.PENDING);
-                    jrnEvent.setReceivedAt(Instant.now());
+                    jrnEvent.setReceivedAt(Instant.now()); // UTC.
                     jrnEventRepository.save(jrnEvent);
                     jrnEventRepository.flush();
                 }

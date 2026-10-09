@@ -94,7 +94,7 @@
     ])
 
     function formatDateTime(value: string | null): string {
-        return value ? new Date(value).toLocaleString() : "";
+        return value ? new Date(value).toLocaleString("en-US", { timeZone: "UTC" }) : "";
     }
 
     function navigateDetail(consumerId: string, eventId: string) {

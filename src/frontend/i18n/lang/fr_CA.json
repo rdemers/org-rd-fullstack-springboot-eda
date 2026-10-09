@@ -152,11 +152,11 @@
         "consumer-id"  : "Consommateur",
         "event-id"     : "ID Event",
         "batch-id"     : "ID Lot",
-        "payload-hash" : "Hachage payload",
+        "payload"      : "Payload",
         "event-type"   : "Type Evt",
         "result"       : "Résultat",
-        "received-at"  : "TS Reçu",
-        "processed-at" : "TS Traité",
+        "received-at"  : "TS Reçu (UTC)",
+        "processed-at" : "TS Traité (UTC)",
         "title": {
             "view" : "Détail de l'événement"
         }

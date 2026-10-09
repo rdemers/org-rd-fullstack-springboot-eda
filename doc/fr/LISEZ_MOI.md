@@ -63,6 +63,7 @@ Ce guide compile les meilleures pratiques pour concevoir, développer et exploit
 
 Références de support:
 
+* [Patrons de conception Inbox et Outbox](./inbox_outbox_patterns.md)
 * [Schéma de Base de Données Relationnelle](./base_de_donnees.md)
 * [Guides du Sandbox (Kafka / Flink / Hazelcast)](./guides_sandbox.md)
 * [Guide Flink (traitement / checkpointing / DLT / pause&reprise)](./guides_flink.md)

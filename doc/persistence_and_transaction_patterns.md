@@ -122,7 +122,7 @@ public void relayUnpublishedEvents() {
             kafkaTemplate.send(topic, event.getPayload());
 
             // Mark the event as published
-            event.setPublishedAt(Instant.now());
+            event.setPublishedAt(Instant.now()); // UTC.
             outboxRepository.save(event);
         } catch (Exception e) {
             // Retry on the next cycle,
@@ -304,7 +304,7 @@ public void relayUnpublishedEvents() {
 
                 try {
                     kafkaTemplate.send(topic, event.getPayload());
-                    event.setPublishedAt(Instant.now());
+                    event.setPublishedAt(Instant.now()); // UTC.
                 } finally {
                     event.setLocked(false);
                 }
