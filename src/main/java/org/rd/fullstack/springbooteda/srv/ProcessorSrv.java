@@ -76,18 +76,16 @@ public class ProcessorSrv {
     private final RequestRepository requestRepository;
     private final ProductRepository productRepository;
     private final PersonRepository personRepository;
-    private final InventoryCheckSrv inventoryCheckSrv;
 
     public ProcessorSrv(JrnEventRepository jrnEventRepository, InventoryRepository inventoryRepository,
                         RequestRepository requestRepository, ProductRepository productRepository,
-                        PersonRepository personRepository, InventoryCheckSrv inventoryCheckSrv) {
+                        PersonRepository personRepository) {
         super();
         this.jrnEventRepository  = jrnEventRepository;
         this.inventoryRepository = inventoryRepository;
         this.requestRepository   = requestRepository;
         this.productRepository   = productRepository;
         this.personRepository    = personRepository;
-        this.inventoryCheckSrv   = inventoryCheckSrv;
     }
 
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
@@ -119,7 +117,6 @@ public class ProcessorSrv {
             finalizeOutcome(request, jrnEvent, Result.ERROR, false);
             return;
         }
-
         Product product = productOptional.get();
         Person  person  = personOptional.get();
 
@@ -128,32 +125,21 @@ public class ProcessorSrv {
         Operation oper = request.getOperation();
 
         switch (oper) {
-            case CREDIT: // Sale: inventory decreases, the client pays (balance decreases).
-                // Stock check — read via InventoryCheckSrv.readAvailableQty(), NOT via the
-                // `inventory` object already loaded above. That call is annotated REQUIRES_NEW:
-                // it suspends THIS transaction, runs the read in a brand-new one, and commits it
-                // immediately on return — releasing it well before the sleep below. This split
-                // was originally added to defeat mvlocks' TABLE-level write lock (which, under
-                // that mode, serialized check+sleep+write across ALL requests and silently closed
-                // the race window — verified empirically). The database now runs in MVCC mode
-                // instead (see application.yml), under which a blind relative UPDATE like
-                // creditQTY below doesn't even need this split to race (MVCC raises no conflict
-                // for it either way — see the comment above the applyLatency call). The split is
-                // kept regardless: it's still a correct, more realistic way to force the stale
-                // read, and doesn't depend on which HSQLDB tx mode is active.
-                final long availableQty = inventoryCheckSrv.readAvailableQty(request.getProductId());
+            case CREDIT: // Sale: inventory decreases, the client pays (balance decreases). 
+                         // The inventory stock check is isolated in its own transaction so that
+                         // the stale read can be reproduced (the teaching goal: a lost update).
 
                 // Two distinct back-order causes — logged separately so each can be counted
                 // (e.g. grep "BACK_ORDER (insufficient STOCK)" vs "... BALANCE)").
-                if (availableQty < request.getQty()) {                // not enough stock
+                if (inventory.getQty() < request.getQty()) { // not enough stock.
                     logger.warn("BACK_ORDER (insufficient STOCK) — requestId={}, productId={}, requested={}, available={}.",
                         request.getRequestId(), request.getProductId(),
-                        request.getQty(), availableQty);
+                        request.getQty(), inventory.getQty());
 
                     finalizeOutcome(request, jrnEvent, Result.BACK_ORDER, false);
                     return;
                 }
-                if (person.getBalance().compareTo(cost) < 0) {        // not enough balance
+                if (person.getBalance().compareTo(cost) < 0) { // not enough balance.
                     logger.warn("BACK_ORDER (insufficient BALANCE) — requestId={}, personId={}, cost={}, balance={}.",
                         request.getRequestId(), request.getPersonId(),
                         cost, person.getBalance());
@@ -162,34 +148,49 @@ public class ProcessorSrv {
                     return;
                 }
 
-                // Widen the critical section between the stale read/check above and this
-                // write, so a concurrent request for the SAME product reproduces the
-                // check-then-act lost update. The decrement is an atomic relative UPDATE
-                // (qty = qty - :qty) — empirically confirmed (standalone JDBC probe) that
-                // HSQLDB's MVCC mode never raises a conflict for this pattern, however many
-                // transactions concurrently apply it to the same row: every decrement just
-                // applies against whatever is currently committed, so qty silently goes
-                // negative (oversell). No conflict is raised, so there is NO retry/DLT here.
-                applyLatency(latence, request.getRequestId(), request.getProductId(), availableQty);
+                // Optional artificial delay applied INSIDE the transaction to widen the read-then-write
+                // critical section. This makes the check-then-act lost update observable (the teaching
+                // goal): without a Kafka key, several threads process the same product in parallel, both
+                // pass the stale stock check, and both apply the relative decrement — so the inventory
+                // quantity silently goes negative. The race is a lost update, not a lock conflict.
+                if (latence)
+                    applyLatency(request.getRequestId(), request.getProductId());
+
+                final BigDecimal creditBalBegin = person.getBalance();
+                final BigDecimal creditBalEnd   = creditBalBegin.subtract(cost);
+                final long       creditQtyBegin = inventory.getQty();
+                final long       creditQtyEnd   = creditQtyBegin - request.getQty();
 
                 inventoryRepository.creditQTY(request.getQty(), inventory.getInventoryId());
-                person.setBalance(person.getBalance().subtract(cost));
+                person.setBalance(creditBalEnd);
                 personRepository.save(person);
+
                 inventoryRepository.flush();
                 personRepository.flush();
 
-                finalizeOutcome(request, jrnEvent, Result.EXECUTED, true);
+                finalizeOutcome(request, jrnEvent, Result.EXECUTED, true,
+                    getPayload(person.getPersonId(), creditBalBegin, cost.negate(), creditBalEnd,
+                               inventory.getInventoryId(), creditQtyBegin, -request.getQty(), creditQtyEnd));
                 break;
 
             case DEBIT: // Restock: inventory increases, the client is credited (balance increases).
-                applyLatency(latence, request.getRequestId(), request.getProductId(), inventory.getQty());
+                if (latence)
+                    applyLatency(request.getRequestId(), request.getProductId());
+
+                final BigDecimal debitBalBegin = person.getBalance();
+                final BigDecimal debitBalEnd   = debitBalBegin.add(cost);
+                final long       debitQtyBegin = inventory.getQty();
+                final long       debitQtyEnd   = debitQtyBegin + request.getQty();
                 inventoryRepository.debitQTY(request.getQty(), inventory.getInventoryId());
-                person.setBalance(person.getBalance().add(cost));
+                person.setBalance(debitBalEnd);
+
                 personRepository.save(person);
                 inventoryRepository.flush();
                 personRepository.flush();
 
-                finalizeOutcome(request, jrnEvent, Result.EXECUTED, true);
+                finalizeOutcome(request, jrnEvent, Result.EXECUTED, true,
+                    getPayload(person.getPersonId(), debitBalBegin, cost, debitBalEnd,
+                               inventory.getInventoryId(), debitQtyBegin, request.getQty(), debitQtyEnd));
                 break;
 
             default:
@@ -206,6 +207,16 @@ public class ProcessorSrv {
      * {@code processedAt}), as opposed to a terminal-but-not-executed one (ERROR/BACK_ORDER).
      */
     private void finalizeOutcome(Request request, JrnEvent jrnEvent, Result result, boolean processed) {
+        finalizeOutcome(request, jrnEvent, result, processed, null);
+    }
+
+    /**
+     * As above; a non-null {@code movementPayload} replaces the jrn-event payload (the initial
+     * request hash) with the executed movement, consumed by {@link ConciliationSrv}.
+     */
+    private void finalizeOutcome(Request request, JrnEvent jrnEvent, Result result, 
+                                 boolean processed, String payload) {
+
         request.setResult(result);
         requestRepository.save(request);
         requestRepository.flush();
@@ -214,9 +225,41 @@ public class ProcessorSrv {
             jrnEvent.setResult(result);
             if (processed)
                 jrnEvent.setProcessedAt(Instant.now()); // UTC
+
+            if (payload != null)
+                jrnEvent.setPayload(payload);
+
             jrnEventRepository.save(jrnEvent);
             jrnEventRepository.flush();
         }
+    }
+
+    /**
+     * Builds the jrn-event payload of an executed request: the client balance and the inventory
+     * quantity, each as BEGIN / signed OPERATION / END (see {@link ConciliationSrv}).
+     *
+     * <p>The client END is the new balance. The inventory BEGIN is the quantity this transaction
+     * read at the start, and END is re-read from the database after the relative UPDATE (via a
+     * JPQL projection, which bypasses the persistence-context cache). Under the inventory
+     * oversell race the two differ from BEGIN + OPERATION: the lost update is recorded, not masked.</p>
+     */
+    private String getPayload(long personId, BigDecimal balBegin,  BigDecimal balOperation, BigDecimal balEnd,
+                              long inventoryId, long qtyBegin, long qtyOperation, long qtyEnd) {
+
+        return JsonMapper.writeToJson(new ConciliationSrv.Payload(
+            new ConciliationSrv.Movement(
+                    new ConciliationSrv.Leg(personId, 
+                        balBegin, 
+                        balOperation, 
+                        balEnd),
+
+                    new ConciliationSrv.Leg(inventoryId, 
+                        BigDecimal.valueOf(qtyBegin), 
+                        BigDecimal.valueOf(qtyOperation), 
+                        BigDecimal.valueOf(qtyEnd))
+                )
+            )
+        );
     }
 
     // We apply a sanity check on the message to ensure that the header, request, and footer are valid. 
@@ -234,7 +277,6 @@ public class ProcessorSrv {
         EventHeader header   = message.getHeader();
         EventFooter footer   = message.getFooter();
         MessageDigest digest = MessageDigest.getInstance("SHA-1");
-
 
         // header is optional for the sandbox (in tests, it is null).
         if (header != null) {
@@ -313,7 +355,7 @@ public class ProcessorSrv {
                     jrnEvent.setEventId(eventId);
                     jrnEvent.setConsumerId(KafkaConstants.CST_TOPIC_GROUP);
                     jrnEvent.setBatchId(header.getBatchId());
-                    jrnEvent.setPayload(HexFormat.of().formatHex(digest.digest(JsonMapper.writeToJson(request).getBytes(StandardCharsets.UTF_8))));
+                    jrnEvent.setPayload(KafkaConstants.CST_NONE);
                     jrnEvent.setEventType(EventType.PROCESSING_REQUESTED);
                     jrnEvent.setResult(Result.PENDING);
                     jrnEvent.setReceivedAt(Instant.now()); // UTC.
@@ -353,16 +395,15 @@ public class ProcessorSrv {
      * pass the stale stock check, and both apply the relative decrement — so the inventory
      * quantity silently goes negative. The race is a lost update, not a lock conflict.
      */
-    private void applyLatency(boolean latence, Long requestId, Long productId, Long availableAtCheck) {
-        if (!latence)
-            return;
+    private void applyLatency(Long requestId, Long productId) {
         try {
             // requestId/productId/availableAtCheck pin down exactly which transaction read what
             // stale stock value, on which thread, at what time — the only way to tell from the
             // logs whether two requests for the same product genuinely overlapped (both reading
             // before either commits) instead of merely running on different threads.
-            logger.info("Adding latency on thread {} for requestId={}, productId={} (stale available={}).",
-                Thread.currentThread().getName(), requestId, productId, availableAtCheck);
+            logger.info("Adding latency on thread {} for requestId={}, productId={}.",
+                Thread.currentThread().getName(), requestId, productId);
+
             Thread.sleep(250L);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
