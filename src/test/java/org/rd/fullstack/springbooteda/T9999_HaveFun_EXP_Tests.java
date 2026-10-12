@@ -30,27 +30,21 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebAppConfiguration
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("A playground for you. Experiment, and learn !!!")
-public class T9999_YourTodo_EXP_Tests extends AbstractMVC {
+public class T9999_HaveFun_EXP_Tests extends AbstractMVC {
 
-    public T9999_YourTodo_EXP_Tests() {
+    public T9999_HaveFun_EXP_Tests() {
         super();
         mvcInstance = null;
     }
 
     @Test
     @Order(1)
-    public void implementReconciliationAndIntegrityCheck() {
+    public void haveFun() {
 
         MockMvc mvcInstance  = getMvcInstance();
         assertNotNull(mvcInstance);
 
-        // Reconciliation and integrity verification are essentially manual
-        // and rely on the UX/UI of this Sandbox. 
-        // 
-        // Now that you have acquired EDA knowledge, your practical assignment
-        // is to automate the entire process!!! 
-        // Ideally, your business logic should be asynchronous.
-        //
+        // Now that you have acquired EDA knowledge, your practical assignment.
         // Now it's your turn ! Have fun !
 
         // Check POM.XML file for the dependencies you can use.

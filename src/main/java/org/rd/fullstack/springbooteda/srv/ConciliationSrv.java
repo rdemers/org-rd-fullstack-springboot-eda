@@ -84,7 +84,6 @@ import org.rd.fullstack.springbooteda.util.kafka.KafkaConstants;
 import org.rd.fullstack.springbooteda.util.kafka.KafkaSandbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,6 +119,7 @@ public class ConciliationSrv {
 
     public ConciliationSrv(JrnEventRepository jrnEventRepository, PersonRepository personRepository,
                             InventoryRepository inventoryRepository, KafkaSandbox kafkaSandbox) {
+        super();
         this.jrnEventRepository  = jrnEventRepository;
         this.personRepository    = personRepository;
         this.inventoryRepository = inventoryRepository;
@@ -129,24 +129,31 @@ public class ConciliationSrv {
     @SuppressWarnings("null")
     @Transactional(readOnly = true)
     public List<Finding> execute() {
+        final Set<String> dlt        = new HashSet<>();
         final List<Finding> findings = new ArrayList<>();
 
-        // 1. DLT.
-        checkDlt(findings);
+        // 1. Load DLT.
+        try {
+            checkAndLoadDlt(dlt);
+            findings.add(new Finding(Step.DLT, Severity.INFO, dlt.size() + " event(s) found in the DLTs."));
+        } catch (RuntimeException ex) {
+            findings.add(new Finding(Step.DLT, Severity.WARN,
+                "DLT unreadable (" + ex.getMessage() + ") — batch-file results may report dead-lettered transactions as missing."));
+        }
 
-        // 2. JRN_EVENT: batch-ids and batch-file existence.
+        // 2. JRN_EVENT: group by batchId.
         final List<JrnEvent> journal = jrnEventRepository.findAll();
         final Map<String, List<JrnEvent>> byBatch = new TreeMap<>();
         for (JrnEvent e : journal)
             byBatch.computeIfAbsent(e.getBatchId(), k -> new ArrayList<>()).add(e);
-        findings.add(info(Step.JOURNAL, journal.size() + " journal event(s) in " + byBatch.size() + " batch(es)."));
+        findings.add(new Finding(Step.JOURNAL, Severity.INFO, journal.size() + " journal event(s) in " + byBatch.size() + " batch(es)."));
 
         // 3. Batch files vs journal.
         final Set<String> journalEventIds = new HashSet<>();
         for (JrnEvent e : journal)
             journalEventIds.add(e.getEventId());
         for (Map.Entry<String, List<JrnEvent>> batch : byBatch.entrySet())
-            checkBatch(batch.getKey(), batch.getValue(), journalEventIds, findings);
+            checkBatchIdvsJournal(batch.getKey(), batch.getValue(), journalEventIds, dlt, findings);
 
         // 4 & 5. Replay the movements.
         final Map<Long, BigDecimal> balances = new HashMap<>();
@@ -164,97 +171,78 @@ public class ConciliationSrv {
         return List.copyOf(findings);
     }
 
-    private void checkDlt(List<Finding> findings) {
-        try {
-            final Set<String> ids = readDltEventIds(kafkaSandbox);
-            findings.add(info(Step.DLT, ids.size() + " event(s) found in the DLTs."));
-        } catch (RuntimeException ex) {
-            findings.add(new Finding(Step.DLT, Severity.WARN,
-                "DLT unreadable (" + ex.getMessage() + ") — batch-file results may report dead-lettered transactions as missing."));
-        }
-    }
-
-    // To be refactored: the DLT is read twice, once for the check and once for the batch-file comparison. 
-    // The first read is only to report the number of events found in the DLTs.
-    private Set<String> readDltEventIds(KafkaSandbox sandbox) {
-        final Set<String> ids = new HashSet<>();        
+    private void checkAndLoadDlt(Set<String> dlt) {
         final Map<String, Object> cfg = Map.of(
-            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, sandbox.getBootstrapServers(),
+            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaSandbox.getBootstrapServers(),
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false,
             ConsumerConfig.ISOLATION_LEVEL_CONFIG, KafkaConstants.CST_ISOLATION_LEVEL_CONFIG,
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class
+        );
 
-        final KafkaConsumer<String, String> consumer =  new KafkaConsumer<>(cfg);
-        try {
+        // Direct resource declaration: Java will automatically close it at the end of the block.
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(cfg)) {
+            
             final List<TopicPartition> partitions = new ArrayList<>();
-            for (String topic : sandbox.getTopics())
-                if (topic.endsWith(KafkaConstants.CST_TOPIC_DLT_POSTFIX))
+            for (String topic : kafkaSandbox.getTopics()) {
+                if (topic.endsWith(KafkaConstants.CST_TOPIC_DLT_POSTFIX)) {
                     consumer.partitionsFor(topic).forEach(p -> partitions.add(new TopicPartition(topic, p.partition())));
-
-            if (!partitions.isEmpty()) {
-                consumer.assign(partitions);
-                consumer.seekToBeginning(partitions);
-                final Map<TopicPartition, Long> ends = consumer.endOffsets(partitions);
-                final long deadline = System.nanoTime() + DLT_POLL_BUDGET.toNanos();
-
-                while (partitions.stream().anyMatch(tp -> consumer.position(tp) < ends.get(tp))) {
-                    if (System.nanoTime() > deadline)
-                        throw new IllegalStateException("timeout while reading the DLTs");
-
-                    for (ConsumerRecord<String, String> rec : consumer.poll(Duration.ofMillis(KafkaConstants.CST_POLL_DURATION))) {
-                        final String eventId = eventIdOf(rec.value());
-                        if (eventId != null)
-                            ids.add(eventId);
-                    }
                 }
             }
-        } finally {
-            consumer.close();
-        }
-        return ids;
+
+            if (partitions.isEmpty()) {
+                logger.info("No DLTs found.");
+                return; // The consumer will be closed automatically here before exiting the method.
+            }
+
+            consumer.assign(partitions);
+            consumer.seekToBeginning(partitions);
+            final Map<TopicPartition, Long> ends = consumer.endOffsets(partitions);
+            final long deadline = System.nanoTime() + DLT_POLL_BUDGET.toNanos();
+
+            while (partitions.stream().anyMatch(tp -> consumer.position(tp) < ends.get(tp))) {
+                if (System.nanoTime() > deadline)
+                    throw new IllegalStateException("timeout while reading the DLTs");
+
+                for (ConsumerRecord<String, String> rec : consumer.poll(Duration.ofMillis(KafkaConstants.CST_POLL_DURATION))) {
+                    final String eventId = eventIdOf(rec.value());
+                    if (eventId != null)
+                        dlt.add(eventId);
+                }
+            }
+        } // The consumer will be closed automatically here.
     }
 
-    private static String eventIdOf(String json) {
-        try {
-            EventMessage<EventHeader, Request, EventFooter> msg = JsonMapper.readFromJson(json,
-                new TypeReference<EventMessage<EventHeader, Request, EventFooter>>() {});
-            return (msg == null || msg.getHeader() == null) ? null : msg.getHeader().getEventId();
-        } catch (RuntimeException ex) {
-            return null; // Not one of our messages — cannot be matched to a transaction.
-        }
-    }
+    private void checkBatchIdvsJournal(String batchId, List<JrnEvent> events, 
+                                       Set<String> journalEventIds, Set<String> dlt, List<Finding> findings) {
 
-    private void checkBatch(String batchId, List<JrnEvent> events, Set<String> journalEventIds, List<Finding> findings) {
-
-        final Path trx = DEFAULT_BATCH_DIR.resolve("batch-" + batchId + ".trx");
-        final Path tmp = DEFAULT_BATCH_DIR.resolve("batch-" + batchId + ".tmp");
-        if (!Files.isRegularFile(trx)) {
-            final String why = Files.isRegularFile(tmp)
-                ? "only the unconfirmed .tmp exists (publication never committed)"
-                : "file not found";
+        final Path tmpFile = DEFAULT_BATCH_DIR.resolve("batch-" + batchId + ".tmp");
+        final Path trxFile = DEFAULT_BATCH_DIR.resolve("batch-" + batchId + ".trx");
+        if (!Files.isRegularFile(trxFile)) {
+            final String why = Files.isRegularFile(tmpFile)
+                ? "only the unconfirmed .tmp exists (publication never committed)" : "file not found";
             findings.add(new Finding(Step.BATCH_FILE, Severity.ERROR,
-                "Batch " + batchId + ": " + trx + " — " + why + " (" + events.size() + " journal event(s))."));
+                "Batch " + batchId + ": " + trxFile + " — " + why + " (" + events.size() + " journal event(s))."));
             return;
         }
 
         final Set<String> inFile = new HashSet<>();
         try {
-            for (String line : Files.readAllLines(trx, StandardCharsets.UTF_8)) {
+            for (String line : Files.readAllLines(trxFile, StandardCharsets.UTF_8)) {
                 if (line.isBlank())
                     continue;
 
                 final String eventId = eventIdOf(line);
                 if (eventId == null)
                     findings.add(new Finding(Step.BATCH_FILE, Severity.ERROR,
-                        "Batch " + batchId + ": unreadable line in " + trx + "."));
+                        "Batch " + batchId + ": unreadable line in " + trxFile + "."));
                 else if (!inFile.add(eventId))
                     findings.add(new Finding(Step.BATCH_FILE, Severity.WARN,
                         "Batch " + batchId + ": duplicate event " + eventId + " in the file."));
             }
         } catch (IOException ex) {
             findings.add(new Finding(Step.BATCH_FILE, Severity.ERROR,
-                "Batch " + batchId + ": cannot read " + trx + " (" + ex.getMessage() + ")."));
+                "Batch " + batchId + ": cannot read " + trxFile + " (" + ex.getMessage() + ")."));
             return;
         }
 
@@ -281,11 +269,12 @@ public class ConciliationSrv {
         }
 
         if (missing == 0 && orphans == 0)
-            findings.add(info(Step.BATCH_FILE, "Batch " + batchId + ": " + inFile.size() + " transaction(s), consistent."));
+            findings.add(new Finding(Step.BATCH_FILE, Severity.INFO, "Batch " + batchId + ": " + inFile.size() + " transaction(s), consistent."));
     }
 
     private void replay(List<JrnEvent> journal, Step step, String label,
-                        Function<Movement, Leg> leg, Function<Long, BigDecimal> current,
+                        Function<Movement, Leg> leg, 
+                        Function<Long, BigDecimal> current,
                         List<Finding> findings) {
 
         // Executed events only: PENDING / BACK_ORDER / ERROR moved nothing.
@@ -330,7 +319,17 @@ public class ConciliationSrv {
         }
 
         if (broken == 0)
-            findings.add(info(step, byKey.size() + " " + label + "(s) replayed, consistent."));
+            findings.add(new Finding(step, Severity.INFO, byKey.size() + " " + label + "(s) replayed, consistent."));
+    }
+
+    private String eventIdOf(String json) {
+        try {
+            EventMessage<EventHeader, Request, EventFooter> msg = JsonMapper.readFromJson(json,
+                new TypeReference<EventMessage<EventHeader, Request, EventFooter>>() {});
+            return (msg == null || msg.getHeader() == null) ? null : msg.getHeader().getEventId();
+        } catch (RuntimeException ex) {
+            return null; // Not one of our messages — cannot be matched to a transaction.
+        }
     }
 
     private Leg parseLeg(JrnEvent event, Function<Movement, Leg> leg) {
@@ -346,9 +345,5 @@ public class ConciliationSrv {
 
     private String signed(BigDecimal v) {
         return v.signum() < 0 ? "- " + v.abs() : "+ " + v;
-    }
-
-    private Finding info(Step step, String message) {
-        return new Finding(step, Severity.INFO, message);
     }
 }

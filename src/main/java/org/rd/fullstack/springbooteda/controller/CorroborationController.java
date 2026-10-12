@@ -15,8 +15,10 @@
  */
 package org.rd.fullstack.springbooteda.controller;
 
+import java.util.List;
+
 import org.rd.fullstack.springbooteda.srv.ConciliationSrv;
-import org.rd.fullstack.springbooteda.srv.ConciliationSrv.Report;
+import org.rd.fullstack.springbooteda.srv.ConciliationSrv.Finding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -56,10 +58,10 @@ public class CorroborationController {
         @ApiResponse(responseCode = "200", description = "Success; see Report.ok() and the findings."),
         @ApiResponse(responseCode = "500", description = "Exception/Internal error. Call support.")
     })
-    public ResponseEntity<Report> corroborate() {
+    public ResponseEntity<List<Finding>> execute() {
         try {
             // 200 even when anomalies are found: they are the report's content, not a request failure.
-            return new ResponseEntity<>(corroborationSrv.corroborate(), HttpStatus.OK);
+            return new ResponseEntity<>(corroborationSrv.execute(), HttpStatus.OK);
         } catch (Exception ex) {
             logger.error("Corroboration exception: {}.", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

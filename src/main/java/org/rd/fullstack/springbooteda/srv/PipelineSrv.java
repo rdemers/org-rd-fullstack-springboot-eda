@@ -89,9 +89,10 @@ public class PipelineSrv {
     // beans directly (they already depend on this one; an event keeps the dependency one-directional).
     private final ApplicationEventPublisher eventPublisher;
 
-    private final byte CST_ENV_ID     = 1;
-    private final short CST_SYSTEM_ID = 2;
-    private final short CST_SRV_ID    = 3;
+    private static final byte  CST_ENV_ID       = 1;
+    private static final short CST_SYSTEM_ID    = 2;
+    private static final short CST_SRV_ID       = 3;
+    private static final Path DEFAULT_BATCH_DIR = Path.of("log"); // Same as PipelineSrv.
 
     public PipelineSrv(KafkaSandbox kafkaSandbox,   RequestRepository requestRepository,
                        ProcessorSrv processor,      HazelcastSandbox hazelcastSandbox,
@@ -291,8 +292,8 @@ public class PipelineSrv {
         // a leftover ".tmp" file signals an unconfirmed attempt rather than a false record of
         // success. A write failure here is logged and swallowed — it must not block the Kafka
         // publication below, which is the primary outcome.
-        Path tmpFile = Path.of("log", "batch-" +batchId + ".tmp");
-        Path trxFile = Path.of("log", "batch-" +batchId + ".trx");
+        final Path tmpFile = DEFAULT_BATCH_DIR.resolve("batch-" + batchId + ".tmp");
+        final Path trxFile = DEFAULT_BATCH_DIR.resolve("batch-" + batchId + ".trx");
         writeTrxTmpFile(tmpFile, outbound);
 
         // Publish every message atomically in a single Kafka transaction. If the
