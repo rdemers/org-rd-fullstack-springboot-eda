@@ -61,7 +61,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -118,7 +117,7 @@ public class ConciliationSrv {
     private final KafkaSandbox          kafkaSandbox;
 
     public ConciliationSrv(JrnEventRepository jrnEventRepository, PersonRepository personRepository,
-                            InventoryRepository inventoryRepository, KafkaSandbox kafkaSandbox) {
+                           InventoryRepository inventoryRepository, KafkaSandbox kafkaSandbox) {
         super();
         this.jrnEventRepository  = jrnEventRepository;
         this.personRepository    = personRepository;

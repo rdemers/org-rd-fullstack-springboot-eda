@@ -37,33 +37,33 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api/corroboration")
+@RequestMapping("/api")
 @SecurityRequirement(name = "SecureAPI")
-public class CorroborationController {
+public class ConciliationController {
 
     private static final Logger logger =
-        LoggerFactory.getLogger(CorroborationController.class);
+        LoggerFactory.getLogger(ConciliationController.class);
 
-    private final ConciliationSrv corroborationSrv;
+    private final ConciliationSrv conciliationSrv;
 
-    public CorroborationController(ConciliationSrv corroborationSrv) {
+    public ConciliationController(ConciliationSrv conciliationSrv) {
         super();
-        this.corroborationSrv = corroborationSrv;
+        this.conciliationSrv = conciliationSrv;
     }
 
     @PreAuthorize("hasRole('ROLE_SELECT')")
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Run the internal corroboration (read-only).", description = "CorroborationSrv.Report")
+    @GetMapping(value = "/conciliation/findings", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Run the internal conciliation (read-only).", description = "ConciliationSrv.class")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Success; see Report.ok() and the findings."),
+        @ApiResponse(responseCode = "200", description = "Success; see findings."),
         @ApiResponse(responseCode = "500", description = "Exception/Internal error. Call support.")
     })
     public ResponseEntity<List<Finding>> execute() {
         try {
             // 200 even when anomalies are found: they are the report's content, not a request failure.
-            return new ResponseEntity<>(corroborationSrv.execute(), HttpStatus.OK);
+            return new ResponseEntity<>(conciliationSrv.execute(), HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Corroboration exception: {}.", ex.getMessage());
+            logger.error("Conciliation exception: {}.", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
