@@ -33,11 +33,17 @@
  * <pre>
  * {"movement":{
  *    "client":   {"id": 7, "begin": 10.00, "operation": -5.00, "end": 5.00},
- *    "inventory":{"id": 3, "begin": 10,    "operation": -2,    "end": 8}}}
+ *    "inventory":{"id": 3, "begin": 10,    "operation": -2,    "end": 8}},
+ *  "batchId": "b-2"}
  * </pre>
  * where {@code client.id} is the person id and {@code inventory.id} the product id (the
  * {@code operation} is signed). The class only reads: it never modifies the journal, the files
  * or the business tables, and it reports anomalies as {@link Finding}s instead of throwing.
+ *
+ * <p>{@code batchId} is the batch that executed the movement (a replay keeps the journal row of the first
+ * delivery, so the row's own batch-id cannot tell executions apart). The chain is checked <b>per execution batch</b>,
+ * so changes made between two batches (e.g. a manual inventory refill) are tolerated; the database is compared with
+ * the latest batch only, and a WARN is raised when more than one batch is present.</p>
  *
  * <p>Events are replayed in processing order ({@code processedAt}, then journal id). A broken
  * chain is therefore a genuine signal — e.g. the inventory oversell race this sandbox teaches
@@ -96,7 +102,9 @@ public class ConciliationSrv {
     // Movements are represented as a pair of legs, one for the client and one for the inventory.
     public record Leg(Long id, BigDecimal begin, BigDecimal operation, BigDecimal end) {}
     public record Movement(Leg client, Leg inventory) {}
-    public record Payload(Movement movement) {}
+    // batchId: the batch that actually EXECUTED the movement (null on legacy payloads). It differs from the journal
+    // row's batch-id on a replay, because the row keeps the batch-id of the first delivery.
+    public record Payload(Movement movement, String batchId) {}
 
     // Findings - RTC Reporting: the conciliation outcome is a list of findings, each with a step, a severity and a message.
     public enum Step { DLT, JOURNAL, BATCH_FILE, CLIENT_BALANCE, INVENTORY_QTY }
@@ -146,6 +154,8 @@ public class ConciliationSrv {
         for (JrnEvent e : journal)
             byBatch.computeIfAbsent(e.getBatchId(), k -> new ArrayList<>()).add(e);
         findings.add(new Finding(Step.JOURNAL, Severity.INFO, journal.size() + " journal event(s) in " + byBatch.size() + " batch(es)."));
+        if (byBatch.size() > 1)
+            findings.add(new Finding(Step.JOURNAL, Severity.WARN, "More than one batch-id in the journal: " + byBatch.keySet() + "."));
 
         // 3. Batch files vs journal.
         final Set<String> journalEventIds = new HashSet<>();
@@ -277,48 +287,79 @@ public class ConciliationSrv {
                         List<Finding> findings) {
 
         // Executed events only: PENDING / BACK_ORDER / ERROR moved nothing.
-        final Map<Long, List<Leg>> byKey = new LinkedHashMap<>();
-        journal.stream().filter(e -> e.getResult() == Result.EXECUTED).sorted(PROCESSING_ORDER).forEach(e -> {
-            final Leg l = parseLeg(e, leg);
-            if (l == null)
+        // Movements are grouped by EXECUTION batch (execution batch-id -> entity id -> legs): a replay
+        // re-executes back-ordered events under a new batch, with business tables possibly changed in
+        // between (e.g. a manual inventory refill), so the chain is only meaningful inside one batch.
+        final List<JrnEvent> executed = journal.stream()
+            .filter(e -> e.getResult() == Result.EXECUTED).sorted(PROCESSING_ORDER).toList();
+
+        final Map<String, Map<Long, List<Leg>>> byBatch = new LinkedHashMap<>();
+        final Map<Long, String>     lastBatch = new HashMap<>(); // entity id -> batch of its last movement.
+        final Map<Long, BigDecimal> lastEnd   = new HashMap<>(); // entity id -> end of its last movement.
+        String latestBatch = null;
+        for (JrnEvent e : executed) {
+            final Payload p = parsePayload(e);
+            final Leg l = legOf(p, leg);
+            if (l == null) {
                 findings.add(new Finding(step, Severity.ERROR,
                     "Event " + e.getEventId() + " (jrn_event_id=" + e.getJrnEventId()
                     + "): EXECUTED but the payload holds no valid " + label + " movement."));
-            else
-                byKey.computeIfAbsent(l.id(), k -> new ArrayList<>()).add(l);
-        });
+                continue;
+            }
+            // Legacy payloads carry no execution batch: fall back on the journal row's batch-id.
+            final String batch = (p.batchId() != null) ? p.batchId() : String.valueOf(e.getBatchId());
+            byBatch.computeIfAbsent(batch, k -> new LinkedHashMap<>())
+                   .computeIfAbsent(l.id(), k -> new ArrayList<>()).add(l);
+            lastBatch.put(l.id(), batch);
+            lastEnd.put(l.id(), l.end());
+            latestBatch = batch;
+        }
+
+        final boolean multi = byBatch.size() > 1;
+        if (multi)
+            findings.add(new Finding(step, Severity.WARN, byBatch.size() + " execution batch-ids " + byBatch.keySet()
+                + ": the chain is checked per batch (movements made between batches, e.g. a manual refill, are tolerated)"
+                + " and the database is compared with the latest batch only."));
 
         int broken = 0;
-        for (Map.Entry<Long, List<Leg>> entry : byKey.entrySet()) {
-            final Long id = entry.getKey();
-            BigDecimal running = null;
-            for (Leg l : entry.getValue()) {
-                if (l.begin().add(l.operation()).compareTo(l.end()) != 0) {
-                    broken++;
-                    findings.add(new Finding(step, Severity.ERROR, label + " " + id + ": " + l.begin() + " "
-                        + signed(l.operation()) + " <> " + l.end() + " (movement arithmetic)."));
+        for (Map.Entry<String, Map<Long, List<Leg>>> batch : byBatch.entrySet()) {
+            final String where = multi ? " [batch " + batch.getKey() + "]" : "";
+            for (Map.Entry<Long, List<Leg>> entry : batch.getValue().entrySet()) {
+                final Long id = entry.getKey();
+                BigDecimal running = null;
+                for (Leg l : entry.getValue()) {
+                    if (l.begin().add(l.operation()).compareTo(l.end()) != 0) {
+                        broken++;
+                        findings.add(new Finding(step, Severity.ERROR, label + " " + id + where + ": " + l.begin() + " "
+                            + signed(l.operation()) + " <> " + l.end() + " (movement arithmetic)."));
+                    }
+                    if (running != null && running.compareTo(l.begin()) != 0) {
+                        broken++;
+                        findings.add(new Finding(step, Severity.ERROR, label + " " + id + where + ": movement begins at "
+                            + l.begin() + " but the previous one ended at " + running + " (broken chain)."));
+                    }
+                    running = l.end();
                 }
-                if (running != null && running.compareTo(l.begin()) != 0) {
-                    broken++;
-                    findings.add(new Finding(step, Severity.ERROR, label + " " + id + ": movement begins at "
-                        + l.begin() + " but the previous one ended at " + running + " (broken chain)."));
-                }
-                running = l.end();
             }
+        }
 
+        // Database check: the entity must still exist, and — when its last movement belongs to the
+        // latest batch — the replay must end on the live value (older batches may legitimately differ).
+        for (Long id : lastEnd.keySet()) {
             final BigDecimal live = current.apply(id);
             if (live == null) {
                 broken++;
                 findings.add(new Finding(step, Severity.ERROR, label + " " + id + ": has movements but no longer exists."));
-            } else if (running != null && running.compareTo(live) != 0) {
+            } else if (lastBatch.get(id).equals(latestBatch) && lastEnd.get(id).compareTo(live) != 0) {
                 broken++;
                 findings.add(new Finding(step, Severity.ERROR, label + " " + id + ": replay ends at "
-                    + running + " but the database holds " + live + "."));
+                    + lastEnd.get(id) + " but the database holds " + live + "."));
             }
         }
 
         if (broken == 0)
-            findings.add(new Finding(step, Severity.INFO, byKey.size() + " " + label + "(s) replayed, consistent."));
+            findings.add(new Finding(step, Severity.INFO, lastEnd.size() + " " + label + "(s) replayed in "
+                + byBatch.size() + " batch(es), consistent."));
     }
 
     private String eventIdOf(String json) {
@@ -331,15 +372,18 @@ public class ConciliationSrv {
         }
     }
 
-    private Leg parseLeg(JrnEvent event, Function<Movement, Leg> leg) {
+    private Payload parsePayload(JrnEvent event) {
         try {
-            final Payload p = JsonMapper.readFromJson(event.getPayload(), Payload.class);
-            final Leg l = (p == null || p.movement() == null) ? null : leg.apply(p.movement());
-            return (l == null || l.id() == null || l.begin() == null || l.operation() == null || l.end() == null)
-                ? null : l;
+            return JsonMapper.readFromJson(event.getPayload(), Payload.class);
         } catch (RuntimeException ex) {
             return null; // e.g. the legacy SHA-1 payload hash.
         }
+    }
+
+    private Leg legOf(Payload p, Function<Movement, Leg> leg) {
+        final Leg l = (p == null || p.movement() == null) ? null : leg.apply(p.movement());
+        return (l == null || l.id() == null || l.begin() == null || l.operation() == null || l.end() == null)
+            ? null : l;
     }
 
     private String signed(BigDecimal v) {

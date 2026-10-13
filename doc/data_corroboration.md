@@ -19,6 +19,11 @@
 - [Detecting and handling divergence](#detecting-and-handling-divergence)
 - [Relationship to idempotency and exactly-once](#relationship-to-idempotency-and-exactly-once)
 - [How this project applies it](#how-this-project-applies-it)
+  - [The processor and the request counts](#the-processor-and-the-request-counts)
+  - [Internal conciliation](#internal-conciliation)
+  - [Reading the findings](#reading-the-findings)
+  - [Running it from the UI](#running-it-from-the-ui)
+  - [Limits of the sandbox implementation](#limits-of-the-sandbox-implementation)
 - [Pitfalls & best practices](#pitfalls--best-practices)
 
 ## Overview
@@ -178,7 +183,11 @@ In short: idempotency + sequencing make state *safe to recompute*; corroboration
 
 ## How this project applies it
 
-This sandbox is database-centric: the relational `Request` and `Inventory` tables are the authoritative state, and Kafka messages trigger their mutation. Two artefacts are central to corroboration here.
+This sandbox is database-centric: the relational `Request`, `Person` and `Inventory` tables are the authoritative state, and Kafka messages trigger their mutation. Every processed event is recorded in a journal (`JRN_EVENT`), which makes it possible to corroborate the persisted state against what the events say happened. Three artefacts are central here: the idempotent processor, a cheap count probe, and the full [internal conciliation](#internal-conciliation).
+
+> **Terminology.** This guide uses *corroboration* for the general practice and *conciliation* for this project's implementation of it, [`ConciliationSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/ConciliationSrv.java).
+
+### The processor and the request counts
 
 **The processor** — [`ProcessorSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/ProcessorSrv.java) — processes each request in its own JPA transaction and is explicitly **idempotent**: a request whose result is no longer `PENDING`/`BACK_ORDER` has already been handled and is skipped. This is precisely the property that makes the at-least-once redelivery of the Kafka error handler safe, and that would make a replay-based reconciliation job safe to run.
 
@@ -208,7 +217,80 @@ Practical corroboration uses for this aggregate in the sandbox:
 
 - **Pipeline progress / heartbeat:** a stable, non-zero `nbrPending` over time means the pipeline has stalled — a control-event-style signal computed cheaply on demand.
 - **Completeness check:** the sum of all buckets must equal the total number of submitted requests. The explicit `nbrUnknown` bucket (anything outside `10/20/30/99` or `NULL`) is a built-in invariant tripwire for corrupt or unexpected state values.
-- **Cross-source reconciliation:** the count of `EXECUTED` requests reconciled against inventory movements is the project's concrete "derived view vs source of truth" check.
+- **Cross-source reconciliation:** a count only says *that* totals differ. Reconciling `EXECUTED` requests against the actual client and inventory movements — and telling *where* they differ — is the job of the [internal conciliation](#internal-conciliation) below.
+
+### Internal conciliation
+
+[`ConciliationSrv`](../src/main/java/org/rd/fullstack/springbooteda/srv/ConciliationSrv.java) is the deep check that complements the cheap count probe. It cross-checks four independent sources against each other and **only reads**: it never modifies the journal, the batch files or the business tables, and it reports anomalies as findings instead of throwing.
+
+```mermaid
+flowchart LR
+    DLT[("Dead Letter Topics")] --> C{{ConciliationSrv}}
+    J[("JRN_EVENT journal")] --> C
+    F["Batch files<br/>log/batch-id.trx"] --> C
+    T[("Person balances<br/>Inventory quantities")] --> C
+    C --> R["List of findings<br/>step, severity, message"]
+```
+
+The journal `payload` of an `EXECUTED` event holds the movement it caused, as a pair of *legs* (one for the client, one for the inventory). The `operation` is signed:
+
+```json
+{"movement":{
+   "client":   {"id": 7, "begin": 10.00, "operation": -5.00, "end": 5.00},
+   "inventory":{"id": 3, "begin": 10,    "operation": -2,    "end": 8}},
+ "batchId": "b-2"}
+```
+
+`batchId` is the batch that **executed** the movement. It is not the batch-id of the journal row: a replay reuses the row of the first delivery, so that one never changes.
+
+The conciliation runs five steps, each reported under its own `Step`:
+
+| Step | What is verified | Pattern from this guide |
+| --- | --- | --- |
+| `DLT` | Collects the event ids sitting in every Dead Letter Topic, so dead-lettered transactions are not mistaken for lost ones. | Source of truth vs derived views |
+| `JOURNAL` | Loads the journal and groups it by batch id. | Source of truth vs derived views |
+| `BATCH_FILE` | Each batch has its confirmed `.trx` file; every transaction of the file is in the journal (or a DLT); every journal event of the batch is in the file (no orphan). | Count corroboration |
+| `CLIENT_BALANCE` | Replays the movements in processing order: `BALANCE = BALANCE ± COST`. | Event replay, business invariants |
+| `INVENTORY_QTY` | Replays the movements in processing order: `QTY = QTY ± QTY`. | Event replay, business invariants |
+
+For the two replay steps, only `EXECUTED` events are considered (`PENDING`, `BACK_ORDER` and `ERROR` moved nothing), sorted by `processedAt` then journal id. For each client or product the service checks that:
+
+1. **the arithmetic holds** — `begin + operation = end`;
+2. **the chain is unbroken** — each movement begins where the previous one ended, **within one execution batch**;
+3. **the replay matches the database** — the last `end` equals the live balance or quantity, checked **only when the last movement belongs to the latest batch**;
+4. **the entity still exists**.
+
+The chain is checked per execution batch because the business tables can legitimately change between two runs — typically a manual inventory refill after the first run, before a replay re-executes the back-ordered requests. Such changes are not journaled, so they would otherwise show up as a broken chain. When more than one batch is present, a `WARN` says so (the `JOURNAL` step also warns if the journal itself holds several batch ids). Payloads written before `batchId` existed fall back on the journal row's batch-id.
+
+An `EXECUTED` event whose payload holds no valid movement is itself an error.
+
+### Reading the findings
+
+The outcome is a flat list of findings, `Finding(step, severity, message)`:
+
+| Severity | Meaning | Examples |
+| --- | --- | --- |
+| `INFO` | A check ran and found nothing wrong, or reports a figure. | `3 event(s) found in the DLTs.`, `Batch 12: 40 transaction(s), consistent.` |
+| `WARN` | The check ran in a degraded way, or found something suspicious but not corrupting. | DLT unreadable or timed out; duplicate event in a batch file. |
+| `ERROR` | An integrity break: sources disagree. | Missing `.trx` file; orphan journal event; broken chain; replay ends at a value different from the database. |
+
+A run is clean when it contains no `ERROR`. Anomalies are the *content* of the report, so the endpoint answers HTTP 200 even when errors are found.
+
+A broken chain is a genuine signal, not a bug of the checker: the inventory oversell race this sandbox teaches is expected to surface in the `INVENTORY_QTY` step, where two concurrent movements begin from the same quantity.
+
+### Running it from the UI
+
+- **REST:** `GET /api/conciliation/findings` ([`ConciliationController`](../src/main/java/org/rd/fullstack/springbooteda/controller/ConciliationController.java)), role `ROLE_SELECT`. Returns the `Finding` list.
+- **Screen:** the **Findings** tab at the bottom of the journal page (`/jrn-events`). The conciliation is **never run automatically**: it reads the whole journal, the batch files and the DLTs, and can take several seconds. Press *Run conciliation*; the table lists the findings, most severe first, and the tab shows a badge with the number of `ERROR`s.
+
+### Limits of the sandbox implementation
+
+This is a sandbox-only service, meant to teach the idea rather than to be used in production.
+
+- **Basic checks only.** A real conciliation would be far more extensive.
+- **No access control beyond the role**, and no pagination: the whole journal is loaded in memory, so it does not scale to production volumes.
+- **DLT reading is bounded** (10-second budget) and uses a throw-away consumer that does not commit offsets, so it does not disturb live consumer groups.
+- **A replay keeps the journal row of the first delivery.** An event found in a batch file may therefore legitimately live under another batch id; the check looks the event up in the whole journal, not only in its own batch.
 
 ## Pitfalls & best practices
 
@@ -220,3 +302,5 @@ Practical corroboration uses for this aggregate in the sandbox:
 - **Mind the transaction boundary**: exactly-once shrinks the divergence window but does not remove the need for corroboration across stores it cannot enroll.
 - **Alert on the cheap signal, investigate with the deep one** — don't run full replays on every tick.
 - **Account for in-flight work**: a transient `nbrPending` is normal; only a *persistently* non-decreasing pending count indicates a stall.
+- **Do not run the deep check on a live, busy pipeline and trust it blindly**: events still in flight can show up as transient `ERROR`s (an orphan, a replay not yet matching the database). Re-run once the pipeline is quiet before concluding.
+- **Treat a broken chain as evidence, not noise**: a movement that does not begin where the previous one ended points to a concurrency or ordering defect worth investigating.

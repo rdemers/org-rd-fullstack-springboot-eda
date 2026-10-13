@@ -149,7 +149,7 @@ public class DatabaseConfig {
                 token.setPayload(new EventTokenPayload(ENV_ID, SYSTEM_ID, SRV_ID, iii));
                 jrnEventRepository.save(new JrnEvent("consumerId-fake", 
                         tokenToolskit.encode(token, TokenToolskit.Format.TOKEN_AND_MAC), 
-                        "batchId-01","payloadHash", EventType.PROCESSING_REQUESTED, 
+                        "Fake-batchId","Fake payload", EventType.PROCESSING_REQUESTED, 
                         Result.ERROR, Instant.now(), null)); // UTC.
             }                            
             jrnEventRepository.flush();

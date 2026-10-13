@@ -170,7 +170,8 @@ public class ProcessorSrv {
 
                 finalizeOutcome(request, jrnEvent, Result.EXECUTED, true,
                     getPayload(person.getPersonId(), creditBalBegin, cost.negate(), creditBalEnd,
-                               inventory.getInventoryId(), creditQtyBegin, -request.getQty(), creditQtyEnd));
+                               inventory.getInventoryId(), creditQtyBegin, -request.getQty(), creditQtyEnd,
+                               batchIdOf(message)));
                 break;
 
             case DEBIT: // Restock: inventory increases, the client is credited (balance increases).
@@ -190,7 +191,8 @@ public class ProcessorSrv {
 
                 finalizeOutcome(request, jrnEvent, Result.EXECUTED, true,
                     getPayload(person.getPersonId(), debitBalBegin, cost, debitBalEnd,
-                               inventory.getInventoryId(), debitQtyBegin, request.getQty(), debitQtyEnd));
+                               inventory.getInventoryId(), debitQtyBegin, request.getQty(), debitQtyEnd,
+                               batchIdOf(message)));
                 break;
 
             default:
@@ -242,9 +244,13 @@ public class ProcessorSrv {
      * read at the start, and END is re-read from the database after the relative UPDATE (via a
      * JPQL projection, which bypasses the persistence-context cache). Under the inventory
      * oversell race the two differ from BEGIN + OPERATION: the lost update is recorded, not masked.</p>
+     *
+     * <p>{@code batchId} is the batch that executes the movement. On a replay the journal row keeps
+     * the batch-id of the first delivery, so this is what lets {@link ConciliationSrv} tell the
+     * executions apart.</p>
      */
     private String getPayload(long personId, BigDecimal balBegin,  BigDecimal balOperation, BigDecimal balEnd,
-                              long inventoryId, long qtyBegin, long qtyOperation, long qtyEnd) {
+                              long inventoryId, long qtyBegin, long qtyOperation, long qtyEnd, String batchId) {
 
         return JsonMapper.writeToJson(new ConciliationSrv.Payload(
             new ConciliationSrv.Movement(
@@ -257,9 +263,14 @@ public class ProcessorSrv {
                         BigDecimal.valueOf(qtyBegin), 
                         BigDecimal.valueOf(qtyOperation), 
                         BigDecimal.valueOf(qtyEnd))
-                )
+                ),
+                batchId
             )
         );
+    }
+
+    private static String batchIdOf(EventMessage<EventHeader, Request, EventFooter> message) {
+        return (message.getHeader() == null) ? null : message.getHeader().getBatchId();
     }
 
     // We apply a sanity check on the message to ensure that the header, request, and footer are valid. 

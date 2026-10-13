@@ -19,6 +19,11 @@
 - [Détecter et gérer la divergence](#détecter-et-gérer-la-divergence)
 - [Relation avec l'idempotence et l'exactly-once](#relation-avec-lidempotence-et-lexactly-once)
 - [Comment ce projet l'applique](#comment-ce-projet-lapplique)
+  - [Le processeur et les comptages de requêtes](#le-processeur-et-les-comptages-de-requêtes)
+  - [Conciliation interne](#conciliation-interne)
+  - [Lire les constats](#lire-les-constats)
+  - [Exécution depuis l'interface](#exécution-depuis-linterface)
+  - [Limites de l'implémentation sandbox](#limites-de-limplémentation-sandbox)
 - [Pièges & bonnes pratiques](#pièges--bonnes-pratiques)
 
 ## Vue d'ensemble
@@ -178,7 +183,11 @@ En bref : idempotence + séquencement rendent l'état *sûr à recalculer* ; la 
 
 ## Comment ce projet l'applique
 
-Ce sandbox est centré sur la base de données : les tables relationnelles `Request` et `Inventory` constituent l'état de référence, et les messages Kafka déclenchent leur mutation. Deux artefacts sont centraux pour la corroboration ici.
+Ce sandbox est centré sur la base de données : les tables relationnelles `Request`, `Person` et `Inventory` constituent l'état de référence, et les messages Kafka déclenchent leur mutation. Chaque événement traité est consigné dans un journal (`JRN_EVENT`), ce qui permet de corroborer l'état persisté avec ce que les événements disent s'être produit. Trois artefacts sont centraux ici : le processeur idempotent, une sonde de comptage peu coûteuse, et la [conciliation interne](#conciliation-interne) complète.
+
+> **Terminologie.** Ce guide emploie *corroboration* pour la pratique générale et *conciliation* pour l'implémentation de ce projet, [`ConciliationSrv`](../../src/main/java/org/rd/fullstack/springbooteda/srv/ConciliationSrv.java).
+
+### Le processeur et les comptages de requêtes
 
 **Le processeur** — [`ProcessorSrv`](../../src/main/java/org/rd/fullstack/springbooteda/srv/ProcessorSrv.java) — traite chaque requête dans sa propre transaction JPA et est explicitement **idempotent** : une requête dont le résultat n'est plus `PENDING`/`BACK_ORDER` a déjà été traitée et est ignorée. C'est précisément la propriété qui rend sûre la relivraison at-least-once du gestionnaire d'erreurs Kafka, et qui rendrait sûr l'exécution d'un job de réconciliation basé sur le rejeu.
 
@@ -208,7 +217,80 @@ Utilisations pratiques de cet agrégat pour la corroboration dans le sandbox :
 
 - **Progression / heartbeat du pipeline :** un `nbrPending` stable et non nul dans le temps signifie que le pipeline est bloqué — un signal de type événement-de-contrôle calculé à faible coût, à la demande.
 - **Vérification de complétude :** la somme de tous les compartiments doit égaler le nombre total de requêtes soumises. Le compartiment explicite `nbrUnknown` (tout ce qui est hors de `10/20/30/99` ou `NULL`) est un déclencheur d'invariant intégré pour les valeurs d'état corrompues ou inattendues.
-- **Réconciliation inter-sources :** le comptage des requêtes `EXECUTED` réconcilié avec les mouvements d'inventaire est la vérification concrète « vue dérivée vs source de vérité » du projet.
+- **Réconciliation inter-sources :** un comptage indique seulement *que* les totaux diffèrent. Réconcilier les requêtes `EXECUTED` avec les mouvements réels des clients et de l'inventaire — et dire *où* ils diffèrent — est le rôle de la [conciliation interne](#conciliation-interne) ci-dessous.
+
+### Conciliation interne
+
+[`ConciliationSrv`](../../src/main/java/org/rd/fullstack/springbooteda/srv/ConciliationSrv.java) est la vérification approfondie qui complète la sonde de comptage peu coûteuse. Elle recoupe quatre sources indépendantes entre elles et **ne fait que lire** : elle ne modifie jamais le journal, les fichiers de lot ni les tables métier, et elle signale les anomalies sous forme de constats au lieu de lever une exception.
+
+```mermaid
+flowchart LR
+    DLT[("Dead Letter Topics")] --> C{{ConciliationSrv}}
+    J[("Journal JRN_EVENT")] --> C
+    F["Fichiers de lot<br/>log/batch-id.trx"] --> C
+    T[("Soldes Person<br/>Quantités Inventory")] --> C
+    C --> R["Liste de constats<br/>étape, sévérité, message"]
+```
+
+Le `payload` du journal d'un événement `EXECUTED` contient le mouvement qu'il a provoqué, sous forme d'une paire de *jambes* (une pour le client, une pour l'inventaire). L'`operation` est signée :
+
+```json
+{"movement":{
+   "client":   {"id": 7, "begin": 10.00, "operation": -5.00, "end": 5.00},
+   "inventory":{"id": 3, "begin": 10,    "operation": -2,    "end": 8}},
+ "batchId": "b-2"}
+```
+
+`batchId` est le lot qui a **exécuté** le mouvement. Ce n'est pas le `batchId` de la ligne de journal : un rejeu réutilise la ligne de la première livraison, qui ne change donc jamais.
+
+La conciliation exécute cinq étapes, chacune rapportée sous son propre `Step` :
+
+| Étape | Ce qui est vérifié | Pattern de ce guide |
+| --- | --- | --- |
+| `DLT` | Collecte les identifiants d'événements présents dans chaque Dead Letter Topic, afin que les transactions mises en DLT ne soient pas prises pour des pertes. | Source de vérité vs vues dérivées |
+| `JOURNAL` | Charge le journal et le regroupe par identifiant de lot. | Source de vérité vs vues dérivées |
+| `BATCH_FILE` | Chaque lot a son fichier `.trx` confirmé ; chaque transaction du fichier est dans le journal (ou un DLT) ; chaque événement du journal du lot est dans le fichier (aucun orphelin). | Corroboration par comptage |
+| `CLIENT_BALANCE` | Rejoue les mouvements dans l'ordre de traitement : `BALANCE = BALANCE ± COST`. | Rejeu d'événements, invariants métier |
+| `INVENTORY_QTY` | Rejoue les mouvements dans l'ordre de traitement : `QTY = QTY ± QTY`. | Rejeu d'événements, invariants métier |
+
+Pour les deux étapes de rejeu, seuls les événements `EXECUTED` sont considérés (`PENDING`, `BACK_ORDER` et `ERROR` n'ont rien déplacé), triés par `processedAt` puis par identifiant de journal. Pour chaque client ou produit, le service vérifie que :
+
+1. **l'arithmétique tient** — `begin + operation = end` ;
+2. **la chaîne est ininterrompue** — chaque mouvement commence là où le précédent s'est terminé, **à l'intérieur d'un même lot d'exécution** ;
+3. **le rejeu correspond à la base** — le dernier `end` égale le solde ou la quantité actuels, vérifié **uniquement lorsque le dernier mouvement appartient au dernier lot** ;
+4. **l'entité existe toujours**.
+
+La chaîne est vérifiée par lot d'exécution parce que les tables métier peuvent légitimement changer entre deux exécutions — typiquement un ravitaillement manuel de l'inventaire après la première exécution, avant qu'un rejeu ré-exécute les requêtes en back-order. Ces changements ne sont pas journalisés ; ils apparaîtraient sinon comme une chaîne brisée. Lorsque plus d'un lot est présent, un `WARN` le signale (l'étape `JOURNAL` avertit aussi si le journal lui-même contient plusieurs identifiants de lot). Les payloads écrits avant l'existence de `batchId` retombent sur le `batchId` de la ligne de journal.
+
+Un événement `EXECUTED` dont le payload ne contient aucun mouvement valide est lui-même une erreur.
+
+### Lire les constats
+
+Le résultat est une liste plate de constats, `Finding(step, severity, message)` :
+
+| Sévérité | Signification | Exemples |
+| --- | --- | --- |
+| `INFO` | Une vérification a été exécutée sans rien trouver d'anormal, ou rapporte un chiffre. | `3 event(s) found in the DLTs.`, `Batch 12: 40 transaction(s), consistent.` |
+| `WARN` | La vérification s'est exécutée de façon dégradée, ou a trouvé quelque chose de suspect mais non corrupteur. | DLT illisible ou délai dépassé ; événement en double dans un fichier de lot. |
+| `ERROR` | Une rupture d'intégrité : les sources se contredisent. | Fichier `.trx` manquant ; événement de journal orphelin ; chaîne brisée ; rejeu aboutissant à une valeur différente de la base. |
+
+Une exécution est propre lorsqu'elle ne contient aucun `ERROR`. Les anomalies sont le *contenu* du rapport ; le endpoint répond donc HTTP 200 même lorsque des erreurs sont trouvées.
+
+Une chaîne brisée est un signal authentique, pas un défaut du vérificateur : la course de survente d'inventaire (*oversell*) enseignée par ce sandbox devrait apparaître à l'étape `INVENTORY_QTY`, où deux mouvements concurrents partent de la même quantité.
+
+### Exécution depuis l'interface
+
+- **REST :** `GET /api/conciliation/findings` ([`ConciliationController`](../../src/main/java/org/rd/fullstack/springbooteda/controller/ConciliationController.java)), rôle `ROLE_SELECT`. Retourne la liste de `Finding`.
+- **Écran :** l'onglet **Constats** (*Findings*) en bas de la page du journal (`/jrn-events`). La conciliation n'est **jamais exécutée automatiquement** : elle lit tout le journal, les fichiers de lot et les DLT, et peut prendre plusieurs secondes. Appuyez sur *Exécuter la conciliation* ; le tableau liste les constats, du plus grave au moins grave, et l'onglet affiche un badge avec le nombre d'`ERROR`.
+
+### Limites de l'implémentation sandbox
+
+Il s'agit d'un service réservé au sandbox, destiné à enseigner l'idée et non à être utilisé en production.
+
+- **Vérifications de base seulement.** Une vraie conciliation serait bien plus étendue.
+- **Aucun contrôle d'accès au-delà du rôle**, et aucune pagination : tout le journal est chargé en mémoire, ce qui ne passe pas à l'échelle des volumes de production.
+- **La lecture des DLT est bornée** (budget de 10 secondes) et utilise un consommateur jetable qui ne valide pas d'offsets, donc elle ne perturbe pas les groupes de consommateurs en production.
+- **Un rejeu conserve la ligne de journal de la première livraison.** Un événement trouvé dans un fichier de lot peut donc légitimement résider sous un autre identifiant de lot ; la vérification cherche l'événement dans tout le journal, pas seulement dans son propre lot.
 
 ## Pièges & bonnes pratiques
 
@@ -220,3 +302,5 @@ Utilisations pratiques de cet agrégat pour la corroboration dans le sandbox :
 - **Attention à la frontière transactionnelle** : l'exactly-once réduit la fenêtre de divergence mais ne supprime pas le besoin de corroboration à travers les magasins qu'il ne peut pas enrôler.
 - **Alertez sur le signal peu coûteux, enquêtez avec le signal approfondi** — ne lancez pas de rejeu complet à chaque tick.
 - **Tenez compte du travail en cours** : un `nbrPending` transitoire est normal ; seul un compte de pending qui ne décroît *durablement* pas indique un blocage.
+- **N'exécutez pas la vérification approfondie sur un pipeline actif et occupé en lui faisant aveuglément confiance** : des événements encore en vol peuvent apparaître comme des `ERROR` transitoires (un orphelin, un rejeu qui ne correspond pas encore à la base). Relancez-la une fois le pipeline au calme avant de conclure.
+- **Traitez une chaîne brisée comme une preuve, pas comme du bruit** : un mouvement qui ne commence pas là où le précédent s'est terminé révèle un défaut de concurrence ou d'ordonnancement à investiguer.

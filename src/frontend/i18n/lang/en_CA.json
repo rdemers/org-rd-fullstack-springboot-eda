@@ -157,8 +157,38 @@
         "result"       : "Result",
         "received-at"  : "TS Received (UTC)",
         "processed-at" : "TS Processed (UTC)",
+        "tab" : {
+            "journal"  : "Journal",
+            "findings" : "Findings"
+        },
         "title": {
             "view" : "Event Detail"
+        }
+    },
+    "finding" : {
+        "column" : {
+            "step"     : "Step",
+            "severity" : "Severity",
+            "message"  : "Message"
+        },
+        "button" : {
+            "execute" : "Run conciliation"
+        },
+        "message" : {
+            "not-executed" : "Run the conciliation to see the findings.",
+            "no-error"     : "Conciliation completed: no error found."
+        },
+        "step" : {
+            "dlt"            : "DLT",
+            "journal"        : "Journal",
+            "batch-file"     : "Batch file",
+            "client-balance" : "Client balance",
+            "inventory-qty"  : "Inventory quantity"
+        },
+        "severity" : {
+            "info"  : "Info",
+            "warn"  : "Warning",
+            "error" : "Error"
         }
     },
     "operation" : {
