@@ -42,6 +42,7 @@ public class PipelineContext implements Serializable {
     private Boolean replay;             // Replay the pipeline requests.
     private Boolean latence;            // Add a fake latency.
     private Boolean flink;              // Route requests through the Flink pipeline.
+    private Boolean lock;               // Lock the database (exclusive access).
 
     public PipelineContext() {
         super();
@@ -54,6 +55,7 @@ public class PipelineContext implements Serializable {
         this.replay  = false; // Replay the pipeline requests by default (no replay - Means empty JRN_EVENT).
         this.latence = false; // Add a fake latency by default (no latency).
         this.flink   = false; // Direct path by default (publish straight to the processor topic).
+        this.lock    = false; // Do not lock database by default.
     }
 
     public Boolean getPause() {
@@ -96,6 +98,14 @@ public class PipelineContext implements Serializable {
         this.flink = flink;
     }
 
+    public Boolean getLock() {
+        return lock;
+    }
+    
+    public void setLock(Boolean lock) {
+        this.lock = lock;
+    }
+
     @JsonIgnore // Ignore this method during JSON serialization/deserialization.
     public void setPipelineContext(PipelineContext pipelineContext) {
         this.pause   = pipelineContext.getPause();
@@ -103,6 +113,7 @@ public class PipelineContext implements Serializable {
         this.replay  = pipelineContext.getReplay();
         this.latence = pipelineContext.getLatence();
         this.flink   = pipelineContext.getFlink();
+        this.lock    = pipelineContext.getLock();
     }
 
     @Override
@@ -111,6 +122,7 @@ public class PipelineContext implements Serializable {
             ", key="                  + this.key +
             ", replay="               + this.replay +
             ", latence="              + this.latence +
-            ", flink="                + this.flink + "]";
+            ", flink="                + this.flink +
+            ", lock="                 + this.lock + "]";
     }
 }

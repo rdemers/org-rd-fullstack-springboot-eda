@@ -12,7 +12,7 @@ La plateforme utilise Spring Boot, Nuxt, Apache Maven, Kafka, Flink, Hazelcast e
 
 ![Springboot-EDA](../asserts/springboot-eda.gif)
 
-* Sources: [login.png](../asserts/login.png), [welcome.png](../asserts/welcome.png), [persons.png](../asserts/persons.png), [products.png](../asserts/products.png), [inventories.png](../asserts/inventories.png), [report.png](../asserts/report.png), [requests.png](../asserts/requests.png), [hazelcast_dashboard.png](../asserts/hazelcast_dashboard.png), [kafka_dashboard.png](../asserts/kafka_dashboard.png), [flink_dashboard.png](../asserts/flink_dashboard.png), [operations_dashboard.png](../asserts/operations_dashboard.png), [about.png](../asserts/about.png).
+* Sources: [login.png](../asserts/login.png), [welcome.png](../asserts/welcome.png), [persons.png](../asserts/persons.png), [products.png](../asserts/products.png), [inventories.png](../asserts/inventories.png), [report.png](../asserts/report.png), [requests.png](../asserts/requests.png), [jrn-events.png](../asserts/jrn-events.png), [jrn-concliations.png](../asserts/jrn-conciliations.png), [hazelcast_dashboard.png](../asserts/hazelcast_dashboard.png), [kafka_dashboard.png](../asserts/kafka_dashboard.png), [flink_dashboard.png](../asserts/flink_dashboard.png), [operations_dashboard.png](../asserts/operations_dashboard.png), [about.png](../asserts/about.png).
 
 ---
 

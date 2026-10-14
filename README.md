@@ -12,7 +12,7 @@ The platform leverages Spring Boot, Nuxt, Apache Maven, Kafka, Flink, Hazelcast,
 
 ![Springboot-EDA](./doc/asserts/springboot-eda.gif)
 
-* Sources: [login.png](./doc/asserts/login.png), [welcome.png](./doc/asserts/welcome.png), [persons.png](./doc/asserts/persons.png), [products.png](./doc/asserts/products.png), [inventories.png](./doc/asserts/inventories.png), [report.png](./doc/asserts/report.png), [requests.png](./doc/asserts/requests.png), [jrn-events.png](./doc/asserts/jrn-events.png), [hazelcast_dashboard.png](./doc/asserts/hazelcast_dashboard.png), [kafka_dashboard.png](./doc/asserts/kafka_dashboard.png), [flink_dashboard.png](./doc/asserts/flink_dashboard.png), [operations_dashboard.png](./doc/asserts/operations_dashboard.png), [about.png](./doc/asserts/about.png).
+* Sources: [login.png](./doc/asserts/login.png), [welcome.png](./doc/asserts/welcome.png), [persons.png](./doc/asserts/persons.png), [products.png](./doc/asserts/products.png), [inventories.png](./doc/asserts/inventories.png), [report.png](./doc/asserts/report.png), [requests.png](./doc/asserts/requests.png), [jrn-events.png](./doc/asserts/jrn-events.png), [jrn-concliations.png](./doc/asserts/jrn-conciliations.png), [hazelcast_dashboard.png](./doc/asserts/hazelcast_dashboard.png), [kafka_dashboard.png](./doc/asserts/kafka_dashboard.png), [flink_dashboard.png](./doc/asserts/flink_dashboard.png), [operations_dashboard.png](./doc/asserts/operations_dashboard.png), [about.png](./doc/asserts/about.png).
 
 ---
 

@@ -66,7 +66,7 @@
         "products"       : "Produits",
         "inventories"    : "Inventaires",
         "requests"       : "Demandes",
-        "jrn-events"     : "Logs Evt",
+        "jrn-events"     : "Evt/Cnc",
         "hazelcast"      : "Hazelcast",
         "flink"          : "Flink",
         "kafka"          : "Kafka",
@@ -158,8 +158,8 @@
         "received-at"  : "TS Reçu (UTC)",
         "processed-at" : "TS Traité (UTC)",
         "tab" : {
-            "journal"  : "Journal",
-            "findings" : "Constats"
+            "journal"      : "Journal",
+            "conciliation" : "Conciliation"
         },
         "title": {
             "view" : "Détail de l'événement"
@@ -312,7 +312,9 @@
         "latence-insert"      : "Insérer latence",
         "latence-insert-desc" : "Insérer une latence des opérations",
         "flink"               : "Activer Flink",
-        "flink-desc"          : "Router les requêtes via le pipeline Apache Flink"
+        "flink-desc"          : "Router les requêtes via le pipeline Apache Flink",
+        "lock"                : "Activer verrou",
+        "lock-desc"           : "Activer le verrou sur les requêtes"
     },
     "about" : {
         "licence-01" : "Licence Apache",

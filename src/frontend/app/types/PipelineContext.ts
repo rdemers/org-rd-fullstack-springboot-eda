@@ -22,4 +22,5 @@ export default interface PipelineContext {
     replay:  boolean;
     latence: boolean;
     flink:   boolean;
+    lock:    boolean;
 }

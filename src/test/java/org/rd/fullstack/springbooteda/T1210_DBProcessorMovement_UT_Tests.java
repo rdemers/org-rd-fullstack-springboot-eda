@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
 
-import org.junit.Ignore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -64,7 +63,6 @@ public class T1210_DBProcessorMovement_UT_Tests {
     @Autowired private InventoryRepository  inventoryRepository;
 
     @Test
-    @Ignore // Disabled because the test is not working with the current implementation of the processor.
     @Order(1)
     public void executedRequestCheckMovement() throws Exception {
         
@@ -77,14 +75,14 @@ public class T1210_DBProcessorMovement_UT_Tests {
             new Request(person.getPersonId(), product.getProductId(), 4L, Operation.CREDIT, Result.PENDING));
             
         process(sale, "EVT-MVT-SALE");
-        assertMovement("EVT-MVT-SALE", person.getPersonId(), product.getProductId(),
+        assertMovement("EVT-MVT-SALE", person.getPersonId(), inv.getInventoryId(),
             new BigDecimal("100.00"), new BigDecimal("-10.00"), new BigDecimal("90.00"), 10, -4, 6);
 
         // Restock of 5 units: balance 90.00 -> 102.50, quantity 6 -> 11 (chain continues).
         Request restock = requestRepository.save(
             new Request(person.getPersonId(), product.getProductId(), 5L, Operation.DEBIT, Result.PENDING));
         process(restock, "EVT-MVT-RESTOCK");
-        assertMovement("EVT-MVT-RESTOCK", person.getPersonId(), product.getProductId(),
+        assertMovement("EVT-MVT-RESTOCK", person.getPersonId(), inv.getInventoryId(),
             new BigDecimal("90.00"), new BigDecimal("12.50"), new BigDecimal("102.50"), 6, 5, 11);
 
         assertEquals(11L, inventoryRepository.findById(inv.getInventoryId()).orElseThrow().getQty());
@@ -93,10 +91,10 @@ public class T1210_DBProcessorMovement_UT_Tests {
     private void process(Request request, String eventId) throws Exception {
         EventHeader header = new EventHeader(eventId, "1.0", "batch-mvt", KafkaConstants.CST_NONE);
         EventMessage<EventHeader, Request, EventFooter> message = new EventMessage<>(header, request, null);
-        processorSrv.process(message, false);
+        processorSrv.process(message, false, false);
     }
 
-    private void assertMovement(String eventId, Long personId, Long productId,
+    private void assertMovement(String eventId, Long personId, Long inventoryId,
                                 BigDecimal cBegin, BigDecimal cOp, BigDecimal cEnd, 
                                 long iBegin, long iOp, long iEnd) {
         
@@ -111,7 +109,7 @@ public class T1210_DBProcessorMovement_UT_Tests {
         assertEquals(0, cOp.compareTo(p.movement().client().operation()));
         assertEquals(0, cEnd.compareTo(p.movement().client().end()));
 
-        assertEquals(productId, p.movement().inventory().id());
+        assertEquals(inventoryId, p.movement().inventory().id());
         assertEquals(0, BigDecimal.valueOf(iBegin).compareTo(p.movement().inventory().begin()));
         assertEquals(0, BigDecimal.valueOf(iOp).compareTo(p.movement().inventory().operation()));
         assertEquals(0, BigDecimal.valueOf(iEnd).compareTo(p.movement().inventory().end()));

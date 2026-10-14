@@ -17,11 +17,11 @@
   <v-container>
     <v-window v-model="tab">
       <v-window-item value="journal">
-        <vrd-jrn-event-table />
+        <vrd-jrn-event-list/>
       </v-window-item>
       <!-- eager: keeps the findings (and the tab badge) alive while the journal tab is shown. -->
       <v-window-item value="findings" eager>
-        <vrd-finding-table ref="findingTable" />
+        <vrd-finding-list ref="findingTable"/>
       </v-window-item>
     </v-window>
 
@@ -31,7 +31,7 @@
         {{ t('jrn-event.tab.journal') }}
       </v-tab>
       <v-tab value="findings" prepend-icon="mdi-clipboard-check-outline">
-        {{ t('jrn-event.tab.findings') }}
+        {{ t('jrn-event.tab.conciliation') }}
         <v-badge v-if="errorCount > 0" :content="errorCount" color="error" inline />
       </v-tab>
     </v-tabs>
@@ -46,8 +46,7 @@
 
     const tab          = ref<"journal" | "findings">("journal");
     const findingTable = ref<{ errorCount: number } | null>(null);
-
-    const errorCount = computed(() => findingTable.value?.errorCount ?? 0);
+    const errorCount   = computed(() => findingTable.value?.errorCount ?? 0);
 </script>
 
 <style scoped>

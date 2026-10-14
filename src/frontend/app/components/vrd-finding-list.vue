@@ -22,7 +22,6 @@
     <v-alert v-else-if="executed && errorCount === 0" type="success" variant="tonal" class="mb-4">
       {{ t('finding.message.no-error') }}
     </v-alert>
-
     <v-data-table :headers="headers" :items="findings" :loading="loading" :items-per-page="50"
                   :sort-by="[{ key: 'severity', order: 'desc' }]"
                   :custom-key-sort="{ severity: compareSeverity }"
@@ -54,7 +53,6 @@
         </span>
       </template>
     </v-data-table>
-
     <div class="d-flex align-center mt-4">
       <v-btn color="primary" prepend-icon="mdi-play" :loading="loading" :disabled="loading"
              @click="execute">
@@ -65,11 +63,11 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, computed } from "vue";
-    import { useI18n }       from "vue-i18n";
-
+    import { ref, computed }   from "vue";
+    import { useI18n }         from "vue-i18n";
     import type Finding        from "@/types/Finding";
-    import { findStep, findSeverity, getSeverityColor } from "@/types/Finding";
+    import { findStep, findSeverity, getSeverityColor } 
+                               from "@/types/Finding";
     import ConciliationService from "@/services/ConciliationService";
 
     const { t } = useI18n();

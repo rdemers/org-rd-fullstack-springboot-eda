@@ -88,7 +88,7 @@ public class T1200_DBProcessor_UT_Tests {
         lstRequest.forEach(request -> {
                 try {
                     message.setPayload(request);
-                    processorSrv.process(message, false);
+                    processorSrv.process(message, false, false);
                 } catch (Exception ex) {
                     logger.error("Exception: {}.", ex);
                     fail(ex); // Test fail.

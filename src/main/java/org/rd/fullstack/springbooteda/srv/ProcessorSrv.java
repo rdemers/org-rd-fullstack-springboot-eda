@@ -90,7 +90,7 @@ public class ProcessorSrv {
 
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public void process(EventMessage<EventHeader, Request, EventFooter> message,
-        boolean latence) throws Exception {
+        boolean lock, boolean latence) throws Exception {
 
         SanityResult sanity = sanityCheck(message);
         if (! sanity.proceed())
@@ -161,9 +161,16 @@ public class ProcessorSrv {
                 final long       creditQtyBegin = inventory.getQty();
                 final long       creditQtyEnd   = creditQtyBegin - request.getQty();
 
-                inventoryRepository.creditQTY(request.getQty(), inventory.getInventoryId());
-                person.setBalance(creditBalEnd);
-                personRepository.save(person);
+                if (lock) { // Use optimistic locking (@Version column) to avoid lost updates on inventory quantity.
+                    inventory.setQty(creditQtyEnd);
+                    inventoryRepository.save(inventory);
+
+                    person.setBalance(creditBalEnd);
+                    personRepository.save(person);
+                } else {    // Use JPQL update to avoid lost updates on inventory quantity.
+                    inventoryRepository.creditQTY(request.getQty(), inventory.getInventoryId());
+                    personRepository.creditAmount(cost, person.getPersonId());
+                }
 
                 inventoryRepository.flush();
                 personRepository.flush();
@@ -182,10 +189,19 @@ public class ProcessorSrv {
                 final BigDecimal debitBalEnd   = debitBalBegin.add(cost);
                 final long       debitQtyBegin = inventory.getQty();
                 final long       debitQtyEnd   = debitQtyBegin + request.getQty();
-                inventoryRepository.debitQTY(request.getQty(), inventory.getInventoryId());
-                person.setBalance(debitBalEnd);
 
-                personRepository.save(person);
+
+               if (lock) { // Use optimistic locking (@Version column) to avoid lost updates on inventory quantity.
+                    inventory.setQty(debitQtyEnd);
+                    inventoryRepository.save(inventory);
+
+                    person.setBalance(debitBalEnd);
+                    personRepository.save(person);
+                } else {    // Use JPQL update to avoid lost updates on inventory quantity.
+                    inventoryRepository.debitQTY(request.getQty(), inventory.getInventoryId());
+                    personRepository.debitAmount(cost, person.getPersonId());
+                }
+
                 inventoryRepository.flush();
                 personRepository.flush();
 
@@ -263,8 +279,7 @@ public class ProcessorSrv {
                         BigDecimal.valueOf(qtyBegin), 
                         BigDecimal.valueOf(qtyOperation), 
                         BigDecimal.valueOf(qtyEnd))
-                ),
-                batchId
+                )
             )
         );
     }
@@ -391,6 +406,7 @@ public class ProcessorSrv {
                 // (first) delivery time, not the time of this replay.
                 jrnEvent.setEventType(EventType.PROCESSING_REPLAY);
                 jrnEvent.setResult(Result.PENDING);
+                jrnEvent.setBatchId(header.getBatchId()); // Update the batchId to the current replay batch.
                 jrnEventRepository.save(jrnEvent);
                 jrnEventRepository.flush();
                 break;

@@ -381,6 +381,11 @@ public class PipelineSrv {
     public void handle(String value) throws Exception {
 
         final boolean latence = Boolean.TRUE.equals(getPipelineContext().getLatence());
+        final boolean lock = Boolean.TRUE.equals(getPipelineContext().getLock());
+
+        logger.info("Processing message: {}.", value);
+        logger.info("Pipeline parameters: lock={}, latence={}.", lock, latence);
+
         EventMessage<EventHeader, Request, EventFooter> message = 
             JsonMapper.readFromJson(value, 
                 new TypeReference<EventMessage<EventHeader, Request, EventFooter>>() {});
@@ -407,7 +412,7 @@ public class PipelineSrv {
                 "Timed out waiting for the client lock for personId=" + personId + ".");
 
         try {
-            processor.process(message, latence);
+            processor.process(message, lock, latence);
         } finally {
             clientLocks.unlock(personId);
         }

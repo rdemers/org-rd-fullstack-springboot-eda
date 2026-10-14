@@ -104,7 +104,7 @@ public class ConciliationSrv {
     public record Movement(Leg client, Leg inventory) {}
     // batchId: the batch that actually EXECUTED the movement (null on legacy payloads). It differs from the journal
     // row's batch-id on a replay, because the row keeps the batch-id of the first delivery.
-    public record Payload(Movement movement, String batchId) {}
+    public record Payload(Movement movement) {}
 
     // Findings - RTC Reporting: the conciliation outcome is a list of findings, each with a step, a severity and a message.
     public enum Step { DLT, JOURNAL, BATCH_FILE, CLIENT_BALANCE, INVENTORY_QTY }
@@ -139,16 +139,34 @@ public class ConciliationSrv {
         final Set<String> dlt        = new HashSet<>();
         final List<Finding> findings = new ArrayList<>();
 
-        // 1. Load DLT.
+        // 1. Check inventory.
+        long negativeQty = inventoryRepository.findAll().stream().filter(i -> i.getQty() < 0).count();
+        if (negativeQty > 0)
+            findings.add(new Finding(Step.INVENTORY_QTY, Severity.ERROR, negativeQty + " product(s) with negative quantity found."));
+        else
+            findings.add(new Finding(Step.INVENTORY_QTY, Severity.INFO, "No product with negative quantity found."));
+
+        // 2. Check client balances.
+        long negativeBalance = personRepository.findAll().stream().filter(p -> p.getBalance().compareTo(BigDecimal.ZERO) < 0).count();
+        if (negativeBalance > 0)
+            findings.add(new Finding(Step.CLIENT_BALANCE, Severity.ERROR, negativeBalance + " client(s) with negative balance found."));
+        else
+            findings.add(new Finding(Step.CLIENT_BALANCE, Severity.INFO, "No client with negative balance found."));
+
+        // 3. Load DLT.
         try {
             checkAndLoadDlt(dlt);
-            findings.add(new Finding(Step.DLT, Severity.INFO, dlt.size() + " event(s) found in the DLTs."));
+            if (dlt.size() > 0) {
+                findings.add(new Finding(Step.DLT, Severity.ERROR, dlt.size() + " event(s) found in the DLTs: " + dlt + "."));
+            } else {
+                findings.add(new Finding(Step.DLT, Severity.INFO, "No event found in the DLTs."));
+            }
         } catch (RuntimeException ex) {
-            findings.add(new Finding(Step.DLT, Severity.WARN,
+            findings.add(new Finding(Step.DLT, Severity.ERROR,
                 "DLT unreadable (" + ex.getMessage() + ") — batch-file results may report dead-lettered transactions as missing."));
         }
 
-        // 2. JRN_EVENT: group by batchId.
+        // 4. JRN_EVENT: group by batchId.
         final List<JrnEvent> journal = jrnEventRepository.findAll();
         final Map<String, List<JrnEvent>> byBatch = new TreeMap<>();
         for (JrnEvent e : journal)
@@ -157,14 +175,14 @@ public class ConciliationSrv {
         if (byBatch.size() > 1)
             findings.add(new Finding(Step.JOURNAL, Severity.WARN, "More than one batch-id in the journal: " + byBatch.keySet() + "."));
 
-        // 3. Batch files vs journal.
+        // 5. Batch files vs journal.
         final Set<String> journalEventIds = new HashSet<>();
         for (JrnEvent e : journal)
             journalEventIds.add(e.getEventId());
         for (Map.Entry<String, List<JrnEvent>> batch : byBatch.entrySet())
             checkBatchIdvsJournal(batch.getKey(), batch.getValue(), journalEventIds, dlt, findings);
 
-        // 4 & 5. Replay the movements.
+        // 6 & 7. Replay the movements.
         final Map<Long, BigDecimal> balances = new HashMap<>();
         for (Person p : personRepository.findAll())
             balances.put(p.getPersonId(), p.getBalance());
@@ -306,8 +324,7 @@ public class ConciliationSrv {
                     + "): EXECUTED but the payload holds no valid " + label + " movement."));
                 continue;
             }
-            // Legacy payloads carry no execution batch: fall back on the journal row's batch-id.
-            final String batch = (p.batchId() != null) ? p.batchId() : String.valueOf(e.getBatchId());
+            final String batch = String.valueOf(e.getBatchId());
             byBatch.computeIfAbsent(batch, k -> new LinkedHashMap<>())
                    .computeIfAbsent(l.id(), k -> new ArrayList<>()).add(l);
             lastBatch.put(l.id(), batch);

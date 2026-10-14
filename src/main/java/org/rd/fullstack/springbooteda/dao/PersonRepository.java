@@ -35,4 +35,40 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
                   SET p.balance = (p.balance + :amount)
             """)
     int refillAll(@Param("amount") BigDecimal amount);
+
+    /**
+     * Increases the person's balance directly.
+     *
+     * <p>No optimistic concurrency check is performed.</p>
+     *
+     * @param amount amount to add
+     * @param id person identifier
+     * @return number of rows updated
+     */
+    @Modifying
+    @Query("""
+               UPDATE Person p
+                  SET p.balance = (p.balance - :amount)
+                WHERE p.personId = :id
+           """)
+    int creditAmount(@Param("amount") BigDecimal amount, 
+                     @Param("id") Long id);
+
+    /**
+     * Increases the person's balance directly.
+     *
+     * <p>No optimistic concurrency check is performed.</p>
+     *
+     * @param amount amount to add
+     * @param id person identifier
+     * @return number of rows updated
+     */
+    @Modifying
+    @Query("""
+               UPDATE Person p
+                  SET p.balance = (p.balance + :amount)
+                WHERE p.personId = :id
+           """)
+    int debitAmount(@Param("amount") BigDecimal amount, 
+                    @Param("id") Long id);
 }

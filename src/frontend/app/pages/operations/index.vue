@@ -184,10 +184,10 @@
     const lastUpdate     = ref("--:--:--");
     const activeTab      = ref("options");
 
-    const errorMessage   = ref<string | null>(null);
-    const requestCount   = ref<RequestCount | null>(null);
-    const stats          = ref<StatsContext | null>(null);
-    const pipelineState  = ref<PipelineStateValue>(PipelineState.UNKNOWN);
+    const errorMessage    = ref<string | null>(null);
+    const requestCount    = ref<RequestCount | null>(null);
+    const stats           = ref<StatsContext | null>(null);
+    const pipelineState   = ref<PipelineStateValue>(PipelineState.UNKNOWN);
     const optionsHydrated = ref(false);
 
     const isStarting     = ref(false);
@@ -222,20 +222,21 @@
     interface OptionsDef { id: string, label: string, desc: string, icon: string, value: boolean };
     const options: OptionsDef[] = reactive([
       { id: "pause",   label: "operations.pause-kafka",      desc: "operations.pause-kafka-desc",      icon: "mdi-pause-octagon", value: false },
-      { id: "key",     label: "operations.kafka-keys",       desc: "operations.kafka-keys-desc",       icon: "mdi-key-variant",   value: true },
+      { id: "key",     label: "operations.kafka-keys",       desc: "operations.kafka-keys-desc",       icon: "mdi-key-variant",   value: true  },
       { id: "replay",  label: "operations.replay",           desc: "operations.replay-desc",           icon: "mdi-replay",        value: false },
       { id: "latence", label: "operations.latence-insert",   desc: "operations.latence-insert-desc",   icon: "mdi-timer-outline", value: false },
-      { id: "flink",   label: "operations.flink",            desc: "operations.flink-desc",            icon: "mdi-pipe",          value: false }
+      { id: "flink",   label: "operations.flink",            desc: "operations.flink-desc",            icon: "mdi-pipe",          value: false },
+      { id: "lock",    label: "operations.lock",             desc: "operations.lock-desc",             icon: "mdi-lock-pattern",  value: false }
     ]);
 
     // Two-column layout for the options tab.
-    // Column 1: Pause Kafka + Enable keys + Enable Flink. Column 2: Enable replay + Insert latency.
+    // Column 1: Pause Kafka + Enable keys + Enable Flink. Column 2: Enable replay + Insert latency + Enable lock.
     const optionColumns = computed(() => {
       const byId = (...ids: string[]) =>
         ids.map(id => options.find(o => o.id === id)).filter((o): o is OptionsDef => o != null);
       return [
         byId("pause", "key", "flink"),
-        byId("replay", "latence")
+        byId("replay", "latence", "lock")
       ];
     });
 
@@ -279,6 +280,7 @@
         apply("replay",  ctx.replay);
         apply("latence", ctx.latence);
         apply("flink",   ctx.flink);
+        apply("lock",    ctx.lock);
     }
 
     // Polled refresh: request counts + pipeline stats/state only (never the parameters).
@@ -342,7 +344,8 @@
           key:     options.find(o => o.id === "key")?.value     ?? true,
           replay:  options.find(o => o.id === "replay")?.value  ?? false,
           latence: options.find(o => o.id === "latence")?.value ?? false,
-          flink:   options.find(o => o.id === "flink")?.value   ?? false
+          flink:   options.find(o => o.id === "flink")?.value   ?? false,
+          lock:    options.find(o => o.id === "lock")?.value    ?? false
         };
         await PipelineService.startPipeline(pipelineContext);
         await refreshStats();
