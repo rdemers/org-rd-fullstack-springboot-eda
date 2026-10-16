@@ -12,6 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * WARNING : EXPERIMENTAL IMPLEMENTATION.
+ * 
  */
 package org.rd.fullstack.springbooteda.srv;
 
@@ -64,10 +67,10 @@ public class FlinkSrv {
     private static final Logger logger = 
         LoggerFactory.getLogger(FlinkSrv.class);
 
-    private static final String CST_PIPELINE_NAME      = "Flink-Pipeline";
-    private static final String CST_SAVEPOINT_DIR_NAME = "springboot-eda-flink-savepoints";
+    private static final String CST_PIPELINE_NAME                 = "Flink-Pipeline";
+    private static final String CST_SAVEPOINT_DIR_NAME            = "springboot-eda-flink-savepoints";
     private static final SavepointFormatType CST_SAVEPOINT_FORMAT = SavepointFormatType.CANONICAL;
-    private static final long CST_SHUTDOWN_TIMEOUT_SECONDS = 15;
+    private static final long CST_SHUTDOWN_TIMEOUT_SECONDS        = 15;
 
     // Cross-classloader bridge to THIS service (the Flink record-processing entry point).
     //

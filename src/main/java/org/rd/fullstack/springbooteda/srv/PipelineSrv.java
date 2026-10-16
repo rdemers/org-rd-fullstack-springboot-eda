@@ -272,12 +272,19 @@ public class PipelineSrv {
         // If this is not a replay, purge the journal of any prior records. 
         // This is done BEFORE the Kafka transaction.
         if (Boolean.FALSE.equals(context.getReplay())) {
+            // If this is a replay ...
+            // The journal is left intact so the consumer job can reprocess it.
+            // The DLT is also left intact.
+            //
+            // Remenber, this Sandbox is a single-node, single-VM, single-database simulation of a 
+            // distributed system. In a real distributed system, the replay should be handle differently.
             jrnEventRepository.deleteAll();
             jrnEventRepository.flush();
             logger.info("Purged the journal of prior records because this is not a replay.");
-            // If this is a replay, the journal is left intact so the consumer job can reprocess it.
-            // Remenber, this Sandbox is a single-node, single-VM, single-database simulation of a 
-            // distributed system. In a real distributed system, the replay should be handle differently.
+
+            // A next version will replay DLT messages. To be completed.
+            kafkaSandbox.flushDLTForTopic(KafkaConstants.CST_TOPIC_KAFKA_REQ);
+            logger.info("Purged the DLT topic(s).");
         }
 
         // The remaining parameters, read once for use inside the transactional lambda.

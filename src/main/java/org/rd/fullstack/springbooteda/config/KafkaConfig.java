@@ -39,6 +39,8 @@ import org.springframework.kafka.listener.DefaultErrorHandler;
 
 @Configuration
 public class KafkaConfig {
+    private final Application application;
+
     @Value("${org.rd.fullstack.springbooteda.kafka.sandbox.enabled}")
     private boolean kEnabled;
 
@@ -50,6 +52,10 @@ public class KafkaConfig {
 
     @Value("${org.rd.fullstack.springbooteda.kafka.sandbox.concurrency}")
     private int concurrency;
+
+    KafkaConfig(Application application) {
+        this.application = application;
+    }
 
     @Bean
     @SuppressWarnings("deprecation")
@@ -98,8 +104,6 @@ public class KafkaConfig {
 
     @Bean
     ConsumerFactory<String, String> consumerFactory() {
-        //JsonDeserializer<String> deserializer = new JsonDeserializer<>(MyEvent.class);
-        //deserializer.addTrustedPackages("*");
         return new DefaultKafkaConsumerFactory<>(
                 consumerConfigs(),
                 new StringDeserializer(),
@@ -140,8 +144,12 @@ public class KafkaConfig {
         return props;
     }
 
-    @Bean @Lazy // If needed ;-)
+    @Bean @Lazy
     DefaultErrorHandler errorHandler() {
-        return kafkaSandbox().getDefaultErrorHandler();
+        return kafkaSandbox().getErrorHandler(KafkaConstants.CST_TOPIC_KAFKA_REQ);
+        // IMPORTANT
+        // Processing with Apache Flink will use a different topic: CST_TOPIC_FLINK_REQ.
+        // However, for the sake of simplicity, it shares the same target DLT.
     }
+
 }

@@ -33,6 +33,7 @@ import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.GroupListing;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.OffsetSpec;
+import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -82,8 +83,9 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     private static final Logger logger =
             LoggerFactory.getLogger(KafkaSandbox.class);
 
-    private static final EnumSet<AckMode> TRANSACTIONAL_ACK_MODES =
-            EnumSet.of(AckMode.MANUAL_IMMEDIATE, AckMode.MANUAL);
+    // To be clear ... Next release. See DLT setup.
+    //private static final EnumSet<AckMode> TRANSACTIONAL_ACK_MODES =
+    // EnumSet.of(AckMode.MANUAL_IMMEDIATE, AckMode.MANUAL);
 
     // Strategy: selects embedded or external broker at build() time.
     private final BrokerLifecycle brokerLifecycle;
@@ -92,19 +94,25 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     // read (lock-free) from requireStarted(), isStarted(), and toString().
     private final AtomicBoolean started = new AtomicBoolean(false);
 
-    private AdminClient         kAdminClient;    // Guarded by synchronized methods.
-    private DefaultErrorHandler kErrorHandler;   // Guarded by synchronized methods.
-
     private final KafkaConfig cfg;
-    // Note: Caches grow unbounded for the lifetime of this sandbox instance.
-    // Acceptable for dev/test use; revisit if used in long-running scenarios.
-    private final Map<ProducerCacheKey, Producer<?, ?>> producerCache;
-    private final Map<TemplateCacheKey, KafkaTemplate<?, ?>> templateCache;
+    private AdminClient kAdminClient;    // Guarded by synchronized methods.
+
+    // Note: Caches grow unbounded throughout the lifetime of this sandbox instance.
+    //       This should not be an issue, as cached items remain in memory
+    //       for the lifetime of the process.
+    //       During shutdown, ensure that all resources are properly released. 
+    private final Map<ErrorHandleCacheKey, DefaultErrorHandler>                   errorHandlerCache;
+    private final Map<ProducerCacheKey, Producer<?, ?>>                           producerCache;
+    private final Map<TemplateCacheKey, KafkaTemplate<?, ?>>                      templateCache;
+    private final Map<ConsumerCacheKey, KafkaConsumer<?, ?>>                      consumerCache;
     private final Map<ListenerCacheKey, ConcurrentMessageListenerContainer<?, ?>> listenerCache;
+
     private final Set<ConsumerGroupMonitor> monitorRegistry;
 
+    private record ErrorHandleCacheKey(String topicName) {}
     private record ProducerCacheKey(String topicName, String suffix) {}
     private record TemplateCacheKey(String topicName, String suffix) {}
+    private record ConsumerCacheKey(String groupId, String topicName) {}
     private record ListenerCacheKey(int concurrency, String groupId, String topicName) {}
 
     public static Builder builder() {
@@ -194,16 +202,17 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     private KafkaSandbox(KafkaConfig cfg, BrokerLifecycle brokerLifecycle,
                          Map<String, TopicConfig> topicRegistry) {
         super(topicRegistry);
-        this.cfg            = Objects.requireNonNull(cfg, "KafkaConfig must not be null.");
+        this.cfg             = Objects.requireNonNull(cfg, "KafkaConfig must not be null.");
         this.brokerLifecycle = Objects.requireNonNull(brokerLifecycle, "BrokerLifecycle must not be null.");
 
         this.kAdminClient  = null;
-        this.kErrorHandler = null;
 
-        this.producerCache   = new ConcurrentHashMap<>();
-        this.templateCache   = new ConcurrentHashMap<>();
-        this.listenerCache   = new ConcurrentHashMap<>();
-        this.monitorRegistry = ConcurrentHashMap.newKeySet();
+        this.errorHandlerCache = new ConcurrentHashMap<>();
+        this.producerCache     = new ConcurrentHashMap<>();
+        this.templateCache     = new ConcurrentHashMap<>();
+        this.consumerCache     = new ConcurrentHashMap<>();
+        this.listenerCache     = new ConcurrentHashMap<>();
+        this.monitorRegistry   = ConcurrentHashMap.newKeySet();
     }
 
     public synchronized void start() {
@@ -218,81 +227,37 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     public void stop() {
 
         final List<ConsumerGroupMonitor>                     monitorsSnapshot;
+        final List<KafkaConsumer<?, ?>>                      consumersSnapshot;
         final List<ConcurrentMessageListenerContainer<?, ?>> listenersSnapshot;
         final List<KafkaTemplate<?, ?>>                      templatesSnapshot;
         final List<Producer<?, ?>>                           producersSnapshot;
         final AdminClient                                    adminClientSnapshot;
 
         synchronized (this) {
-            // started.getAndSet(false) atomically marks the sandbox as stopped.
-            // Any subsequent requireStarted() call will see false immediately.
             if (!started.getAndSet(false))
                 return;
 
             monitorsSnapshot  = new ArrayList<>(monitorRegistry);
+            consumersSnapshot = new ArrayList<>(consumerCache.values());
             listenersSnapshot = new ArrayList<>(listenerCache.values());
             templatesSnapshot = new ArrayList<>(templateCache.values());
             producersSnapshot = new ArrayList<>(producerCache.values());
             adminClientSnapshot = kAdminClient;
 
             kAdminClient  = null;
-            kErrorHandler = null;
-
+            errorHandlerCache.clear();
             monitorRegistry.clear();
+            consumerCache.clear();
             listenerCache.clear();
             templateCache.clear();
             producerCache.clear();
         }
 
-        monitorsSnapshot.forEach(m -> {
-            try { m.stopMonitoring(); } catch (Exception ex) {
-                logger.warn("Exception stopping monitor: {}.", ex.getMessage());
-            }
-        });
-
-        // Stop all listeners first and wait for in-flight messages to complete
-        // before destroying producers/templates (listeners may still write to DLTs).
-        listenersSnapshot.forEach(lc -> {
-            try { lc.stop(); } catch (Exception ex) {
-                logger.warn("Exception stopping listener container: {}.", ex.getMessage());
-            }
-        });
-
-        // Wait for listener threads to drain before destroying resources.
-        // Thread.sleep() is here outside the synchronized block — avoids lock contention.
-        listenersSnapshot.forEach(lc -> {
-            try {
-                if (!lc.isRunning()) return;
-                // Give listener threads time to complete in-flight error handlers.
-                Thread.sleep(KafkaConstants.CST_POLL_DURATION);
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
-        });
-
-        listenersSnapshot.forEach(lc -> {
-            try { lc.destroy(); } catch (Exception ex) {
-                logger.warn("Exception destroying listener container: {}.", ex.getMessage());
-            }
-        });
-
-        templatesSnapshot.forEach(tc -> {
-            try { tc.flush(); } catch (Exception ex) {
-                logger.warn("Exception flushing template: {}.", ex.getMessage());
-            }
-            try { tc.destroy(); } catch (Exception ex) {
-                logger.warn("Exception destroying template: {}.", ex.getMessage());
-            }
-        });
-
-        producersSnapshot.forEach(pc -> {
-            try { pc.flush(); } catch (Exception ex) {
-                logger.warn("Exception flushing producer: {}.", ex.getMessage());
-            }
-            try { pc.close(); } catch (Exception ex) {
-                logger.warn("Exception closing producer: {}.", ex.getMessage());
-            }
-        });
+        monitorsSnapshot.forEach(m -> { shutdown(m); });
+        consumersSnapshot.forEach(cs -> { shutdown(cs); });
+        listenersSnapshot.forEach(lc -> { shutdown(lc); });
+        templatesSnapshot.forEach(tc -> { shutdown(tc); });
+        producersSnapshot.forEach(pc -> { shutdown(pc); });
 
         if (adminClientSnapshot != null) {
             try {
@@ -302,7 +267,6 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
             }
         }
 
-        // Delegate broker teardown to the lifecycle implementation.
         brokerLifecycle.stop();
         logger.info("KafkaSandbox stopped and all resources released.");
     }
@@ -330,9 +294,6 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         if (cached != null)
             return (Producer<K, V>) cached;
 
-        // Slow path: build the producer and run the blocking initTransactions() round-trip
-        // OUTSIDE any lock, so a slow/unreachable broker cannot stall every other
-        // synchronized sandbox operation (stop(), getKafkaTemplate(), getAdminClient()...).
         final TopicConfig topicConfig = getTopicConfig(topicName);
         Producer<K, V> created =
             new KafkaProducer<>(buildProducerConfig(topicConfig,
@@ -349,14 +310,14 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         // Publish atomically; if another thread won the race for this key, discard ours.
         Producer<?, ?> previous = producerCache.putIfAbsent(key, created);
         if (previous != null) {
-            created.close(Duration.ZERO);
+            shutdown(created);
             return (Producer<K, V>) previous;
         }
 
         // If the sandbox was stopped concurrently, do not leak the freshly created producer
         // (stop() snapshots the cache, so a producer inserted afterwards would be orphaned).
         if (!started.get() && producerCache.remove(key, created)) {
-            created.close(Duration.ZERO);
+            shutdown(created);
             throw new IllegalStateException("KafkaSandbox was stopped during producer creation.");
         }
         return created;
@@ -367,7 +328,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     }
 
     @SuppressWarnings("unchecked")
-    public synchronized <K, V> KafkaTemplate<K, V> getKafkaTemplate(String topicName, boolean indTrxFlag) {
+    public <K, V> KafkaTemplate<K, V> getKafkaTemplate(String topicName, boolean indTrxFlag) {
         requireStarted();
         Objects.requireNonNull(topicName, "topicName must not be null.");
 
@@ -375,18 +336,65 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
             new TemplateCacheKey(topicName,
                 (indTrxFlag ? KafkaConstants.CST_TRX_TRX_POSTFIX : KafkaConstants.CST_TRX_NO_TRX_POSTFIX));
 
-        return (KafkaTemplate<K, V>) templateCache.computeIfAbsent(key, t -> {
-            final TopicConfig cfg = getTopicConfig(topicName);
+        KafkaTemplate<?, ?> cached = templateCache.get(key);
+        if (cached != null)
+            return (KafkaTemplate<K, V>) cached;
 
-            ProducerFactory<K, V> pf = buildProducerFactory(cfg,
-                (indTrxFlag ? Optional.of(getUniqueTrxID()) : Optional.empty()));
+        final TopicConfig cfg = getTopicConfig(topicName);
+        ProducerFactory<K, V> pf = buildProducerFactory(cfg,
+            (indTrxFlag ? Optional.of(getUniqueTrxID()) : Optional.empty()));
 
-            KafkaTemplate<K, V> template = new KafkaTemplate<>(pf);
-            template.setDefaultTopic(topicName);
-            return template;
-        });
+        KafkaTemplate<K, V> template = new KafkaTemplate<>(pf);
+        template.setDefaultTopic(topicName);
+
+        // Publish atomically; if another thread won the race for this key, tear ours down.
+        KafkaTemplate<?, ?> previous = templateCache.putIfAbsent(key, template);
+        if (previous != null) {
+            shutdown(template);
+            return (KafkaTemplate<K, V>)previous;
+        }
+
+        // If the sandbox was stopped concurrently, do not leak a running container
+        // (stop() snapshots the cache, so a container inserted afterwards would be orphaned).
+        if (!started.get() && templateCache.remove(key, template)) {
+            shutdown(template);
+            throw new IllegalStateException("KafkaSandbox was stopped during a template creation.");
+        }
+        return template;
     }
 
+    public <K, V> KafkaConsumer<K, V> getConsumer() {
+        return getConsumer(null, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <K, V> KafkaConsumer<K, V> getConsumer(String group, String topicName) {
+        requireStarted();
+        Objects.requireNonNull(topicName, "topicName must not be null.");
+
+        final ConsumerCacheKey key = new ConsumerCacheKey(group, topicName);
+        KafkaConsumer<?, ?> cached = consumerCache.get(key);
+        if (cached != null)
+            return (KafkaConsumer<K, V>) cached;
+        
+        TopicConfig cfg = getTopicConfig(topicName);
+        KafkaConsumer<K, V> consumer = new KafkaConsumer<>(buildConsumerConfig(group, cfg));
+
+        // Publish atomically; if another thread won the race for this key, tear ours down.
+        KafkaConsumer<?, ?> previous = consumerCache.putIfAbsent(key, consumer);
+        if (previous != null) {
+            shutdown(consumer);
+            return (KafkaConsumer<K, V>)previous;
+        }
+
+        // If the sandbox was stopped concurrently, do not leak a running consumer.
+        if (!started.get() && consumerCache.remove(key, consumer)) {
+            shutdown(consumer);
+            throw new IllegalStateException("KafkaSandbox was stopped during a consumer creation.");
+        }
+        return consumer;
+    }
+    
     public <K, V> void setupMessageListener(String topicName, MessageListener<K, V> listener) {
         setupMessageListener(cfg.concurrency(), cfg.uuidID().toString(), topicName, AckMode.MANUAL_IMMEDIATE, listener);
     }
@@ -431,19 +439,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
             new ConcurrentMessageListenerContainer<>(
                 new DefaultKafkaConsumerFactory<>(buildConsumerConfig(groupId, cfg)), props);
 
-        // A simple test to determine if it's a DLT topic.
-        // To be improved in a future release.
-        if (topicName.compareTo(cfg.dltName()) != 0) {
-            // --- 1. KafkaTemplate for the DLT ---
-            final String dltTarget = cfg.dltName().isBlank() ? KafkaConstants.CST_DEFAULT_DLT : cfg.dltName();
-            KafkaTemplate<K, V> dltTemplate =
-                getKafkaTemplate(dltTarget, TRANSACTIONAL_ACK_MODES.contains(ackMode));
-
-            // --- 2. DeadLetterPublishingRecoverer ---
-            DefaultErrorHandler errorHandler = buildErrorHandler(dltTemplate, cfg.retryInterval(), cfg.retryAttempts());
-            container.setCommonErrorHandler(errorHandler);
-        }
-
+        container.setCommonErrorHandler(getErrorHandler(topicName)); 
         container.setupMessageListener(listener);
         container.setConcurrency(concurrency);
 
@@ -454,16 +450,14 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         // Publish atomically; if another thread won the race for this key, tear ours down.
         ConcurrentMessageListenerContainer<?, ?> previous = listenerCache.putIfAbsent(key, container);
         if (previous != null) {
-            container.stop();
-            container.destroy();
+            shutdown(container);
             return;
         }
 
         // If the sandbox was stopped concurrently, do not leak a running container
         // (stop() snapshots the cache, so a container inserted afterwards would be orphaned).
         if (!started.get() && listenerCache.remove(key, container)) {
-            container.stop();
-            container.destroy();
+            shutdown(container);
             throw new IllegalStateException("KafkaSandbox was stopped during listener setup.");
         }
 
@@ -539,20 +533,12 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         return kAdminClient;
     }
 
-    /**
-     * Returns broker-level metrics.
-     * <p>
-     * Only supported when using the embedded broker ({@link EmbeddedBrokerLifecycle}).
-     * Calling this method when connected to an external broker throws
-     * {@link UnsupportedOperationException}.
-     */
     public Map<MetricName, ? extends Metric> getBrokerMetrics() {
         requireStarted();
         return brokerLifecycle.getBrokerMetrics();
     }
 
     public KafkaDashboard getDashboardData() throws Exception {
-        requireStarted();
         AdminClient adm = getAdminClient();
 
         // 1. Cluster infos.
@@ -580,6 +566,42 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         // 3. Lags.
         List<GroupLagSummary> groupLagSummaries = calculateConsumerGroupsLag(adm);
         return new KafkaDashboard(clusterId, clusterIp, brokers, controller, summaries, groupLagSummaries);
+    }
+
+    public void flushDLTForTopic(String sourceTopic) throws Exception {
+
+        requireStarted();
+        TopicConfig cfg = getTopicConfig(sourceTopic);
+        String dltName = cfg.dltName();
+
+        if (dltName == null || dltName.isBlank())
+            throw new IllegalStateException("No DLT configured for topic: " + sourceTopic);
+
+        flushTopic(dltName);
+    }
+
+    public void flushTopic(String topic) throws Exception {
+        AdminClient adminClient = getAdminClient();
+
+        // Discover all partitions.
+        var description = adminClient
+            .describeTopics(java.util.List.of(topic))
+            .allTopicNames()
+            .get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .get(topic);
+
+        // Prepare the deletion request.
+        Map<TopicPartition, RecordsToDelete> records = new HashMap<>();
+        for (var partition : description.partitions()) {
+
+            TopicPartition tp = new TopicPartition(topic, partition.partition());
+            // Delete up to the partition high watermark.
+            records.put(tp, RecordsToDelete.beforeOffset(-1L));
+        }
+
+        // Execute deletion and wait for completion.
+        var result = adminClient.deleteRecords(records);
+        result.all().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     private List<GroupLagSummary> calculateConsumerGroupsLag(AdminClient adm) throws Exception {
@@ -639,26 +661,55 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         return summaries;
     }
 
-    /**
-     * Returns the default error handler, lazily creating the default DLT topic if it
-     * does not already exist. This side-effect is intentional: the default DLT must
-     * exist before the error handler's DeadLetterPublishingRecoverer can publish to it.
-     */
-    public synchronized DefaultErrorHandler getDefaultErrorHandler() {
+    public DefaultErrorHandler getErrorHandler(String topicName) {
         requireStarted();
+        Objects.requireNonNull(topicName, "Topic name must not be null.");
+        final ErrorHandleCacheKey key = new ErrorHandleCacheKey(topicName);
 
-        if (kErrorHandler != null)
-            return kErrorHandler;
+        // Reuse existing handler.
+        DefaultErrorHandler handler = errorHandlerCache.get(key);
+        if (handler != null)
+            return handler;
 
-        if (!getTopicRegistry().containsKey(KafkaConstants.CST_DEFAULT_DLT)) {
-            addTopic(KafkaConstants.CST_DEFAULT_DLT);
+        // Retrieve source topic configuration.
+        TopicConfig cfg = getTopicConfig(topicName);
+
+        // A dedicated DLT must be configured.
+        final String dltName = cfg.dltName().isBlank() ? 
+            KafkaConstants.CST_DEFAULT_DLT : cfg.dltName();
+
+        if (dltName.equals(KafkaConstants.CST_DEFAULT_DLT)) {
+            // Make sure we have at least the default DLT topic.
+            if (!getTopicRegistry().containsKey(KafkaConstants.CST_DEFAULT_DLT))
+                addTopic(KafkaConstants.CST_DEFAULT_DLT);
         }
 
-        KafkaTemplate<Object, Object> template =
-            getKafkaTemplate(KafkaConstants.CST_DEFAULT_DLT);
-        kErrorHandler = buildErrorHandler(template);
+        if (topicName.equals(dltName))
+            throw new IllegalStateException("Source topic and DLT must be different.");
 
-        return kErrorHandler;
+        if (!getTopicRegistry().containsKey(dltName))
+            throw new IllegalStateException("DLT is not registered: " + dltName);
+
+        // Non-transactional producer for DLT recovery.
+        KafkaTemplate<Object, Object> template =
+            getKafkaTemplate(dltName, false);
+        // To be clear ... Next release.
+        // getKafkaTemplate(dltName, TRANSACTIONAL_ACK_MODES.contains(ackMode));
+
+        // Use the retry policy of the source topic.
+        handler = buildErrorHandler(template, cfg.retryInterval(), cfg.retryAttempts());
+
+        // Publish atomically; if another thread won the race for this key, tear ours down.
+        DefaultErrorHandler previous = errorHandlerCache.putIfAbsent(key, handler);
+        if (previous != null)
+            return previous;
+
+        // If the sandbox was stopped concurrently, do not leak a running container
+        // (stop() snapshots the cache, so a container inserted afterwards would be orphaned).
+        if (!started.get() && errorHandlerCache.remove(key, handler))
+            throw new IllegalStateException("KafkaSandbox was stopped during a template creation.");
+
+        return handler;
     }
 
     public boolean isStarted() {
@@ -672,7 +723,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         return monitor;
     }
 
-    void unregisterMonitor(ConsumerGroupMonitor monitor) {
+    public void unregisterMonitor(ConsumerGroupMonitor monitor) {
         monitorRegistry.remove(monitor);
     }
 
@@ -720,15 +771,21 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     }
 
     private Map<String, Object> buildConsumerConfig(String groupId, TopicConfig tc) {
-        Objects.requireNonNull(tc,                    "TopicConfig must not be null.");
+        Objects.requireNonNull(tc,                     "TopicConfig must not be null.");
         Objects.requireNonNull(tc.keyDeserializer(),   "TopicConfig.keyDeserializer() must not be null.");
         Objects.requireNonNull(tc.valueDeserializer(), "TopicConfig.valueDeserializer() must not be null.");
 
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,        brokerLifecycle.getBootstrapServers());
-        props.put(ConsumerConfig.GROUP_ID_CONFIG,                 groupId);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerLifecycle.getBootstrapServers());
+        
+        if (groupId != null) // Optional for a direct consumer using assign.
+            props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        else
+            logger.warn("No group for ConsumerConfig. Only assign can be used !!!");
+        
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,   tc.keyDeserializer());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, tc.valueDeserializer());
+
         props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG,    KafkaConstants.CST_ISOLATION_LEVEL_CONFIG);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,  KafkaConstants.CST_AUTO_OFFSET_RESET_CONFIG);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, KafkaConstants.CST_ENABLE_AUTO_COMMIT_CONFIG);
@@ -738,35 +795,49 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         return props;
     }
 
-    private <K, V> DefaultErrorHandler buildErrorHandler(KafkaTemplate<K, V> template) {
-        return buildErrorHandler(template, KafkaConstants.CST_RETRY_INTERVAL,
-                                           KafkaConstants.CST_RETRY_ATTEMPTS);
-    }
+    private <K, V> DefaultErrorHandler buildErrorHandler(
+            KafkaTemplate<K, V> template,
+            long retryInterval,
+            long retryAttempts) {
 
-    private <K, V> DefaultErrorHandler buildErrorHandler(KafkaTemplate<K, V> template,
-                                                         long retryInterval, long retryAttempts) {
         Objects.requireNonNull(template, "KafkaTemplate must not be null.");
         if (retryInterval <= 0)
             throw new IllegalArgumentException("Retry interval must be > 0.");
         if (retryAttempts <= 0)
             throw new IllegalArgumentException("Retry attempts must be > 0.");
 
+        // The template's default topic is the DLT.
         DeadLetterPublishingRecoverer recoverer =
-            new DeadLetterPublishingRecoverer(template,
-            (record, ex) -> new TopicPartition(template.getDefaultTopic(), KafkaConstants.CST_PARTITION_DLT)
-        );
+            new DeadLetterPublishingRecoverer(
+                template,
+                (record, ex) -> new TopicPartition(
+                    template.getDefaultTopic(),
+                    KafkaConstants.CST_PARTITION_DLT
+                )
+            );
 
-        // Our options.
+        // Preserve original record information.
         recoverer.setAppendOriginalHeaders(true);
         recoverer.setRetainExceptionHeader(true);
-        recoverer.setThrowIfNoDestinationReturned(false);
 
-        // FixedBackOff(interval, maxAttempts): maxAttempts is the number of *retries*
-        // (not total attempts). So retryAttempts=3 means 1 original + 3 retries = 4 total.
-        DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer,
-            new FixedBackOff(retryInterval, retryAttempts));
+        // Verify DLT publication.
+        recoverer.setFailIfSendResultIsError(true);
+        recoverer.setThrowIfNoDestinationReturned(true);
 
-        // Non-retryable exceptions (optional but recommended).
+        // Retry policy.
+        DefaultErrorHandler errorHandler =
+            new DefaultErrorHandler(
+                recoverer,
+                new FixedBackOff(
+                    retryInterval,
+                    retryAttempts
+                )
+            );
+
+        // Commit recovered offsets with MANUAL_IMMEDIATE.
+        errorHandler.setCommitRecovered(true);
+
+        // Non-retryable exceptions.
         errorHandler.addNotRetryableExceptions(IllegalArgumentException.class);
         return errorHandler;
     }
@@ -778,6 +849,54 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
 
     private String getUniqueTrxID() {
         return KafkaConstants.CST_TRX_PREFIX + UUID.randomUUID();
+    }
+
+    private void shutdown(ConsumerGroupMonitor cgm) {
+        try { cgm.stopMonitoring(); } catch (Exception ex) {
+            logger.warn("Exception stopping monitor: {}.", ex.getMessage());
+        }
+    }
+    
+    private <K, V> void shutdown(KafkaConsumer<K, V> consumer) {
+        try { consumer.wakeup(); } catch (Exception ex) {
+            logger.warn("Exception wakingup consumer: {}.", ex.getMessage());
+        }
+        try { consumer.close(); } catch (Exception ex) {
+            logger.warn("Exception closing consumer: {}.", ex.getMessage());
+        }
+    }
+
+    private <K,V> void shutdown(Producer<K, V> producer) {
+        try { producer.flush(); } catch (Exception ex) {
+            logger.warn("Exception flushing producer: {}.", ex.getMessage());
+        }
+        try { producer.close(Duration.ZERO); } catch (Exception ex) {
+            logger.warn("Exception closing producer: {}.", ex.getMessage());
+        }
+    }
+    
+    private <K,V> void shutdown(KafkaTemplate<K,V> template) {
+        try { template.flush(); } catch (Exception ex) {
+            logger.warn("Exception flushing template: {}.", ex.getMessage());
+        }
+        try { template.destroy(); } catch (Exception ex) {
+            logger.warn("Exception destroying template: {}.", ex.getMessage());
+        }
+    }
+  
+    private <K,V> void shutdown(ConcurrentMessageListenerContainer<K,V> listener) {
+        try { listener.stop(); } catch (Exception ex) {
+            logger.warn("Exception stopping listener container: {}.", ex.getMessage());
+        }
+
+        if (listener.isRunning()) // Let's the listerner drain messages.
+            try { Thread.sleep(KafkaConstants.CST_POLL_DURATION); } catch (InterruptedException ex) {
+                logger.warn("Exception waiting listener container: {}.", ex.getMessage());
+            }
+
+            try { listener.destroy(); } catch (Exception ex) {
+            logger.warn("Exception destroying listener container: {}.", ex.getMessage());
+        }
     }
 
     @Override

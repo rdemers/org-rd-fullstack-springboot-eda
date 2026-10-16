@@ -112,7 +112,7 @@ public class ConciliationSrv {
     public record Finding(Step step, Severity severity, String message) {}
 
     private static final Path     DEFAULT_BATCH_DIR = Path.of("log"); // Same as PipelineSrv.
-    private static final Duration DLT_POLL_BUDGET   = Duration.ofSeconds(10);
+    private static final Duration DLT_POLL_BUDGET   = Duration.ofSeconds(30);
 
     @SuppressWarnings("null")
     private static final Comparator<JrnEvent> PROCESSING_ORDER =
@@ -199,45 +199,39 @@ public class ConciliationSrv {
     }
 
     private void checkAndLoadDlt(Set<String> dlt) {
-        final Map<String, Object> cfg = Map.of(
-            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaSandbox.getBootstrapServers(),
-            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false,
-            ConsumerConfig.ISOLATION_LEVEL_CONFIG, KafkaConstants.CST_ISOLATION_LEVEL_CONFIG,
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class
-        );
 
-        // Direct resource declaration: Java will automatically close it at the end of the block.
-        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(cfg)) {
-            
-            final List<TopicPartition> partitions = new ArrayList<>();
-            for (String topic : kafkaSandbox.getTopics()) {
-                if (topic.endsWith(KafkaConstants.CST_TOPIC_DLT_POSTFIX)) {
-                    consumer.partitionsFor(topic).forEach(p -> partitions.add(new TopicPartition(topic, p.partition())));
+        KafkaConsumer<String, String> consumer = 
+            kafkaSandbox.getConsumer(null, KafkaConstants.CST_TOPIC_KAFKA_REQ);
+
+        final List<TopicPartition> partitions = kafkaSandbox.getTopics().stream()
+            .filter(topic -> topic.endsWith(KafkaConstants.CST_TOPIC_DLT_POSTFIX))
+            .flatMap(topic -> consumer.partitionsFor(topic).stream()
+                .map(p -> new TopicPartition(topic, p.partition())))
+            .toList();
+
+        if (partitions.isEmpty()) {
+            logger.info("No DLTs found.");
+            return;
+        }
+
+        consumer.assign(partitions);
+        consumer.seekToBeginning(partitions);
+        
+        final Map<TopicPartition, Long> ends = consumer.endOffsets(partitions);
+        final long deadline = System.nanoTime() + DLT_POLL_BUDGET.toNanos();
+
+        while (partitions.stream().anyMatch(tp -> consumer.position(tp) < ends.get(tp))) {
+            if (System.nanoTime() > deadline) {
+                throw new IllegalStateException("Timeout while reading the DLTs");
+            }
+
+            consumer.poll(Duration.ofMillis(KafkaConstants.CST_POLL_DURATION)).forEach(rec -> {
+                String eventId = eventIdOf(rec.value());
+                if (eventId != null) {
+                    dlt.add(eventId);
                 }
-            }
-
-            if (partitions.isEmpty()) {
-                logger.info("No DLTs found.");
-                return; // The consumer will be closed automatically here before exiting the method.
-            }
-
-            consumer.assign(partitions);
-            consumer.seekToBeginning(partitions);
-            final Map<TopicPartition, Long> ends = consumer.endOffsets(partitions);
-            final long deadline = System.nanoTime() + DLT_POLL_BUDGET.toNanos();
-
-            while (partitions.stream().anyMatch(tp -> consumer.position(tp) < ends.get(tp))) {
-                if (System.nanoTime() > deadline)
-                    throw new IllegalStateException("timeout while reading the DLTs");
-
-                for (ConsumerRecord<String, String> rec : consumer.poll(Duration.ofMillis(KafkaConstants.CST_POLL_DURATION))) {
-                    final String eventId = eventIdOf(rec.value());
-                    if (eventId != null)
-                        dlt.add(eventId);
-                }
-            }
-        } // The consumer will be closed automatically here.
+            });
+        }
     }
 
     private void checkBatchIdvsJournal(String batchId, List<JrnEvent> events, 
@@ -307,7 +301,7 @@ public class ConciliationSrv {
         // Executed events only: PENDING / BACK_ORDER / ERROR moved nothing.
         // Movements are grouped by EXECUTION batch (execution batch-id -> entity id -> legs): a replay
         // re-executes back-ordered events under a new batch, with business tables possibly changed in
-        // between (e.g. a manual inventory refill), so the chain is only meaningful inside one batch.
+        // between (e.g. a manual inventory or client refill), so the chain is only meaningful inside one batch.
         final List<JrnEvent> executed = journal.stream()
             .filter(e -> e.getResult() == Result.EXECUTED).sorted(PROCESSING_ORDER).toList();
 
