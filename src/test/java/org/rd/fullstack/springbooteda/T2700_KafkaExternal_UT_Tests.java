@@ -168,7 +168,7 @@ public class T2700_KafkaExternal_UT_Tests {
         externalSandbox.addTopic(CST_TOPIC_INTEROP, 10, (short) 1); // already exists (live) -> skip-create
 
         bSuccess = new AtomicBoolean(false);
-        kafkaSandbox.setupMessageListener(CST_TOPIC_INTEROP, (record, ack) -> {
+        externalSandbox.setupMessageListener(CST_TOPIC_INTEROP, (record, ack) -> {
             if (!smartLifecycleService.isRunning())
                 return;
 

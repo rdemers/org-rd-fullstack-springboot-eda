@@ -235,13 +235,13 @@ flowchart LR
 Le `payload` du journal d'un événement `EXECUTED` contient le mouvement qu'il a provoqué, sous forme d'une paire de *jambes* (une pour le client, une pour l'inventaire). L'`operation` est signée :
 
 ```json
-{"movement":{
-   "client":   {"id": 7, "begin": 10.00, "operation": -5.00, "end": 5.00},
-   "inventory":{"id": 3, "begin": 10,    "operation": -2,    "end": 8}},
- "batchId": "b-2"}
+{
+  "movement":{
+     "client":   { "id": 7, "begin": 10.00, "operation": -5.00, "end": 5.00},
+     "inventory":{ "id": 3, "begin": 10,    "operation": -2,    "end": 8}
+  }
+}
 ```
-
-`batchId` est le lot qui a **exécuté** le mouvement. Ce n'est pas le `batchId` de la ligne de journal : un rejeu réutilise la ligne de la première livraison, qui ne change donc jamais.
 
 La conciliation exécute cinq étapes, chacune rapportée sous son propre `Step` :
 

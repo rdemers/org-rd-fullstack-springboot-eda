@@ -235,13 +235,13 @@ flowchart LR
 The journal `payload` of an `EXECUTED` event holds the movement it caused, as a pair of *legs* (one for the client, one for the inventory). The `operation` is signed:
 
 ```json
-{"movement":{
-   "client":   {"id": 7, "begin": 10.00, "operation": -5.00, "end": 5.00},
-   "inventory":{"id": 3, "begin": 10,    "operation": -2,    "end": 8}},
- "batchId": "b-2"}
+{
+  "movement":{
+     "client":   { "id": 7, "begin": 10.00, "operation": -5.00, "end": 5.00},
+     "inventory":{ "id": 3, "begin": 10,    "operation": -2,    "end": 8}
+  }
+}
 ```
-
-`batchId` is the batch that **executed** the movement. It is not the batch-id of the journal row: a replay reuses the row of the first delivery, so that one never changes.
 
 The conciliation runs five steps, each reported under its own `Step`:
 

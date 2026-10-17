@@ -67,12 +67,11 @@ public class KafkaConfig {
                       KafkaConstants.CST_TOPIC_KAFKA_REQ+KafkaConstants.CST_TOPIC_DLT_POSTFIX, 
                       KafkaConstants.CST_NBR_TOPICS_PARTITIONS, 
                       (short) 1) // Replicas must be 1 for the sandbox.
- 
             .addTopic(KafkaConstants.CST_TOPIC_FLINK_REQ,
                       KafkaConstants.CST_TOPIC_FLINK_REQ+KafkaConstants.CST_TOPIC_DLT_POSTFIX,
                       KafkaConstants.CST_NBR_TOPICS_PARTITIONS, 
-                      (short) 1) // Replicas must be 1 for the sandbox. 
-
+                      (short) 1) // Replicas must be 1 for the sandbox.
+            .addTopic(KafkaConstants.CST_DEFAULT_DLT)
             .concurrency(concurrency)
             .autoStart(kEnabled)
             .build();

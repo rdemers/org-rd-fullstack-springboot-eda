@@ -65,7 +65,6 @@ import org.springframework.util.backoff.FixedBackOff;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -678,11 +677,11 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         final String dltName = cfg.dltName().isBlank() ? 
             KafkaConstants.CST_DEFAULT_DLT : cfg.dltName();
 
-        if (dltName.equals(KafkaConstants.CST_DEFAULT_DLT)) {
-            // Make sure we have at least the default DLT topic.
-            if (!getTopicRegistry().containsKey(KafkaConstants.CST_DEFAULT_DLT))
-                addTopic(KafkaConstants.CST_DEFAULT_DLT);
-        }
+        //if (dltName.equals(KafkaConstants.CST_DEFAULT_DLT)) {
+        //    // Make sure we have at least the default DLT topic.
+        //    if (!getTopicRegistry().containsKey(KafkaConstants.CST_DEFAULT_DLT))
+        //        addTopic(KafkaConstants.CST_DEFAULT_DLT);
+        //}
 
         if (topicName.equals(dltName))
             throw new IllegalStateException("Source topic and DLT must be different.");
