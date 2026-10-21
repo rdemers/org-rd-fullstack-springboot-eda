@@ -1,0 +1,54 @@
+# ----------------------------------------------------------------------------------------
+# org.rd.fullstack.springboot-eda — Lag-based autoscaling (OPTIONAL)
+# ----------------------------------------------------------------------------------------
+#
+# Per dist_scale_and_shutdown.md "Scaling consumers vs partitions": Kafka consumers must be
+# scaled on CONSUMER LAG, not CPU/memory, because CPU-based HPA does not reflect a backlog.
+# KEDA's Kafka scaler reads consumer-group lag and computes
+#   desiredReplicas = totalLag / lagThreshold.
+#
+# PRECONDITIONS (this is why it is a separate, optional file):
+#   1. KEDA is installed in the cluster (CRD keda.sh/v1alpha1).
+#   2. The embedded Kafka sandbox is DISABLED and KAFKA_BOOTSTRAP_SERVERS points at a real,
+#      shared cluster (e.g. Amazon MSK). With the in-process sandbox each replica is isolated
+#      and lag-based scaling is meaningless. Set in springboot-eda.yaml ConfigMap:
+#        ORG_RD_FULLSTACK_SPRINGBOOTEDA_KAFKA_SANDBOX_ENABLED: "false"
+#
+# Reminders from the docs:
+#   - Keep maxReplicaCount <= the topic partition count to avoid idle consumers.
+#   - Each scale event is itself a rebalance: pair this with cooperative-sticky assignment
+#     and static membership, and use a sane cooldownPeriod, to avoid rebalance storms.
+#
+# consumerGroup below matches spring.kafka.consumer.group-id in application.yml.
+#
+# Apply with:
+#   kubectl apply -f deploy/eks/autoscaling-keda.yaml
+# ----------------------------------------------------------------------------------------
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: springboot-eda
+  namespace: springboot-eda
+  labels:
+    app.kubernetes.io/name: springboot-eda
+spec:
+  scaleTargetRef:
+    name: springboot-eda          # the Deployment in springboot-eda.yaml
+  pollingInterval: 30             # how often KEDA queries lag (seconds)
+  cooldownPeriod: 300             # wait before scaling back down — dampens rebalance thrash
+  minReplicaCount: 1              # set to 0 to scale-to-zero when idle
+  maxReplicaCount: 10             # MUST stay <= topic partition count
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+  triggers:
+    - type: kafka
+      metadata:
+        consumerGroup: org-rd-eda-group        # spring.kafka.consumer.group-id
+        bootstrapServersFromEnv: KAFKA_BOOTSTRAP_SERVERS
+        topic: ""                              # empty = monitor all topics of the group
+        lagThreshold: "1000"                   # desiredReplicas = totalLag / lagThreshold
+        activationLagThreshold: "3000"         # lag must exceed this to scale up from 0
+        offsetResetPolicy: earliest

@@ -1,0 +1,311 @@
+# Conciliation des données
+
+> Partie du **Guide Kafka Engineering** de `org-rd-fullstack-springboot-eda`. Voir le [LISEZ_MOI du projet](./LISEZ_MOI.md).
+
+**Portée :** comment vérifier l'intégrité et la cohérence des données à travers un système événementiel — réconcilier une source de vérité avec des vues dérivées, recouper les sources, détecter les divergences et auditer — et comment ce sandbox applique ces idées à son pipeline de requêtes/inventaire.
+
+## Table des matières
+
+- [Vue d'ensemble](#vue-densemble)
+- [Pourquoi la cohérence à terme rend la conciliation nécessaire](#pourquoi-la-cohérence-à-terme-rend-la-conciliation-nécessaire)
+- [Patterns de réconciliation](#patterns-de-réconciliation)
+  - [Source de vérité vs vues dérivées](#source-de-vérité-vs-vues-dérivées)
+  - [Rejeu d'événements et jobs de réconciliation](#rejeu-dévénements-et-jobs-de-réconciliation)
+  - [Snapshots périodiques](#snapshots-périodiques)
+  - [Conciliation par comptages et sommes de contrôle](#conciliation-par-comptages-et-sommes-de-contrôle)
+  - [Événements de contrôle et de checkpoint](#événements-de-contrôle-et-de-checkpoint)
+  - [Consommateurs fantômes (shadow)](#consommateurs-fantômes-shadow)
+  - [Invariants métier](#invariants-métier)
+- [Détecter et gérer la divergence](#détecter-et-gérer-la-divergence)
+- [Relation avec l'idempotence et l'exactly-once](#relation-avec-lidempotence-et-lexactly-once)
+- [Comment ce projet l'applique](#comment-ce-projet-lapplique)
+  - [Le processeur et les comptages de requêtes](#le-processeur-et-les-comptages-de-requêtes)
+  - [Conciliation interne](#conciliation-interne)
+  - [Lire les constats](#lire-les-constats)
+  - [Exécution depuis l'interface](#exécution-depuis-linterface)
+  - [Limites de l'implémentation sandbox](#limites-de-limplémentation-sandbox)
+- [Pièges & bonnes pratiques](#pièges--bonnes-pratiques)
+
+## Vue d'ensemble
+
+Dans une architecture événementielle (EDA), aucun mécanisme unique ne garantit que chaque consommateur et chaque magasin en aval finissent avec la même vision de la réalité. Les sémantiques de livraison des messages, les crashs de consommateurs, les rééquilibrages de partitions et les pannes réseau transitoires peuvent tous produire une **divergence** entre des systèmes censés s'accorder.
+
+![Conciliation](../asserts/conciliation.png)
+
+La **conciliation des données** est la pratique délibérée qui consiste à confirmer que deux représentations (ou plus) des mêmes faits sont cohérentes : une source de vérité et une projection dérivée, deux consommateurs indépendants, ou un état recalculé et un état persisté. Elle complète — sans les remplacer — les garanties de livraison et l'idempotence. Là où l'idempotence empêche un message isolé de corrompre l'état, la conciliation *détecte* quand l'état a tout de même dérivé et vous fournit les preuves pour le réparer.
+
+Le changement d'état d'esprit clé est le suivant :
+
+> La livraison d'événements ne garantit pas la cohérence globale. La conciliation doit être conçue, implémentée et exploitée délibérément.
+
+## Pourquoi la cohérence à terme rend la conciliation nécessaire
+
+Kafka offre par défaut une livraison **at-least-once** : un message est livré au moins une fois, mais dans des conditions de défaillance (un crash après traitement mais avant le commit de l'offset, un rééquilibrage, une éviction de pod dans Kubernetes) il peut être livré à nouveau. Les fenêtres de défaillance classiques sont :
+
+- Le consommateur reçoit un message et crashe avant de le traiter.
+- Le consommateur traite le message et crashe avant de l'acquitter.
+- Un pod est évincé ou redémarré en plein vol.
+- Des problèmes réseau interrompent le commit.
+
+Chacune peut laisser le système dans un état où les événements qui *ont été* émis ne correspondent plus à l'état qui *a été* persisté — des doublons appliqués deux fois, ou du travail retenté sur un état partiel. Comme les consommateurs mettent à jour leurs propres magasins de façon indépendante et asynchrone, le système dans son ensemble n'est que **cohérent à terme** (eventually consistent). La conciliation est ce qui transforme le « à terme » d'un espoir en une propriété vérifiable et auditable.
+
+```mermaid
+flowchart LR
+    P[Producteur] -->|événements| K[(Topic Kafka)]
+    K --> C1[Consommateur primaire]
+    K --> C2[Magasin en aval]
+    C1 --> S1[(État dérivé A)]
+    C2 --> S2[(État dérivé B)]
+    S1 -. réconcilier .- S2
+    R[Réconciliation / conciliation] --- S1
+    R --- S2
+```
+
+## Patterns de réconciliation
+
+Dans une EDA de niveau production, la conciliation est rarement une technique unique. C'est un ensemble de mécanismes **en couches**, avec différents compromis coût/latence :
+
+| Objectif | Technique |
+| --- | --- |
+| Détection rapide de divergence | Comptages, sommes de contrôle / hachages |
+| Audit & conformité | Rejeu d'événements et snapshots |
+| Confiance opérationnelle | Événements de contrôle / checkpoint |
+| Migration & refactorisation | Consommateurs fantômes (shadow) |
+| Sûreté fondamentale | Idempotence et séquencement |
+
+### Source de vérité vs vues dérivées
+
+La première décision de conception est de nommer la **source de vérité**. Dans une approche event-sourcing, c'est le journal d'événements lui-même (Kafka, un event store) ; tout le reste — index de recherche, modèles de lecture, compteurs d'agrégats — est une **vue dérivée** qui peut être recalculée à partir du journal. La conciliation se réduit alors à une seule question : *cette vue dérivée correspond-elle encore à ce qu'implique la source de vérité ?*
+
+Dans un système plus centré sur la base de données (comme ce sandbox), les tables relationnelles constituent l'état de référence et le flux d'événements est le *déclencheur* de leur mutation. La question de conciliation s'inverse légèrement : *l'état persisté correspond-il à l'effet cumulé des événements que nous avons traités ?*
+
+### Rejeu d'événements et jobs de réconciliation
+
+Retraitez les événements historiques depuis la source de vérité pour recalculer l'état attendu, puis comparez-le à l'état persisté.
+
+```text
+Event Store (Kafka)
+        |
+Consommateur de réconciliation (groupe dédié, lit depuis offset 0)
+        |
+État attendu  <->  État réel
+```
+
+- Utilisez un **groupe de consommateurs dédié** pour que le rejeu ne perturbe pas les offsets en production.
+- Lisez depuis le début (ou un checkpoint connu) et reconstruisez l'état attendu.
+- Comparez attendu vs réel ; signalez les écarts.
+
+**Avantages :** déterministe, forte auditabilité. **Inconvénients :** coûteux à haut volume, pas en temps réel.
+
+### Snapshots périodiques
+
+Matérialisez périodiquement un snapshot de l'état métier dérivé des événements et comparez-le aux systèmes en aval selon un calendrier (horaire, quotidien).
+
+```json
+{
+  "productId": "P123",
+  "availableStock": 42,
+  "snapshotAt": "2026-10-01T00:00:00Z"
+}
+```
+
+Implémentez-le avec un job batch ou stream (Spring Batch, Spark, Flink) écrivant vers un topic dédié tel que `inventory-snapshots`, clé sur la clé métier plus un timestamp ou une version. **Avantages :** faible coût opérationnel, facile à auditer. **Inconvénients :** détection différée, aucune garantie temps réel.
+
+### Conciliation par comptages et sommes de contrôle
+
+Les signaux les moins coûteux sont les **comptages agrégés** et les **sommes de contrôle**.
+
+- **Comptages :** comparez le nombre d'enregistrements traités, groupés par résultat, au nombre d'effets qu'ils auraient dû produire. Un écart dans les totaux est un déclencheur d'alerte rapide et peu volumineux.
+- **Sommes de contrôle :** chaque consommateur calcule un hachage (p. ex. SHA-256) sur son état dérivé — ou un sous-ensemble critique — et le publie périodiquement ; les hachages sont comparés entre systèmes.
+
+```text
+État dérivé --> SHA-256 --> state-checksum-topic
+```
+
+**Avantages :** très rapide, volume de données minime, détection précoce. **Inconvénients :** signale *qu'il y a* divergence, pas *où* ; les sommes de contrôle exigent une représentation d'état déterministe (ordre stable, encodage canonique).
+
+### Événements de contrôle et de checkpoint
+
+Émettez des événements techniques utilisés uniquement pour la validation et la supervision — `InventoryCheckpointReached`, `EndOfDayProcessed`, `SequenceGapDetected`. Les consommateurs les acquittent ou y réagissent, donnant aux opérateurs un battement de cœur (heartbeat) de la progression de bout en bout. **Avantages :** simple, efficace en supervision de production. **Inconvénients :** pas exhaustif ; complémentaire plutôt qu'autonome.
+
+### Consommateurs fantômes (shadow)
+
+Exécutez un consommateur « fantôme » (shadow) indépendant qui reconstruit l'état en parallèle et le compare en continu à la sortie du consommateur primaire. Idéal pour la **refactorisation de consommateurs**, les **changements de logique** et les **migrations de plateforme** : vous gagnez une validation quasi temps réel et une grande confiance, au prix d'une infrastructure supplémentaire et d'une complexité opérationnelle accrue.
+
+### Invariants métier
+
+Définissez des invariants qui doivent toujours tenir et validez-les automatiquement :
+
+- Le niveau d'inventaire ne doit jamais être négatif.
+- Les soldes de comptes restent cohérents.
+- Les totaux quotidiens se réconcilient.
+
+Validez via du traitement de flux, des jobs batch périodiques ou des alertes. Les violations d'invariants sont souvent le *premier* symptôme visible de l'extérieur d'une divergence silencieuse.
+
+## Détecter et gérer la divergence
+
+La détection est nécessaire mais pas suffisante — il vous faut aussi un plan d'action (playbook) de réponse :
+
+1. **Détecter** avec un signal peu coûteux et fréquent (comptages/sommes de contrôle) et une vérification approfondie périodique (snapshots/rejeu).
+2. **Localiser** en descendant du signal agrégé jusqu'aux clés métier fautives.
+3. **Classifier** la cause : application en double, événement manqué, traitement hors-ordre, ou un vrai bug.
+4. **Réparer** en rejouant depuis la source de vérité, en re-dérivant la vue, ou en émettant un événement compensatoire — jamais en éditant l'état dérivé à la main sans piste d'audit.
+5. **Consigner** l'écart et la remédiation pour l'audit et l'analyse de tendances.
+
+```mermaid
+flowchart TD
+    A[Signal peu coûteux : comptages / sommes de contrôle] -->|correspond| OK[Aucune action]
+    A -->|discordance| B[Vérification approfondie : snapshot ou rejeu]
+    B --> C[Localiser aux clés métier]
+    C --> D[Classifier la cause]
+    D --> E[Réparer : rejeu / re-dérivation / compensation]
+    E --> F[Journal d'audit]
+```
+
+## Relation avec l'idempotence et l'exactly-once
+
+L'idempotence et le séquencement ne sont **pas** des mécanismes de conciliation en eux-mêmes, mais sans eux toute stratégie de réconciliation est fragile :
+
+- **L'idempotence** garantit que retraiter le même événement (lors d'un rejeu, d'une nouvelle tentative ou d'un rééquilibrage) n'applique pas les effets en double. C'est ce qui rend possible un rejeu sûr — et donc la conciliation basée sur le rejeu.
+- **Le séquencement au niveau métier** (un numéro de séquence monotone par agrégat) permet de détecter doublons et lacunes :
+
+```json
+{
+  "eventType": "StockDecreased",
+  "productId": "P123",
+  "sequence": 184
+}
+```
+
+- **Les sémantiques exactly-once** (transactions Kafka, transactional outbox) réduisent la fenêtre dans laquelle une divergence peut se produire, mais elles sont bornées par la portée transactionnelle. Dès que des effets franchissent une frontière que la plateforme ne peut pas enrôler dans une seule transaction — par exemple un magasin externe ou une base de données distincte — l'at-least-once réapparaît et la conciliation redevient nécessaire.
+
+En bref : idempotence + séquencement rendent l'état *sûr à recalculer* ; la conciliation *vérifie si vous en aviez besoin*.
+
+## Comment ce projet l'applique
+
+Ce sandbox est centré sur la base de données : les tables relationnelles `Request`, `Person` et `Inventory` constituent l'état de référence, et les messages Kafka déclenchent leur mutation. Chaque événement traité est consigné dans un journal (`JRN_EVENT`), ce qui permet de réconcilier l'état persisté avec ce que les événements disent s'être produit. Trois artefacts sont centraux ici : le processeur idempotent, une sonde de comptage peu coûteuse, et la [conciliation interne](#conciliation-interne) complète.
+
+> **Terminologie.** Ce guide emploie *conciliation* comme terme du projet pour la pratique générale et pour son implémentation, [`ConciliationSrv`](../../src/main/java/org/rd/fullstack/springbooteda/srv/ConciliationSrv.java).
+
+### Le processeur et les comptages de requêtes
+
+**Le processeur** — [`ProcessorSrv`](../../src/main/java/org/rd/fullstack/springbooteda/srv/ProcessorSrv.java) — traite chaque requête dans sa propre transaction JPA et est explicitement **idempotent** : une requête dont le résultat n'est plus `PENDING`/`BACK_ORDER` a déjà été traitée et est ignorée. C'est précisément la propriété qui rend sûre la relivraison at-least-once du gestionnaire d'erreurs Kafka, et qui rendrait sûr l'exécution d'un job de réconciliation basé sur le rejeu.
+
+```java
+// ProcessorSrv.process(...) — garde d'idempotence
+if ((request.getResult() != Result.PENDING) &&
+    (request.getResult() != Result.BACK_ORDER))
+    return; // déjà traité -> ignorer
+```
+
+Chaque requête transite par les états de résultat **PENDING -> BACK_ORDER / EXECUTED / ERROR**, et chaque chemin qui change l'état mute aussi l'inventaire via [`InventoryRepository`](../../src/main/java/org/rd/fullstack/springbooteda/dao/InventoryRepository.java) (`creditQTY` / `debitQTY`). Ce couplage est la cible naturelle de conciliation : le nombre de requêtes `CREDIT`/`DEBIT` `EXECUTED` devrait se réconcilier avec le mouvement net d'inventaire qu'elles ont provoqué.
+
+**L'agrégation de comptage** — [`RequestRepository.countRequest()`](../../src/main/java/org/rd/fullstack/springbooteda/dao/RequestRepository.java) — est une sonde de **conciliation par comptage** prête à l'emploi. Elle renvoie un `RequestCount` résumant combien de requêtes se trouvent dans chaque état de résultat :
+
+```sql
+SELECT new ...RequestCount(
+    SUM(CASE WHEN req.result = 10 THEN 1 ELSE 0 END) AS nbrPending,
+    SUM(CASE WHEN req.result = 20 THEN 1 ELSE 0 END) AS nbrBackOrder,
+    SUM(CASE WHEN req.result = 30 THEN 1 ELSE 0 END) AS nbrExecuted,
+    SUM(CASE WHEN req.result = 99 THEN 1 ELSE 0 END) AS nbrError,
+    SUM(CASE WHEN req.result NOT IN (10,20,30,99) OR req.result IS NULL
+        THEN 1 ELSE 0 END) AS nbrUnknown)
+FROM Request req
+```
+
+Utilisations pratiques de cet agrégat pour la conciliation dans le sandbox :
+
+- **Progression / heartbeat du pipeline :** un `nbrPending` stable et non nul dans le temps signifie que le pipeline est bloqué — un signal de type événement-de-contrôle calculé à faible coût, à la demande.
+- **Vérification de complétude :** la somme de tous les compartiments doit égaler le nombre total de requêtes soumises. Le compartiment explicite `nbrUnknown` (tout ce qui est hors de `10/20/30/99` ou `NULL`) est un déclencheur d'invariant intégré pour les valeurs d'état corrompues ou inattendues.
+- **Réconciliation inter-sources :** un comptage indique seulement *que* les totaux diffèrent. Réconcilier les requêtes `EXECUTED` avec les mouvements réels des clients et de l'inventaire — et dire *où* ils diffèrent — est le rôle de la [conciliation interne](#conciliation-interne) ci-dessous.
+
+### Conciliation interne
+
+[`ConciliationSrv`](../../src/main/java/org/rd/fullstack/springbooteda/srv/ConciliationSrv.java) est la vérification approfondie qui complète la sonde de comptage peu coûteuse. Elle recoupe quatre sources indépendantes entre elles et **ne fait que lire** : elle ne modifie jamais le journal, les fichiers de lot ni les tables métier, et elle signale les anomalies sous forme de constats au lieu de lever une exception.
+
+```mermaid
+flowchart LR
+    DLT[("Dead Letter Topics")] --> C{{ConciliationSrv}}
+    J[("Journal JRN_EVENT")] --> C
+    F["Fichiers de lot<br/>log/batch-id.trx"] --> C
+    T[("Soldes Person<br/>Quantités Inventory")] --> C
+    C --> R["Liste de constats<br/>étape, sévérité, message"]
+```
+
+Le `payload` du journal d'un événement `EXECUTED` contient le mouvement qu'il a provoqué, sous forme d'une paire de *jambes* (une pour le client, une pour l'inventaire). L'`operation` est signée :
+
+```json
+{
+  "movement":{
+     "client":   { "id": 7, "begin": 10.00, "operation": -5.00, "end": 5.00},
+     "inventory":{ "id": 3, "begin": 10,    "operation": -2,    "end": 8}
+  }
+}
+```
+
+Ici, `client.id` est l'identifiant de la personne et `inventory.id` est la clé primaire de l'inventaire. Le lot d'exécution est lu depuis `JrnEvent.batchId` ; il n'est pas dupliqué dans le payload du mouvement. Un rejeu met à jour cette colonne du journal avec le lot de rejeu ; la valeur du journal est donc la source de vérité utilisée par la conciliation.
+
+La conciliation exécute cinq étapes, chacune rapportée sous son propre `Step` :
+
+| Étape | Ce qui est vérifié | Pattern de ce guide |
+| --- | --- | --- |
+| `DLT` | Collecte les identifiants d'événements présents dans chaque Dead Letter Topic, afin que les transactions mises en DLT ne soient pas prises pour des pertes. | Source de vérité vs vues dérivées |
+| `JOURNAL` | Charge le journal et le regroupe par identifiant de lot. | Source de vérité vs vues dérivées |
+| `BATCH_FILE` | Chaque lot a son fichier `.trx` confirmé ; chaque transaction du fichier est dans le journal (ou un DLT) ; chaque événement du journal du lot est dans le fichier (aucun orphelin). | Conciliation par comptage |
+| `CLIENT_BALANCE` | Rejoue les mouvements dans l'ordre de traitement : `BALANCE = BALANCE ± COST`. | Rejeu d'événements, invariants métier |
+| `INVENTORY_QTY` | Rejoue les mouvements dans l'ordre de traitement : `QTY = QTY ± QTY`. | Rejeu d'événements, invariants métier |
+
+Pour les deux étapes de rejeu, seuls les événements `EXECUTED` sont considérés (`PENDING`, `BACK_ORDER` et `ERROR` n'ont rien déplacé), triés par `processedAt` puis par identifiant de journal. Pour chaque client ou enregistrement d'inventaire, le service vérifie que :
+
+1. **l'arithmétique tient** — `begin + operation = end` ;
+2. **la chaîne est ininterrompue** — chaque mouvement commence là où le précédent s'est terminé, **à l'intérieur d'un même lot d'exécution** ;
+3. **l'entité existe toujours** ;
+4. **le dernier lot concorde avec la base** — dans une vérification distincte de seconde étape, le dernier `end` égale le solde ou la quantité actuels, vérifié **uniquement lorsque le dernier mouvement appartient au dernier lot**.
+
+Le rejeu du payload n'utilise pas les valeurs courantes `Person.balance` ou `Inventory.qty`. Il valide uniquement l'arithmétique et la chaîne des mouvements à partir du payload du journal. Les valeurs de la base sont lues une seule fois comme instantané pour le contrôle indépendant payload-vers-base.
+
+La chaîne est vérifiée par lot d'exécution parce que les tables métier peuvent légitimement changer entre deux exécutions — typiquement un ravitaillement manuel de l'inventaire après la première exécution, avant qu'un rejeu ré-exécute les requêtes en back-order. Ces changements ne sont pas journalisés ; ils apparaîtraient sinon comme une chaîne brisée. Lorsque plus d'un lot est présent, un `WARN` le signale (l'étape `JOURNAL` avertit aussi si le journal lui-même contient plusieurs identifiants de lot). Le `JrnEvent.batchId` courant reste la source de vérité, y compris après un rejeu.
+
+Un événement `EXECUTED` dont le payload ne contient aucun mouvement valide est lui-même une erreur.
+
+### Lire les constats
+
+Le résultat est une liste plate de constats, `Finding(step, severity, message)` :
+
+| Sévérité | Signification | Exemples |
+| --- | --- | --- |
+| `INFO` | Une vérification a été exécutée sans rien trouver d'anormal, ou rapporte un chiffre. | `3 event(s) found in the DLTs.`, `Batch 12: 40 transaction(s), consistent.` |
+| `WARN` | La vérification s'est exécutée de façon dégradée, ou a trouvé quelque chose de suspect mais non corrupteur. | DLT illisible ou délai dépassé ; événement en double dans un fichier de lot. |
+| `ERROR` | Une rupture d'intégrité : les sources se contredisent. | Fichier `.trx` manquant ; événement de journal orphelin ; chaîne brisée ; rejeu aboutissant à une valeur différente de la base. |
+
+Une exécution est propre lorsqu'elle ne contient aucun `ERROR`. Les anomalies sont le *contenu* du rapport ; le endpoint répond donc HTTP 200 même lorsque des erreurs sont trouvées.
+
+Une chaîne brisée est un signal authentique, pas un défaut du vérificateur : la course de survente d'inventaire (*oversell*) enseignée par ce sandbox devrait apparaître à l'étape `INVENTORY_QTY`, où deux mouvements concurrents partent de la même quantité.
+
+### Exécution depuis l'interface
+
+- **REST :** `GET /api/conciliation/findings` ([`ConciliationController`](../../src/main/java/org/rd/fullstack/springbooteda/controller/ConciliationController.java)), rôle `ROLE_SELECT`. Retourne la liste de `Finding`.
+- **Écran :** l'onglet **Constats** (*Findings*) en bas de la page du journal (`/jrn-events`). La conciliation n'est **jamais exécutée automatiquement** : elle lit tout le journal, les fichiers de lot et les DLT, et peut prendre plusieurs secondes. Appuyez sur *Exécuter la conciliation* ; le tableau liste les constats, du plus grave au moins grave, et l'onglet affiche un badge avec le nombre d'`ERROR`.
+
+### Limites de l'implémentation sandbox
+
+Il s'agit d'un service réservé au sandbox, destiné à enseigner l'idée et non à être utilisé en production.
+
+- **Vérifications de base seulement.** Une vraie conciliation serait bien plus étendue.
+- **Aucun contrôle d'accès au-delà du rôle**, et aucune pagination : tout le journal est chargé en mémoire, ce qui ne passe pas à l'échelle des volumes de production.
+- **La lecture des DLT est bornée** (budget de 30 secondes) et utilise un consommateur jetable qui ne valide pas d'offsets, donc elle ne perturbe pas les groupes de consommateurs en production.
+- **`JrnEvent.batchId` est la source de vérité du lot.** Un rejeu met à jour cette colonne de journal avec le lot de rejeu ; le payload ne duplique pas l'identifiant de lot. Les contrôles des fichiers de lot utilisent donc le `batchId` courant stocké sur la ligne de journal.
+
+## Pièges & bonnes pratiques
+
+- **Traitez la conciliation comme une préoccupation de premier ordre**, pas comme un sous-produit de la consommation. Si elle n'est pas conçue dès le départ, elle n'aura pas lieu.
+- **Empilez vos vérifications** : peu coûteuses et fréquentes (comptages/sommes de contrôle) pour l'alerte précoce, coûteuses et périodiques (snapshots/rejeu) pour la vérité de terrain.
+- **Rendez l'état déterministe** avant d'en calculer la somme de contrôle — un ordre instable ou un encodage non canonique produit de fausses alarmes de divergence.
+- **Ne réparez jamais l'état dérivé à la main** sans piste d'audit ; préférez le rejeu, la re-dérivation ou les événements compensatoires.
+- **Protégez d'abord l'idempotence et le séquencement** — ce sont les fondations qui rendent sûrs le rejeu et la réconciliation.
+- **Attention à la frontière transactionnelle** : l'exactly-once réduit la fenêtre de divergence mais ne supprime pas le besoin de conciliation à travers les magasins qu'il ne peut pas enrôler.
+- **Alertez sur le signal peu coûteux, enquêtez avec le signal approfondi** — ne lancez pas de rejeu complet à chaque tick.
+- **Tenez compte du travail en cours** : un `nbrPending` transitoire est normal ; seul un compte de pending qui ne décroît *durablement* pas indique un blocage.
+- **N'exécutez pas la vérification approfondie sur un pipeline actif et occupé en lui faisant aveuglément confiance** : des événements encore en vol peuvent apparaître comme des `ERROR` transitoires (un orphelin, un rejeu qui ne correspond pas encore à la base). Relancez-la une fois le pipeline au calme avant de conclure.
+- **Traitez une chaîne brisée comme une preuve, pas comme du bruit** : un mouvement qui ne commence pas là où le précédent s'est terminé révèle un défaut de concurrence ou d'ordonnancement à investiguer.
+

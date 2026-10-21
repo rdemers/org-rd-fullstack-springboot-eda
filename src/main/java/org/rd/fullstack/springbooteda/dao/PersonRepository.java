@@ -1,0 +1,74 @@
+/*
+ * Copyright 2026; Réal Demers.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.rd.fullstack.springbooteda.dao;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.rd.fullstack.springbooteda.dto.Person;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface PersonRepository extends JpaRepository<Person, Long> {
+    List<Person> findByFirstNameContaining(String firstName);
+    List<Person> findByLastNameContaining(String LastName);
+    List<Person> findByFirstNameContainingOrLastNameContaining(String firstName, String lastName);
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+               UPDATE Person p
+                  SET p.balance = (p.balance + :amount)
+            """)
+    int refillAll(@Param("amount") BigDecimal amount);
+
+    /**
+     * Increases the person's balance directly.
+     *
+     * <p>No optimistic concurrency check is performed.</p>
+     *
+     * @param amount amount to add
+     * @param id person identifier
+     * @return number of rows updated
+     */
+    @Modifying
+    @Query("""
+               UPDATE Person p
+                  SET p.balance = (p.balance - :amount)
+                WHERE p.personId = :id
+           """)
+    int creditAmount(@Param("amount") BigDecimal amount, 
+                     @Param("id") Long id);
+
+    /**
+     * Increases the person's balance directly.
+     *
+     * <p>No optimistic concurrency check is performed.</p>
+     *
+     * @param amount amount to add
+     * @param id person identifier
+     * @return number of rows updated
+     */
+    @Modifying
+    @Query("""
+               UPDATE Person p
+                  SET p.balance = (p.balance + :amount)
+                WHERE p.personId = :id
+           """)
+    int debitAmount(@Param("amount") BigDecimal amount, 
+                    @Param("id") Long id);
+}
