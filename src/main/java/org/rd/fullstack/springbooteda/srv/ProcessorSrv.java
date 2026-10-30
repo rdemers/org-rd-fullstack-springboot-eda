@@ -92,6 +92,10 @@ public class ProcessorSrv {
     public void process(EventMessage<EventHeader, Request, EventFooter> message,
         boolean lock, boolean latence) throws Exception {
 
+        // We apply a minimum latency so that the processing timestamp is
+        // acceptable on Windows. This helps with reconciliation.
+        applyLatency(1, null);
+
         SanityResult sanity = sanityCheck(message);
         if (! sanity.proceed())
             return; // Already processed, or exception thrown (rollback and retry).
@@ -154,7 +158,7 @@ public class ProcessorSrv {
                 // pass the stale stock check, and both apply the relative decrement — so the inventory
                 // quantity silently goes negative. The race is a lost update, not a lock conflict.
                 if (latence)
-                    applyLatency(request.getRequestId(), request.getProductId());
+                    applyLatency(250, request);
 
                 final BigDecimal creditBalBegin = person.getBalance();
                 final BigDecimal creditBalEnd   = creditBalBegin.subtract(cost);
@@ -182,7 +186,7 @@ public class ProcessorSrv {
 
             case DEBIT: // Restock: inventory increases, the client is credited (balance increases).
                 if (latence)
-                    applyLatency(request.getRequestId(), request.getProductId());
+                    applyLatency(250, request);
 
                 final BigDecimal debitBalBegin = person.getBalance();
                 final BigDecimal debitBalEnd   = debitBalBegin.add(cost);
@@ -416,16 +420,17 @@ public class ProcessorSrv {
      * pass the stale stock check, and both apply the relative decrement — so the inventory
      * quantity silently goes negative. The race is a lost update, not a lock conflict.
      */
-    private void applyLatency(Long requestId, Long productId) {
+    private void applyLatency(long latence, Request request) {
         try {
             // requestId/productId/availableAtCheck pin down exactly which transaction read what
             // stale stock value, on which thread, at what time — the only way to tell from the
             // logs whether two requests for the same product genuinely overlapped (both reading
             // before either commits) instead of merely running on different threads.
-            logger.info("Adding latency on thread {} for requestId={}, productId={}.",
-                Thread.currentThread().getName(), requestId, productId);
+            if (request != null)
+                logger.info("Adding latency on thread {} for requestId={}, productId={}.",
+                Thread.currentThread().getName(), request.getRequestId(), request.getProductId());
 
-            Thread.sleep(250L);
+            Thread.sleep(latence);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
