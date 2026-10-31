@@ -107,7 +107,7 @@ public class T2200_KafkaManuel_UT_Tests {
                 metadata.offset()
             );
         } catch (ExecutionException | InterruptedException ex) {
-            logger.error("Error sending message: {}.", ex);
+            logger.error("Error sending message:", ex);
             fail(ex);
         }
     }
@@ -128,7 +128,7 @@ public class T2200_KafkaManuel_UT_Tests {
             .send(CST_TOPIC_NAME, "key1", "Hello Kafka Embedded!")
             .whenComplete((result, ex) -> {
                 if (ex != null) {
-                    logger.error("Error sending message: {}.", ex);
+                    logger.error("Error sending message:", ex);
                     fail(ex);
                 }
 

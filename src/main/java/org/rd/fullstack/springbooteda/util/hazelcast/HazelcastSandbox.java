@@ -314,7 +314,7 @@ public class HazelcastSandbox implements AutoCloseable {
         try {
             hazelcastInstance.shutdown();
         } catch (Exception ex) {
-            logger.warn("Exception closing Hazelcast Instance: {}.", ex);
+            logger.warn("Exception closing Hazelcast Instance:", ex);
         } finally {
             hazelcastInstance  = null;
         }

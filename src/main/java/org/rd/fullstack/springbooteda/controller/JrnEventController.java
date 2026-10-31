@@ -99,7 +99,7 @@ public class JrnEventController extends AbstractCrudController<JrnEvent, Long> {
 
             return new ResponseEntity<>(jrnEvents, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Get list exception: {}.", ex);
+            logger.error("Get list exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -120,7 +120,7 @@ public class JrnEventController extends AbstractCrudController<JrnEvent, Long> {
                     new ResponseEntity<>(value, HttpStatus.OK)).orElseGet(()
                         -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (Exception ex) {
-            logger.error("FindById exception: {}.", ex);
+            logger.error("FindById exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -142,7 +142,7 @@ public class JrnEventController extends AbstractCrudController<JrnEvent, Long> {
 
             return new ResponseEntity<>(jrnEvents, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Get list exception: {}.", ex);
+            logger.error("Get list exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

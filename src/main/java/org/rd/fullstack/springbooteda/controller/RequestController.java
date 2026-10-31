@@ -90,7 +90,7 @@ public class RequestController extends AbstractCrudController<Request, Long> {
 
             return new ResponseEntity<>(requests, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Get list exception: {}.", ex);
+            logger.error("Get list exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -110,7 +110,7 @@ public class RequestController extends AbstractCrudController<Request, Long> {
                     new ResponseEntity<>(value, HttpStatus.OK)).orElseGet(()
                         -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (Exception ex) {
-            logger.error("FindById exception: {}.", ex);
+            logger.error("FindById exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -183,7 +183,7 @@ public class RequestController extends AbstractCrudController<Request, Long> {
                     new ResponseEntity<>(value, HttpStatus.OK)).orElseGet(()
                         -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (Exception ex) {
-            logger.error("FindById exception : {}.", ex);
+            logger.error("FindById exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -206,7 +206,7 @@ public class RequestController extends AbstractCrudController<Request, Long> {
 
             return new ResponseEntity<>(requestsViews, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Get list exception : {}.", ex);
+            logger.error("Get list exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -224,7 +224,7 @@ public class RequestController extends AbstractCrudController<Request, Long> {
             RequestCount RequestCount = requestRepository.countRequest();
             return new ResponseEntity<>(RequestCount, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Get list exception : {}.", ex);
+            logger.error("Get list exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -258,7 +258,7 @@ public class RequestController extends AbstractCrudController<Request, Long> {
 
             return new ResponseEntity<>(requestsViews, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Reset exception : {}.", ex);
+            logger.error("Reset exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

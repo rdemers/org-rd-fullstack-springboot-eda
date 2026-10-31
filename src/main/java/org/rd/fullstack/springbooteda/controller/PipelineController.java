@@ -75,7 +75,7 @@ public class PipelineController {
             future = pipelineSrv.start(pipelineContext);
             return new ResponseEntity<>(pipelineContext, HttpStatus.CREATED);
         } catch (Exception ex) {
-            logger.error("Start exception: {}.", ex.getMessage());
+            logger.error("Start exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -97,10 +97,10 @@ public class PipelineController {
             StatsContext statsContext = pipelineSrv.resetStatsContext();
             return new ResponseEntity<>(statsContext, HttpStatus.CREATED);
         } catch (IllegalStateException ex) {
-            logger.error("Reset state exception: {}.", ex);
+            logger.error("Reset state exception:", ex);
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         } catch (Exception ex) {
-            logger.error("Reset state exception: {}.", ex.getMessage());
+            logger.error("Reset state exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -117,7 +117,7 @@ public class PipelineController {
             PipelineContext pipelineContext = pipelineSrv.getPipelineContext();
             return new ResponseEntity<>(pipelineContext, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Get context exception: {}.", ex);
+            logger.error("Get context exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -134,7 +134,7 @@ public class PipelineController {
             StatsContext statsContext = pipelineSrv.getStatsContext();
             return new ResponseEntity<>(statsContext, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Get stats exception: {}.", ex);
+            logger.error("Get stats exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -153,7 +153,7 @@ public class PipelineController {
             PipelineContext pipelineContext = pipelineSrv.setPause(value);
             return new ResponseEntity<>(pipelineContext, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Pause exception: {}.", ex);
+            logger.error("Pause exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -176,10 +176,10 @@ public class PipelineController {
             this.pipelineSrv.setPipelineContext(pipelineContext);
             return new ResponseEntity<>(pipelineContext, HttpStatus.OK);
         } catch (IllegalStateException ex) {
-            logger.error("Set context exception: {}.", ex);
+            logger.error("Set context exception:", ex);
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         } catch (Exception ex) {
-            logger.error("Set context exception: {}.", ex);
+            logger.error("Set context exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -188,7 +188,7 @@ public class FlinkSandbox implements AutoCloseable {
         try {
             miniCluster.close();
         } catch (Exception ex) {
-            logger.warn("Exception closing Flink MiniCluster: {}.", ex);
+            logger.warn("Exception closing Flink MiniCluster:", ex);
         } finally {
             miniCluster = null;
         }

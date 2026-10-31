@@ -90,7 +90,7 @@ public class T1200_DBProcessor_UT_Tests {
                     message.setPayload(request);
                     processorSrv.process(message, false, false);
                 } catch (Exception ex) {
-                    logger.error("Exception: {}.", ex);
+                    logger.error("Exception:", ex);
                     fail(ex); // Test fail.
                 }
             }

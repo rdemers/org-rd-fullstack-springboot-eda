@@ -15,6 +15,8 @@
  */
 package org.rd.fullstack.springbooteda.srv;
 
+import java.time.Duration;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.rd.fullstack.springbooteda.util.kafka.KafkaConstants;
 import org.slf4j.Logger;
@@ -132,6 +134,7 @@ public class KafkaPipelineListener {
         if (!smartLifecycleSrv.isRunning()) {
             logger.warn("Application is shutting down — skipping record - topic={}, partition={}, offset={}; it will be redelivered after restart.",
                 topic, partition, offset);
+                ack.nack(Duration.ofMillis(500)); // Resets the offset: the record will be reprocessed.
             return;
         }
 
@@ -181,7 +184,7 @@ public class KafkaPipelineListener {
     }
 
     private void checkpoint(ConsumerRecord<String, String> record, String topic, int partition, long offset) {
-        logger.info("Message : -> topic: {}, partition: {}, offset: {}, valeur: {}.",
+        logger.debug("Message : -> topic: {}, partition: {}, offset: {}, valeur: {}.",
                     topic, partition, offset, record.value());
     }
 }

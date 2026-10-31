@@ -62,7 +62,6 @@ src/frontend/.nuxt/
 src/frontend/.output/
 src/frontend/.pnpm-debug.log*
 src/frontend/*.tsbuildinfo
-src/frontend/package-lock.json
 src/frontend/bower_components
 src/frontend/build/Release/
 src/frontend/dist/

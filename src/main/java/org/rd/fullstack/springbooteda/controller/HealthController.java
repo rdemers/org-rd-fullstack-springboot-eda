@@ -156,7 +156,7 @@ public class HealthController {
             KafkaDashboard kafkaDashboard = kafkaSandbox.getDashboardData();
             return new ResponseEntity<>(kafkaDashboard, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Exception getting Kafka data and health status: {}.", ex);
+            logger.error("Exception getting Kafka data and health status:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -175,7 +175,7 @@ public class HealthController {
             FlinkDashboard flinkDashboard = flinkSandbox.getDashboardData();
             return new ResponseEntity<>(flinkDashboard, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Exception getting Flink data and health status: {}.", ex);
+            logger.error("Exception getting Flink data and health status:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -192,7 +192,7 @@ public class HealthController {
             HazelcastDashboard hazelcastDashboard = hazelcastSandbox.getDashboardData();
             return new ResponseEntity<>(hazelcastDashboard, HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Exception getting Hazelcast data and health status: {}.", ex);
+            logger.error("Exception getting Hazelcast data and health status:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

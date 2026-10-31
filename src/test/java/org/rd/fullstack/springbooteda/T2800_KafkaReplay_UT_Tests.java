@@ -86,7 +86,7 @@ public class T2800_KafkaReplay_UT_Tests {
             ClassPathResource resource = new ClassPathResource(CST_FILE_REPLAY);
             path = resource.getFile().toPath();
         } catch (IOException ex) {
-            logger.error("IOException - Error message: {}.", ex);
+            logger.error("IOException - Error message:", ex);
             fail(ex);
         }
     
@@ -97,14 +97,14 @@ public class T2800_KafkaReplay_UT_Tests {
                     
                 future.whenComplete((result, ex) -> {
                     if (ex != null) {
-                        logger.error("Template - Error sending message: {}.", ex);
+                        logger.error("Template - Error sending message:", ex);
                         fail(ex);
                     }
                 });
                 CST_NBR_REQUEST_COUNT++;
             });
         } catch (IOException ex) {
-            logger.error("IOException - Error message: {}.", ex);
+            logger.error("IOException - Error message:", ex);
             fail(ex);
         }
 

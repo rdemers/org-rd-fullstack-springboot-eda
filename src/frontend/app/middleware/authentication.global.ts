@@ -18,7 +18,7 @@ import { SessionStore } from "@/store/SessionStore";
 export default defineNuxtRouteMiddleware((to, from) => {
 
     const authPage:string = "/login";
-    if ((to.fullPath !== authPage) && 
+    if ((to.path !== authPage) && 
         (! SessionStore().isActiveSession())) {
         return navigateTo(authPage, {replace:true});
     }

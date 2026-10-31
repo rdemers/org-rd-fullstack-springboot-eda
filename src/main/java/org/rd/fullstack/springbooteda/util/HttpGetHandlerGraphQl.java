@@ -106,7 +106,7 @@ public class HttpGetHandlerGraphQl {
                     });
 
         } catch (Exception ex) {
-            logger.error("Failed to parse variables JSON: {}.", ex);
+            logger.error("Failed to parse variables JSON:", ex);
             return Mono.just(ResponseEntity.badRequest().body(Map.of(
                     "errors", java.util.List.of(Map.of("message", "Invalid 'variables' JSON"))
             )));

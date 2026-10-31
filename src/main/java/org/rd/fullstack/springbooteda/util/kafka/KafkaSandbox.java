@@ -307,8 +307,8 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         return template;
     }
 
-    public <K, V> KafkaConsumer<K, V> getConsumer(String topicùname) {
-        return getConsumer(null, topicùname);
+    public <K, V> KafkaConsumer<K, V> getConsumer(String topicname) {
+        return getConsumer(null, topicname);
     }
 
     @SuppressWarnings("unchecked")
@@ -419,7 +419,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
             consumer.poll(Duration.ofMillis(KafkaConstants.CST_POLL_DURATION));
             consumer.commitSync();
         } catch (Exception ex) {
-            logger.warn("Failed to seek/commit offsets for group {} on topic {}: {}.", groupId, topicName, ex.getMessage());
+            logger.warn("Failed to seek/commit offsets for group {} on topic {}: {}.", groupId, topicName, ex);
             throw new IllegalStateException("Failed to seek/commit offsets for group " + groupId + " on topic " + topicName, ex);
         }
     }
@@ -747,49 +747,49 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
 
     private void close(ConsumerGroupMonitor cgm) {
         try { cgm.stopMonitoring(); } catch (Exception ex) {
-            logger.warn("Exception stopping monitor: {}.", ex.getMessage());
+            logger.warn("Exception stopping monitor:", ex);
         }
     }
     
     private <K, V> void close(KafkaConsumer<K, V> consumer) {
         try { consumer.wakeup(); } catch (Exception ex) {
-            logger.warn("Exception wakingup consumer: {}.", ex.getMessage());
+            logger.warn("Exception wakingup consumer:", ex);
         }
         try { consumer.close(); } catch (Exception ex) {
-            logger.warn("Exception closing consumer: {}.", ex.getMessage());
+            logger.warn("Exception closing consumer:", ex);
         }
     }
 
     private <K,V> void close(Producer<K, V> producer) {
         try { producer.flush(); } catch (Exception ex) {
-            logger.warn("Exception flushing producer: {}.", ex.getMessage());
+            logger.warn("Exception flushing producer:", ex);
         }
         try { producer.close(Duration.ZERO); } catch (Exception ex) {
-            logger.warn("Exception closing producer: {}.", ex.getMessage());
+            logger.warn("Exception closing producer:", ex);
         }
     }
     
     private <K,V> void close(KafkaTemplate<K,V> template) {
         try { template.flush(); } catch (Exception ex) {
-            logger.warn("Exception flushing template: {}.", ex.getMessage());
+            logger.warn("Exception flushing template:", ex);
         }
         try { template.destroy(); } catch (Exception ex) {
-            logger.warn("Exception destroying template: {}.", ex.getMessage());
+            logger.warn("Exception destroying template:", ex);
         }
     }
   
     private <K,V> void close(ConcurrentMessageListenerContainer<K,V> listener) {
         try { listener.stop(); } catch (Exception ex) {
-            logger.warn("Exception stopping listener container: {}.", ex.getMessage());
+            logger.warn("Exception stopping listener container:", ex);
         }
 
         if (listener.isRunning()) // Let's the listerner drain messages.
             try { Thread.sleep(KafkaConstants.CST_POLL_DURATION); } catch (InterruptedException ex) {
-                logger.warn("Exception waiting listener container: {}.", ex.getMessage());
+                logger.warn("Exception waiting listener container:", ex);
             }
 
             try { listener.destroy(); } catch (Exception ex) {
-            logger.warn("Exception destroying listener container: {}.", ex.getMessage());
+            logger.warn("Exception destroying listener container:", ex);
         }
     }
 

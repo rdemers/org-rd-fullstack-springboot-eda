@@ -73,7 +73,7 @@ public class ConsumerGroupMonitor implements AutoCloseable {
             try {
                 checkGroups(groupIds);
             } catch (Exception ex) {
-                logger.error("Error during consumer group check.", ex);
+                logger.error("Error during consumer group check:", ex);
             }
         }, 0, pollIntervalMs, TimeUnit.MILLISECONDS);
         logger.info("ConsumerGroupMonitor started for groups {} with interval {} ms.", groupIds, pollIntervalMs);
@@ -148,11 +148,11 @@ public class ConsumerGroupMonitor implements AutoCloseable {
                         }
                     });
                 } catch (Exception ex) {
-                    logger.error("Failed to fetch info for consumer group: {}, exception: {}.", groupId, ex);
+                    logger.error("Failed to fetch info for consumer group: {}, exception:", groupId, ex);
                 }
             }
         } catch (Exception ex) {
-            logger.error("Failed to batch-fetch consumer group info for groups: {}, exception: {}.", groupIds, ex);
+            logger.error("Failed to batch-fetch consumer group info for groups: {}, exception:", groupIds, ex);
         }
     }
 

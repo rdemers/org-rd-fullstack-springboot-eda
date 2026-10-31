@@ -198,7 +198,7 @@ public class PipelineSrv {
             publish();
             return CompletableFuture.completedFuture(pipelineContext);
         } catch (Exception ex) {
-            logger.error("Error processing request.", ex);
+            logger.error("Error processing request:", ex);
             mutateStats(stats -> {
                 stats.setPipelineState(PipelineState.EXCEPTION);
                 stats.setExceptionMSG(ex.getMessage());
@@ -350,7 +350,7 @@ public class PipelineSrv {
             Files.write(tmpFile, outbound.stream().map(Map.Entry::getValue).toList(),
                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException ex) {
-            logger.warn("Failed to write transaction trace file '{}'.", tmpFile, ex);
+            logger.warn("Failed to write transaction trace file '{}':", tmpFile, ex);
         }
     }
 
@@ -391,8 +391,8 @@ public class PipelineSrv {
         final boolean latence = Boolean.TRUE.equals(getPipelineContext().getLatence());
         final boolean lock = Boolean.TRUE.equals(getPipelineContext().getLock());
 
-        logger.info("Processing message: {}.", value);
-        logger.info("Pipeline parameters: lock={}, latence={}.", lock, latence);
+        logger.debug("Processing message: {}.", value);
+        logger.debug("Pipeline parameters: lock={}, latence={}.", lock, latence);
 
         EventMessage<EventHeader, Request, EventFooter> message = 
             JsonMapper.readFromJson(value, 

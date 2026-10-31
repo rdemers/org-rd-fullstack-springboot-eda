@@ -55,7 +55,7 @@
         <jib-maven-plugin.version>3.5.2</jib-maven-plugin.version>
 
         <!-- Flink. -->
-        <flink.version>2.3.0</flink.version>
+        <flink.version>2.2.1</flink.version>
         <flink.kafka.version>5.0.0-2.2</flink.kafka.version>
         
         <!-- Others. -->
@@ -93,7 +93,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -115,9 +115,10 @@
             <groupId>org.springframework.session</groupId>
             <artifactId>spring-session-core</artifactId>
         </dependency>
-         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
+         <!-- Jackson 3 integration for Spring Boot 4. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -170,7 +171,7 @@
             <version>${flink.kafka.version}</version>
         </dependency>
 
-        <!-- Apache flink - MiniCluster UT support. -->
+        <!-- Apache Flink - MiniCluster unit-test support. -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-runtime</artifactId>
@@ -185,6 +186,7 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-test-utils</artifactId>
             <version>${flink.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- Hazelcast - Data Grid. -->
@@ -243,10 +245,24 @@
         </dependency>
 
         <!-- Others. -->
+        <!-- JJWT API is available at compile time; implementation and JSON adapter are runtime-only. -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
+            <artifactId>jjwt-api</artifactId>
             <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Gson avoids introducing Jackson 2 alongside Spring Boot 4 / Jackson 3. -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-gson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -279,13 +295,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -417,7 +433,7 @@
                 <version>${jib-maven-plugin.version}</version>
                 <configuration>
                     <from>
-                        <image>oamazoncorretto:25</image>
+                        <image>amazoncorretto:25</image>
                     </from>
                     <to>
                         <image>registry.hub.docker.com/your.account.name/jib-springboot-oci</image>

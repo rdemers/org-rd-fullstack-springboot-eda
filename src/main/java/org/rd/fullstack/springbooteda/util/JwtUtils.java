@@ -110,15 +110,15 @@ public class JwtUtils {
                 .parseSignedClaims(authToken);
             return true;
         } catch (SignatureException ex) {
-            logger.error("Invalid JWT signature: {}.", ex);
+            logger.error("Invalid JWT signature:", ex);
         } catch (MalformedJwtException ex) {
-            logger.error("Invalid JWT token: {}.", ex);
+            logger.error("Invalid JWT token:", ex);
         } catch (ExpiredJwtException ex) {
-            logger.error("JWT token is expired: {}.", ex);
+            logger.error("JWT token is expired:", ex);
         } catch (UnsupportedJwtException ex) {
-            logger.error("JWT token is unsupported: {}.", ex);
+            logger.error("JWT token is unsupported:", ex);
         } catch (IllegalArgumentException ex) {
-            logger.error("JWT claims string is empty: {}.", ex);
+            logger.error("JWT claims string is empty:", ex);
         }
 
         return false;
@@ -130,7 +130,7 @@ public class JwtUtils {
             jws = Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(jwtToken);
         }
         catch (JwtException ex) {
-            logger.error("Invalid JWT token: {}.", ex);
+            logger.error("Invalid JWT token:", ex);
             return ex.getLocalizedMessage(); // Simplicity ... This is an example only.
         }
         return jws.getPayload().toString();

@@ -19,53 +19,56 @@
     <div v-if="error" class="vrd_error">
         <span>{{ error }}</span>
     </div>
-
     <!-- Loading indicator. -->
     <div v-if="isLoading && !error" class="vrd_loading">
         <span>{{ t("vrd-pdfviewer.loading") }}</span>
     </div>
-
     <!-- Navigation bar (visible only when the PDF is ready). -->
     <ul v-if="!isLoading && !error" class="vrd_navigation">
-        <!--Navigate through the pages. -->
+        <!-- Navigate through the pages. -->
         <li class="vrd_navigation_item_left">
-            <button class="vrd_item" :aria-label="t('vrd-pdfviewer.prevPage')" @click="prevPage()">
-                <font-awesome-icon class="fa-lg" icon="fa-solid fa-arrow-left"/>
+            <button type="button" class="vrd_item" :aria-label="t('vrd-pdfviewer.prevPage')" @click="prevPage()">
+                <v-icon icon="mdi-arrow-left" />
             </button>
-            <input class="vrd_item vrd_item_input" type="number"
-                   v-model.number="page" :min="1" :max="numPages"
-                   :aria-label="t('vrd-pdfviewer.pageInput')"/>
-            <button class="vrd_item" :aria-label="t('vrd-pdfviewer.nextPage')" @click="nextPage()">
-                <font-awesome-icon class="fa-lg" icon="fa-solid fa-arrow-right"/>
+            <input class="vrd_item vrd_item_input" type="number" v-model.number="page" :min="1" :max="numPages" :aria-label="t('vrd-pdfviewer.pageInput')"/>
+            <button type="button" class="vrd_item" :aria-label="t('vrd-pdfviewer.nextPage')" @click="nextPage()">
+                <v-icon icon="mdi-arrow-right" />
             </button>
         </li>
-
         <!-- Information about the current page. -->
         <li class="vrd_navigation_item_left">
-            <span class="vrd_item" aria-live="polite">{{ summary }}</span>
+            <span class="vrd_item" aria-live="polite">
+                {{ summary }}
+            </span>
         </li>
-
         <!-- Zoom / Print. -->
         <li class="vrd_navigation_item_right">
-            <button class="vrd_item" :aria-label="t('vrd-pdfviewer.print')" @click="print()">
-                <font-awesome-icon class="fa-lg" icon="fa-solid fa-print"/>
+            <button type="button" class="vrd_item" :aria-label="t('vrd-pdfviewer.print')" @click="print()">
+                <v-icon icon="mdi-printer" />
             </button>
-            <button class="vrd_item" :aria-label="t('vrd-pdfviewer.zoomIn')" @click="zoomIn()">
-                <font-awesome-icon class="fa-lg" icon="fa-solid fa-magnifying-glass-plus"/>
+            <button type="button" class="vrd_item" :aria-label="t('vrd-pdfviewer.zoomIn')" @click="zoomIn()">
+                <v-icon icon="mdi-magnify-plus" />
             </button>
-            <button class="vrd_item" :aria-label="t('vrd-pdfviewer.zoomOut')" @click="zoomOut()">
-                <font-awesome-icon class="fa-lg" icon="fa-solid fa-magnifying-glass-minus"/>
+            <button type="button" class="vrd_item" :aria-label="t('vrd-pdfviewer.zoomOut')" @click="zoomOut()">
+                <v-icon icon="mdi-magnify-minus" />
             </button>
         </li>
     </ul>
+    <!-- PDF viewport. -->
     <div class="vrd_viewport">
-        <canvas ref="canvasRef" class="vrd_canvas"/>
+        <canvas ref="canvasRef" class="vrd_canvas" />
     </div>
 </template>
 
 <script setup lang="ts">
-    import { ref, computed, onMounted, 
-             onUnmounted, watch }  from "vue";
+    import {
+        ref,
+        computed,
+        onMounted,
+        onUnmounted,
+        watch,
+        nextTick
+    } from "vue";
 
     import { PDFService }          from "@/services/PDFService";
     import { PDFServiceCode }      from "@/services/PDFServiceCode";
@@ -88,7 +91,7 @@
     const isLoading = ref(true);
     const error     = ref<string | null>(null);
 
-    const pdfService:PDFService = new PDFService({
+    const pdfService: PDFService = new PDFService({
         pdfSource: props.url,
         useAuthorization: props.useAuthorization,
         title: props.title,
@@ -110,43 +113,45 @@
             error.value = t("vrd-pdfviewer.no-canvas");
             isLoading.value = false;
             return;
-       }
+        }
 
         pdfService.init(canvasRef.value as HTMLCanvasElement).then(() => {
             page.value = pdfService.getPage();
             numPages.value = pdfService.getNumPages();
         }).catch((ex: Error) => {
             if (ex instanceof PDFServiceException) {
-                switch((ex as PDFServiceException).getCode()) {
+                switch ((ex as PDFServiceException).getCode()) {
                     case PDFServiceCode.NO_SOURCE: {
-                        error.value = t('vrd-pdfviewer.no-source');
+                        error.value = t("vrd-pdfviewer.no-source");
                         break;
                     }
                     case PDFServiceCode.NO_NODE_SUPPORTED: {
-                        error.value = t('vrd-pdfviewer.no-node-supported');
+                        error.value = t("vrd-pdfviewer.no-node-supported");
                         break;
                     }
                     default: {
-                        error.value = t('vrd-pdfviewer.unknown');
+                        error.value = t("vrd-pdfviewer.unknown");
                         break;
                     }
                 }
             } else {
-                error.value = t('vrd-pdfviewer.unknown');
+                error.value = t("vrd-pdfviewer.unknown");
             }
+
             console.error(ex);
         }).finally(() => {
             isLoading.value = false;
         });
-    });   
+    });
 
     onUnmounted(() => {
         pdfService.destroy();
     });
 
     watch(page, async (newPage) => {
-        if (suppressWatch)
+        if (suppressWatch) {
             return;
+        }
 
         try {
             await pdfService.setPage(newPage);
@@ -155,16 +160,22 @@
         } finally {
             suppressWatch = true;
             page.value = pdfService.getPage();
-            nextTick(() => { suppressWatch = false; });
+            nextTick(() => {
+                suppressWatch = false;
+            });
         }
     });
 
     const nextPage = async () => {
         try {
             await pdfService.nextPage();
+
             suppressWatch = true;
             page.value = pdfService.getPage();
-            nextTick(() => { suppressWatch = false; });
+
+            nextTick(() => {
+                suppressWatch = false;
+            });
         } catch (ex) {
             console.error("Error navigating:", ex);
         }
@@ -173,9 +184,13 @@
     const prevPage = async () => {
         try {
             await pdfService.prevPage();
+
             suppressWatch = true;
             page.value = pdfService.getPage();
-            nextTick(() => { suppressWatch = false; });
+
+            nextTick(() => {
+                suppressWatch = false;
+            });
         } catch (ex) {
             console.error("Error navigating:", ex);
         }
@@ -236,6 +251,12 @@
     .vrd_item:hover,
     .vrd_item:focus {
         background: #111;
+    }
+
+    /* Material Design Icons alignment and size. */
+    .vrd_item :deep(.v-icon) {
+        vertical-align: middle;
+        font-size: 1.25rem;
     }
 
     .vrd_item_input {

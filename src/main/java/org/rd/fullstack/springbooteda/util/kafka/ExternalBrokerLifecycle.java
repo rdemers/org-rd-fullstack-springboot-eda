@@ -85,7 +85,7 @@ class ExternalBrokerLifecycle implements BrokerLifecycle {
             try {
                 adminClient.close(Duration.ofSeconds(KafkaConstants.CST_ADMIN_CLOSE_TIMEOUT_SECONDS));
             } catch (Exception ex2) {
-                logger.error("adminClient.close: {}.", ex2.getMessage());
+                logger.error("adminClient.close:", ex2);
             } finally { 
                 adminClient = null; 
             }
@@ -103,7 +103,7 @@ class ExternalBrokerLifecycle implements BrokerLifecycle {
             try {
                 adminClient.close(Duration.ofSeconds(KafkaConstants.CST_ADMIN_CLOSE_TIMEOUT_SECONDS));
             } catch (Exception ex2) {
-                logger.warn("Exception closing ExternalBrokerLifecycle AdminClient: {}.", ex2.getMessage());
+                logger.warn("Exception closing ExternalBrokerLifecycle AdminClient:", ex2);
             } finally { 
                 adminClient = null; 
             }
@@ -120,7 +120,7 @@ class ExternalBrokerLifecycle implements BrokerLifecycle {
         try {
             adminClient.close(Duration.ofSeconds(KafkaConstants.CST_ADMIN_CLOSE_TIMEOUT_SECONDS));
         } catch (Exception ex) {
-            logger.warn("Exception closing ExternalBrokerLifecycle AdminClient: {}.", ex.getMessage());
+            logger.warn("Exception closing ExternalBrokerLifecycle AdminClient:", ex);
         } finally {
             // A closed AdminClient must not keep the lifecycle marked as started. Clearing the
             // reference allows KafkaSandbox.start() to create a fresh client after a stop().

@@ -63,7 +63,7 @@ public class ConciliationController {
             // 200 even when anomalies are found: they are the report's content, not a request failure.
             return new ResponseEntity<>(conciliationSrv.execute(), HttpStatus.OK);
         } catch (Exception ex) {
-            logger.error("Conciliation exception: {}.", ex.getMessage());
+            logger.error("Conciliation exception:", ex);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

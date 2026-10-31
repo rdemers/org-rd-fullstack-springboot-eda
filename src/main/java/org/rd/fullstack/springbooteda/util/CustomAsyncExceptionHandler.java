@@ -29,7 +29,7 @@ public class CustomAsyncExceptionHandler implements AsyncUncaughtExceptionHandle
     public void handleUncaughtException(Throwable throwable, Method method, Object... params) {
 
         logger.error("Async Exception Detected !");
-        logger.error("Exception message: {}." , throwable.getMessage());
+        logger.error("Exception message:", throwable);
         logger.error("Method name: {}.", method.getName());
 
         for (Object param : params)

@@ -69,7 +69,7 @@ public class T2100_KafkaAuto_UT_Tests {
         CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(CST_TOPIC_NAME, "Hello Kafka Embedded!");
         future.whenComplete((result, ex) -> {
             if (ex != null) {
-                logger.error("Template - Error sending message: {}.", ex);
+                logger.error("Template - Error sending message:", ex);
                 fail(ex);
             }
 

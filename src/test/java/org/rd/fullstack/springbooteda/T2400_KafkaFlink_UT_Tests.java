@@ -220,7 +220,7 @@ public class T2400_KafkaFlink_UT_Tests {
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
                             sendExceptions.add(ex);
-                            logger.error("Error sending message: {}.", ex);
+                            logger.error("Error sending message:", ex);
                         } else {
                             logger.info("Message sent: topic={}, partition={}, offset={}",
                                     result.getRecordMetadata().topic(),

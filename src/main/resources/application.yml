@@ -32,14 +32,17 @@ spring:
     # mem:                     In-memory database, not persisted to disk.
     # file:                    Use a persisted database on disk.
     # stagingdb                Name of the database instance.
-    # hsqldb.tx=mvcc           Use MVCC (Multi-Version Concurrency Control - Oracle simulation).
-    # hsqldb.lock_timeout=0    Configure the timeout for acquiring locks.
+    # hsqldb.tx=mvcc           Use MVCC (Multi-Version Concurrency Control).
+    #                          Note: Oracle syntax compatibility is a separate setting
+    #                          (sql.syntax_ora=true), add it if needed.
+    # hsqldb.lock_timeout=0    Configure the timeout for acquiring locks
+    #                          (check the semantics of 0 for your HSQLDB version).
     # -----------------------  -----------------------------------------------------------------
     url: jdbc:hsqldb:mem:stagingdb;hsqldb.tx=mvcc;hsqldb.lock_timeout=0
     #url: jdbc:hsqldb:file:./target/hsqldb/stagingdb;hsqldb.tx=mvcc;hsqldb.lock_timeout=0
     driver-class-name: org.hsqldb.jdbc.JDBCDriver
     username: sa
-    password:
+    password: ""
     hikari:
       maximum-pool-size: 20
 #
@@ -53,27 +56,28 @@ spring:
     # database-platform: org.hibernate.dialect.HSQLDialect
     open-in-view: false
     show-sql: false
-    defer-datasource-initialization: true
+    # Schema is created by schema.sql (ddl-auto: none), so deferring
+    # datasource initialization is not needed.
     hibernate:
       ddl-auto: none
     properties:
-      hibernate:
-        jdbc:
-          time_zone=UTC
-        type:
-          preferred_instant_jdbc_type=TIMESTAMP_UTC
+      "[hibernate.jdbc.time_zone]": UTC
+      "[hibernate.type.preferred_instant_jdbc_type]": TIMESTAMP_UTC
 #
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-      retries: 3
+      # retries left at the default (unbounded, limited by delivery.timeout.ms).
       properties:
         acks: all
-        linger.ms: 5
-        batch.size: 16384
-        spring.json.add.type.headers: true
+        "[linger.ms]": 5
+        "[batch.size]": 16384
+        "[delivery.timeout.ms]": 120000
+        # spring.json.* properties removed: they are only read by JsonSerializer.
+        # If JSON (de)serialization is intended, switch the serializers and restore:
+        #   "[spring.json.add.type.headers]": true
 #
     consumer:
       group-id: org-rd-eda-group
@@ -81,10 +85,11 @@ spring:
       enable-auto-commit: false
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      properties:
-        spring.json.trusted.packages: "org.rd.fullstack.springbooteda.dto"
-        spring.json.use.type.headers: true
-
+      # spring.json.* properties removed: they are only read by JsonDeserializer.
+      # If JSON deserialization is intended, switch the deserializer and restore:
+      #   "[spring.json.trusted.packages]": "org.rd.fullstack.springbooteda.dto"
+      #   "[spring.json.use.type.headers]": true
+#
     listener:
       ack-mode: manual_immediate
 #
@@ -99,7 +104,7 @@ org:
           sandbox:
             enabled: true
             clusters: 1
-            cluster-partitions: 128
+            cluster-partitions: 16
             concurrency: 8
         flink:
           sandbox:
@@ -113,11 +118,11 @@ org:
           pipeline:
             parallelism: 8
             checkpoint-interval-ms: 5000
-            restart-attempts: 3 
-            restart-delay-ms: 5000 
-            savepoint-dir: ".target/flink-savepoints" 
-            savepoint-timeout-sec: 60 
-            status-timeout-sec: 10 
+            restart-attempts: 3
+            restart-delay-ms: 5000
+            savepoint-dir: "./target/flink-savepoints"
+            savepoint-timeout-sec: 60
+            status-timeout-sec: 10
         hazelcast:
           sandbox:
             enabled: true
@@ -133,7 +138,7 @@ org:
                 enabled: true
                 members: localhost:5701
             cp-subsystem:
-              cp-member-count: 0 # 0 means no CP members.
+              cp-member-count: 0 # 0 means no CP members (session settings below are then unused).
               session-heartbeat-interval-seconds: 5
               session-time-to-live-seconds: 300
 #
@@ -142,23 +147,28 @@ logging:
     # Windows JVMs have no com.sun.management.UnixOperatingSystemMXBean, so Flink's
     # MiniCluster logs a WARN + stack trace on every startup when it tries to expose
     # open-file-descriptor metrics. Harmless on Windows; silence it.
-    org.apache.flink.runtime.metrics.util.MetricUtils: ERROR
+    "[org.apache.flink.runtime.metrics.util.MetricUtils]": ERROR
   file:
     name: log/springboot-eda.log
   structured:
     format:
       console: ecs
+      file: ecs
     ecs:
       service:
         name: org.rd.fullstack.springboot-eda
         version: unspecified
         environment: DEV
         node-name: DEV
-# 
-# using JUnit 5 (Jupiter) for unit tests, disable parallel execution to avoid race conditions in the Flink pipeline tests.
-junit:
-  jupiter:
-    execution:
-      parallel:
-        enabled: false
+#
+# Using JUnit 5 (Jupiter) for unit tests, disable parallel execution to avoid race conditions in the Flink pipeline tests.
+# Warning: 
+# JUnit Platform does not read application.yml. 
+# Put it in src/test/resources/junit-platform.properties instead:
+#   junit.jupiter.execution.parallel.enabled=false
+#junit:
+#  jupiter:
+#    execution:
+#      parallel:
+#        enabled: false
 #

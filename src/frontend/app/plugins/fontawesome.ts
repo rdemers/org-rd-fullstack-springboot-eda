@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { library, config } from "@fortawesome/fontawesome-svg-core"
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome"
+//import { library, config } from "@fortawesome/fontawesome-svg-core"
+//import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome"
 
-import { faArrowLeft, faArrowRight, faPrint, faMagnifyingGlassPlus, faMagnifyingGlassMinus } from "@fortawesome/free-solid-svg-icons";
-library.add(faArrowLeft, faArrowRight, faPrint, faMagnifyingGlassPlus, faMagnifyingGlassMinus);
+//import { faArrowLeft, faArrowRight, faPrint, faMagnifyingGlassPlus, faMagnifyingGlassMinus } from "@fortawesome/free-solid-svg-icons";
+//library.add(faArrowLeft, faArrowRight, faPrint, faMagnifyingGlassPlus, faMagnifyingGlassMinus);
 
 //
 // Global.
 //
-import { fab } from "@fortawesome/free-brands-svg-icons";
-import { far } from "@fortawesome/free-regular-svg-icons";
-import { fas } from "@fortawesome/free-solid-svg-icons";
-library.add(fab, far, fas);
+//import { fab } from "@fortawesome/free-brands-svg-icons";
+//import { far } from "@fortawesome/free-regular-svg-icons";
+//import { fas } from "@fortawesome/free-solid-svg-icons";
+//library.add(fab, far, fas);
 
 // This is important, we're going to let Nuxt handle the CSS.
-config.autoAddCss = false;
+//config.autoAddCss = false;
 
-export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.vueApp.component('font-awesome-icon', FontAwesomeIcon);
-});
+//export default defineNuxtPlugin((nuxtApp) => {
+//  nuxtApp.vueApp.component('font-awesome-icon', FontAwesomeIcon);
+//});

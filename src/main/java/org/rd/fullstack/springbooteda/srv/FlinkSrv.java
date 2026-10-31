@@ -171,9 +171,9 @@ public class FlinkSrv {
             logger.info("Flink job paused; savepoint at {}.", pausedSavepoint);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            logger.error("Interrupted while pausing the Flink job: {}.", ex);
+            logger.error("Interrupted while pausing the Flink job:", ex);
         } catch (Exception ex) {
-            logger.error("Failed to pause the Flink job via savepoint: {}.", ex);
+            logger.error("Failed to pause the Flink job via savepoint:", ex);
         }
     }
 
@@ -224,7 +224,7 @@ public class FlinkSrv {
         try {
             uri = flinkSandbox.getURI();
         } catch (IllegalStateException ex) {
-            logger.error("Cannot start Flink pipeline: {}.", ex);
+            logger.error("Cannot start Flink pipeline:", ex);
             return;
         }
 
@@ -270,7 +270,7 @@ public class FlinkSrv {
             client = env.executeAsync(streamGraph);
         } catch (Exception ex) {
             client = null;
-            logger.error("Flink pipeline startup failed: {}.", ex);
+            logger.error("Flink pipeline startup failed:", ex);
         }
     }
 
@@ -282,9 +282,9 @@ public class FlinkSrv {
             client.cancel().get(CST_SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            logger.error("Flink pipeline shutdown interrupted: {}.", ex);
+            logger.error("Flink pipeline shutdown interrupted:", ex);
         } catch (ExecutionException ex) {
-            logger.error("Flink pipeline shutdown failed: {}.", ex);
+            logger.error("Flink pipeline shutdown failed:", ex);
         } catch (java.util.concurrent.TimeoutException ex) {
             logger.error("Flink pipeline shutdown timed out after {} second(s).",
                 CST_SHUTDOWN_TIMEOUT_SECONDS, ex);
@@ -357,9 +357,9 @@ public class FlinkSrv {
                     .get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            logger.error("Flink pipeline shutdown interrupted: {}.", ex);
+            logger.error("Flink pipeline shutdown interrupted:", ex);
         } catch (Exception ex) {
-            logger.error("Exception while publishing a record to the Flink DLT.", ex);
+            logger.error("Exception while publishing a record to the Flink DLT:", ex);
         }
     }
 

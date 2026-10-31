@@ -140,7 +140,7 @@ public class ReportController {
                                                                    MediaType.APPLICATION_XML_VALUE);
             }
         } catch (Exception ex) {
-            logger.error("Exception: {}.", ex);
+            logger.error("Exception:", ex);
             String message = (ex.getMessage() != null) ? 
                 ex.getMessage() : ex.getClass().getSimpleName();
 
