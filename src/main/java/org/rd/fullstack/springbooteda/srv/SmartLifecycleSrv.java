@@ -37,14 +37,14 @@ public class SmartLifecycleSrv implements SmartLifecycle {
     @Override
     public void start() {
         if (running.compareAndSet(false, true)) {
-            logger.info("Starting SmartLifecycleService.");
+            logger.debug("Starting SmartLifecycleService.");
         }
     }
 
     @Override
     public void stop() {
         if (running.compareAndSet(true, false)) {
-            logger.info("Stopping SmartLifecycleService.");
+            logger.debug("Stopping SmartLifecycleService.");
         }
     }
 

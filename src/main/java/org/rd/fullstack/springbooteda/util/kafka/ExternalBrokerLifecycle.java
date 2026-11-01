@@ -80,7 +80,7 @@ class ExternalBrokerLifecycle implements BrokerLifecycle {
         // Fail-fast: verify the cluster is reachable before proceeding.
         try {
             String clusterId = adminClient.describeCluster().clusterId().get();
-            logger.info("ExternalBrokerLifecycle connected to Kafka cluster: {}.", clusterId);
+            logger.debug("ExternalBrokerLifecycle connected to Kafka cluster: {}.", clusterId);
         } catch (Exception ex1) {
             try {
                 adminClient.close(Duration.ofSeconds(KafkaConstants.CST_ADMIN_CLOSE_TIMEOUT_SECONDS));
@@ -97,7 +97,7 @@ class ExternalBrokerLifecycle implements BrokerLifecycle {
         try {
             if (!topicRegistry.isEmpty()) {
                 topicRegistry.values().forEach(this::syncTopic);
-                logger.info("Topics synchronised with external broker: {}.", topicRegistry.keySet());
+                logger.debug("Topics synchronised with external broker: {}.", topicRegistry.keySet());
             }
         } catch (RuntimeException ex1) {
             try {
@@ -168,7 +168,7 @@ class ExternalBrokerLifecycle implements BrokerLifecycle {
 
             if (!toCreate.isEmpty()) {
                 adminClient.createTopics(toCreate).all().get();
-                toCreate.forEach(t -> logger.info("Created topic '{}' on external broker.", t.name()));
+                toCreate.forEach(t -> logger.debug("Created topic '{}' on external broker.", t.name()));
             }
         } catch (IllegalStateException ex) {
             throw ex;

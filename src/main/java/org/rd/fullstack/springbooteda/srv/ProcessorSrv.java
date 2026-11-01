@@ -214,7 +214,7 @@ public class ProcessorSrv {
                 break;
 
             default:
-                logger.info("Unimplemented operation.");
+                logger.error("Unimplemented operation.");
                 finalizeOutcome(request, jrnEvent, Result.ERROR, false);
                 return;
         }
@@ -346,7 +346,7 @@ public class ProcessorSrv {
         Request requestDB = optRequest.get();
         if (requestDB.getResult() != Result.PENDING &&
             requestDB.getResult() != Result.BACK_ORDER) {
-            logger.info("Request already processed — skipping.");
+            logger.debug("Request already processed — skipping.");
             return new SanityResult(false, null); // Already processed, skip it.
         }
 
@@ -367,7 +367,7 @@ public class ProcessorSrv {
                 if (optJrnEvent.isPresent() &&
                     optJrnEvent.get().getResult() != Result.PENDING  &&
                     optJrnEvent.get().getResult() != Result.BACK_ORDER) {
-                    logger.info("Event already processed — skipping.");
+                    logger.debug("Event already processed — skipping.");
                     return new SanityResult(false, null); // Already processed, skip it.
                 }
 
@@ -397,7 +397,7 @@ public class ProcessorSrv {
                 jrnEvent = optJrnEvent.get();
                 if (jrnEvent.getResult() != Result.PENDING &&
                     jrnEvent.getResult() != Result.BACK_ORDER) {
-                    logger.info("Replay event already processed — skipping.");
+                    logger.debug("Replay event already processed — skipping.");
                     return new SanityResult(false, null); // Already processed, skip it.
                 }
                 // receivedAt is left untouched: it must keep recording the original
@@ -427,7 +427,7 @@ public class ProcessorSrv {
             // logs whether two requests for the same product genuinely overlapped (both reading
             // before either commits) instead of merely running on different threads.
             if (request != null)
-                logger.info("Adding latency on thread {} for requestId={}, productId={}.",
+                logger.debug("Adding latency on thread {} for requestId={}, productId={}.",
                 Thread.currentThread().getName(), request.getRequestId(), request.getProductId());
 
             Thread.sleep(latence);

@@ -76,7 +76,7 @@ class EmbeddedBrokerLifecycle implements BrokerLifecycle {
 
         if (!topicRegistry.isEmpty()) {
             topicRegistry.values().forEach(this::syncTopic);
-            logger.info("Topics created on embedded broker: {}.", topicRegistry.keySet());
+            logger.debug("Topics created on embedded broker: {}.", topicRegistry.keySet());
         }
     }
 

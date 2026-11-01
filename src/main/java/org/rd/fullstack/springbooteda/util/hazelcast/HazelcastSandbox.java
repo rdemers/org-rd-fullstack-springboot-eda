@@ -294,13 +294,13 @@ public class HazelcastSandbox implements AutoCloseable {
         switch (mode) {
             case SERVER:
                 hazelcastInstance = Hazelcast.getOrCreateHazelcastInstance(config);
-                logger.info("Hazelcast instance '{}' has been started.", hazelcastInstance.getName());
+                logger.debug("Hazelcast instance '{}' has been started.", hazelcastInstance.getName());
                 break;
             case CLIENT:
                 ClientConfig clientConfig = new ClientConfig();
                 clientConfig.setClusterName(config.getClusterName());
                 hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
-                logger.info("Hazelcast client instance '{}' has been started.", hazelcastInstance.getName());
+                logger.debug("Hazelcast client instance '{}' has been started.", hazelcastInstance.getName());
                 break;
             default:
                 throw new IllegalArgumentException("Invalid Hazelcast mode: " + mode);

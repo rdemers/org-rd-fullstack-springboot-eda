@@ -58,7 +58,7 @@ public class JasperUtils {
         // Determine source and target.
         String jasperReportSource = file.getAbsolutePath();
         String jasperReportTarget = jasperReportSource.replace(".jrxml", ".jasper");
-        logger.info("Compiling Jasper report from source {} to target {}.", jasperReportSource, jasperReportTarget);
+        logger.debug("Compiling Jasper report from source {} to target {}.", jasperReportSource, jasperReportTarget);
 
         // Compilation of the report in ".jasper".
         JasperReport jasperReport;

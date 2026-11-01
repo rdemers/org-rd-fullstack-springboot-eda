@@ -76,7 +76,7 @@ public class ConsumerGroupMonitor implements AutoCloseable {
                 logger.error("Error during consumer group check:", ex);
             }
         }, 0, pollIntervalMs, TimeUnit.MILLISECONDS);
-        logger.info("ConsumerGroupMonitor started for groups {} with interval {} ms.", groupIds, pollIntervalMs);
+        logger.debug("ConsumerGroupMonitor started for groups {} with interval {} ms.", groupIds, pollIntervalMs);
     }
 
     public void stopMonitoring() {
@@ -93,7 +93,7 @@ public class ConsumerGroupMonitor implements AutoCloseable {
             logger.warn("Interrupted while awaiting ConsumerGroupMonitor shutdown.");
         }
         kafkaSandbox.unregisterMonitor(this);
-        logger.info("ConsumerGroupMonitor stopped.");
+        logger.debug("ConsumerGroupMonitor stopped.");
     }
 
     @Override

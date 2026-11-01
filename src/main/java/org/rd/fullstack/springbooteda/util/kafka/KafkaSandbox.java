@@ -208,7 +208,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
             return;
 
         brokerLifecycle.start(cfg, getTopicRegistry());
-        logger.info("KafkaSandbox started on: {}.", brokerLifecycle.getBootstrapServers());
+        logger.debug("KafkaSandbox started on: {}.", brokerLifecycle.getBootstrapServers());
     }
 
     public synchronized void stop() {
@@ -230,7 +230,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         producerCache.clear();
 
         brokerLifecycle.stop();
-        logger.info("KafkaSandbox stopped and all resources released.");
+        logger.debug("KafkaSandbox stopped and all resources released.");
     }
 
     @Override
@@ -386,7 +386,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         if (previous != null)
             throw new IllegalStateException("ConcurrentMessageListenerContainer was already in MAP ???");
 
-        logger.info("Listener started for topic {} group {}.", topicName, groupId);
+        logger.debug("Listener started for topic {} group {}.", topicName, groupId);
     }
 
     public void seekConsumerGroupOffsets(String topicName, String groupId, Map<Integer, Long> partitionOffsets) {

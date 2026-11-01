@@ -111,14 +111,14 @@ public class PipelineSrv {
     public PipelineContext getPipelineContext() {
         PipelineContext pipelineContext = getOrInit(contextMap(),
             HazelcastConstants.CST_KEY_PIPELINE_CONTEXT, PipelineContext::new);
-        logger.info("Retrieving pipeline context: {}.", pipelineContext);
+        logger.debug("Retrieving pipeline context: {}.", pipelineContext);
         return pipelineContext;
     }
 
     @SuppressWarnings("null")
     public void setPipelineContext(PipelineContext pipelineContext) {
         contextMap().set(HazelcastConstants.CST_KEY_PIPELINE_CONTEXT, pipelineContext);
-        logger.info("Pipeline context updated: {}.", pipelineContext);
+        logger.debug("Pipeline context updated: {}.", pipelineContext);
     }
 
     /**
@@ -152,7 +152,7 @@ public class PipelineSrv {
     public StatsContext getStatsContext() {
         StatsContext statsContext = getOrInit(statsMap(),
             HazelcastConstants.CST_KEY_PIPELINE_STATS, StatsContext::new);
-        logger.info("Retrieving pipeline stats: {}.", statsContext);
+        logger.debug("Retrieving pipeline stats: {}.", statsContext);
         return statsContext;
     }
 
@@ -264,7 +264,7 @@ public class PipelineSrv {
         }
 
         if (outbound.isEmpty()) {
-            logger.info("No eligible request to publish.");
+            logger.debug("No eligible request to publish.");
             mutateStats(stats -> stats.setNbrPublished(0));
             return;
         }
@@ -291,9 +291,9 @@ public class PipelineSrv {
         // The remaining parameters, read once for use inside the transactional lambda.
         final boolean useKey = Boolean.TRUE.equals(context.getKey());
         if (useKey) {
-            logger.info("The pipeline will use a key for each message.");
+            logger.debug("The pipeline will use a key for each message.");
         } else {
-            logger.info("The pipeline will NOT use a key for each message.");
+            logger.debug("The pipeline will NOT use a key for each message.");
         }
 
         // Trace the messages BEFORE publishing, under ".tmp": if the process dies mid-publish,
@@ -332,7 +332,7 @@ public class PipelineSrv {
 
         // The denominator of the completion check: set only after a successful commit.
         mutateStats(stats -> stats.setNbrPublished(outbound.size()));
-        logger.info("Total messages published: {}.", outbound.size());
+        logger.debug("Total messages published: {}.", outbound.size());
 
         // Only after the commit above does the trace become a ".trx": a ".trx" file always
         // means "actually published", never a pending/aborted attempt.

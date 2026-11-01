@@ -32,7 +32,7 @@ public class ExceptionHandlerGraphQL extends DataFetcherExceptionResolverAdapter
     @Override
     @SuppressWarnings("null")
     protected GraphQLError resolveToSingleError(Throwable ex, DataFetchingEnvironment env) {
-        logger.debug("GraphQL Exception : {}.", ex.getMessage());
+        logger.debug("GraphQL Exception:", ex);
         return GraphqlErrorBuilder.newError()
               .errorType(ErrorType.DataFetchingException) // To be adapted according to your needs.
               .message(ex.getMessage())

@@ -36,7 +36,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.rd.fullstack.springbooteda.config.Application;
 import org.rd.fullstack.springbooteda.srv.SmartLifecycleSrv;
-import org.rd.fullstack.springbooteda.util.kafka.KafkaConstants;
 import org.rd.fullstack.springbooteda.util.kafka.KafkaSandbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
