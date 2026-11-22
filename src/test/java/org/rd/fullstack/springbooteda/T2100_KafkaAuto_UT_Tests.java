@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.rd.fullstack.springbooteda.config.Application;
+import org.rd.fullstack.springbooteda.util.kafka.KafkaConstants;
 import org.rd.fullstack.springbooteda.util.kafka.KafkaSandbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.kafka.support.ShareAcknowledgment;
 
 @SpringBootTest(classes = Application.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -48,25 +50,28 @@ public class T2100_KafkaAuto_UT_Tests {
         T2100_KafkaAuto_UT_Tests.class
     );
     
-    private final static String CST_TOPIC_NAME  = "T2100-topic-1";
-    private final static String CST_TOPIC_GROUP = "T2100-group-1";
+    private final static String CST_TOPIC_NAME_1  = "T2100-topic-1";
+    private final static String CST_TOPIC_GROUP_1 = "T2100-group-1";
+    private final static String CST_TOPIC_NAME_2  = "T2100-topic-2";
+    private final static String CST_TOPIC_GROUP_2 = "T2100-group-2";
 
     @Autowired
     private KafkaSandbox kafkaSandbox;
 
-    private AtomicBoolean bSuccess;
+    private AtomicBoolean bSuccess1;
+    private AtomicBoolean bSuccess2;
 
     @Test
     @Order(1)
     public void kafkaSandboxListenerDemoTest() {
         assertTrue(kafkaSandbox.isStarted());
 
-        kafkaSandbox.addTopic(CST_TOPIC_NAME, 10, (short) 1);
-        bSuccess = new AtomicBoolean(false);
-        KafkaTemplate<String, String> kafkaTemplate = kafkaSandbox.getKafkaTemplate(CST_TOPIC_NAME);
+        kafkaSandbox.addTopic(CST_TOPIC_NAME_1, 10, (short) 1);
+        bSuccess1 = new AtomicBoolean(false);
+        KafkaTemplate<String, String> kafkaTemplate = kafkaSandbox.getKafkaTemplate(CST_TOPIC_NAME_1);
 
         // Send message - Template.
-        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(CST_TOPIC_NAME, "Hello Kafka Embedded!");
+        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(CST_TOPIC_NAME_1, "Hello Kafka Embedded!");
         future.whenComplete((result, ex) -> {
             if (ex != null) {
                 logger.error("Template - Error sending message:", ex);
@@ -81,14 +86,63 @@ public class T2100_KafkaAuto_UT_Tests {
             );
         });
 
-        Awaitility.await().atMost(Duration.ofSeconds(10)).untilTrue(bSuccess);
-        assertTrue(bSuccess.get(), "Message should have been received.");
+        Awaitility.await().atMost(Duration.ofSeconds(10)).untilTrue(bSuccess1);
+        assertTrue(bSuccess1.get(), "Message should have been received.");
     }
 
-    @KafkaListener(topics = CST_TOPIC_NAME, groupId = CST_TOPIC_GROUP)
-    public void listen(ConsumerRecord<String, String> record, Acknowledgment ack) {
+    @Test
+    @Order(2)
+    public void kafkaSandboxShareGroupListenerDemoTest() {
+        assertTrue(kafkaSandbox.isStarted());
+        
+        kafkaSandbox.addTopic(CST_TOPIC_NAME_2, 
+                              CST_TOPIC_NAME_2 + KafkaConstants.CST_TOPIC_DLT_POSTFIX, 
+                              10, (short) 1);
+
+        kafkaSandbox.configureShareGroupOffsetReset(CST_TOPIC_GROUP_2);
+
+        bSuccess2 = new AtomicBoolean(false);
+        KafkaTemplate<String, String> kafkaTemplate = kafkaSandbox.getKafkaTemplate(CST_TOPIC_NAME_2);
+
+        // Send message - Template.
+        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(CST_TOPIC_NAME_2, "Hello Kafka Embedded!");
+        future.whenComplete((result, ex) -> {
+            if (ex != null) {
+                logger.error("Template - Error sending message:", ex);
+                fail(ex);
+            }
+
+        });
+
+        Awaitility.await().atMost(Duration.ofSeconds(10)).untilTrue(bSuccess2);
+        assertTrue(bSuccess2.get(), "Message should have been received.");
+    }
+
+    @KafkaListener(topics = CST_TOPIC_NAME_1, groupId = CST_TOPIC_GROUP_1,
+                   containerFactory = "kafkaListenerContainerFactory"
+    )
+    public void listen1(ConsumerRecord<String, String> record, Acknowledgment ack) {
         logger.info("Received message: {}.", record.value());
         ack.acknowledge();
-        bSuccess.set(true);
+        bSuccess1.set(true);
+    }
+
+    @KafkaListener(topics = CST_TOPIC_NAME_2, groupId = CST_TOPIC_GROUP_2,
+                   containerFactory = "shareKafkaListenerContainerFactory"
+    )
+    public void listen2(ConsumerRecord<String, String> record, ShareAcknowledgment ack) {
+
+        logger.info("ACK - offset={}", record.offset());
+        ack.acknowledge();
+        bSuccess2.set(true);
+
+        // NACK : nouvelle livraison
+        // logger.warn("NACK / RETRY - offset={}", record.offset(), e);
+        // ack.release();
+
+        // Rejet définitif : DLT natif
+        // logger.error("FINAL / DLT - offset={}", record.offset(), e);
+        // logger.error("Unexpected error - offset={}", record.offset(), e);
+        // ack.reject();
     }
  }

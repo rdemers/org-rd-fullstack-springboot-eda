@@ -55,15 +55,16 @@ public class KafkaConstants {
 
     public static final String CST_NO_DLT = "";           // Means no Dead Letter Topic.
 
-    public static final String  CST_TRX_PREFIX                = "ks-trx-";
-    public static final String  CST_TRX_NO_TRX_POSTFIX        = ":notrx";
-    public static final String  CST_TRX_TRX_POSTFIX           = ":trx";
-    public static final String  CST_SEPARATOR                 = "-";
-    public static final String  CST_TOPIC_DLT_POSTFIX         = "-dlt";
-    public static final String  CST_ACKS_CONFIG               = "all";
-    public static final String  CST_AUTO_OFFSET_RESET_CONFIG  = "earliest";
-    public static final String  CST_ISOLATION_LEVEL_CONFIG    = "read_committed";
-    public static final boolean CST_ENABLE_AUTO_COMMIT_CONFIG = false;
+    public static final String  CST_TRX_PREFIX                     = "ks-trx-";
+    public static final String  CST_TRX_NO_TRX_POSTFIX             = ":notrx";
+    public static final String  CST_TRX_TRX_POSTFIX                = ":trx";
+    public static final String  CST_SEPARATOR                      = "-";
+    public static final String  CST_TOPIC_DLT_POSTFIX              = "-dlt";
+    public static final String  CST_ACKS_CONFIG                    = "all";
+    public static final String  CST_AUTO_OFFSET_RESET_CONFIG       = "earliest";
+    public static final String  CST_SHARE_AUTO_OFFSET_RESET_CONFIG = "share.auto.offset.reset";
+    public static final String  CST_ISOLATION_LEVEL_CONFIG         = "read_committed";
+    public static final boolean CST_ENABLE_AUTO_COMMIT_CONFIG      = false;
 
     public static final int CST_PARTITION_DLT             = -1; // Means kafka choice.    
     public static final int CST_LINGER_MS_CONFIG          = 1;
@@ -79,7 +80,9 @@ public class KafkaConstants {
     public static final String CST_CONSUMER_GROUP_MONITOR = "consumer-group-monitor";
 
     public static final List<String> CST_RESERVED_TOPIC_NAMES = List.of(
+        "__cluster_metadata", // Kraft internal topic.
         "__consumer_offsets",
+        "__share_group_state",
         "__transaction_state",
         "_schemas"
     );

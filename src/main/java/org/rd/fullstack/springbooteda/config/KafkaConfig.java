@@ -15,26 +15,22 @@
  */
 package org.rd.fullstack.springbooteda.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.clients.consumer.AcknowledgeType;
 import org.rd.fullstack.springbooteda.util.kafka.KafkaConstants;
 import org.rd.fullstack.springbooteda.util.kafka.KafkaSandbox;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.config.ShareKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.core.DefaultShareConsumerFactory;
+import org.springframework.kafka.core.ShareConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.ShareConsumerRecordRecoverer;
 
 @Configuration
 public class KafkaConfig {
@@ -70,18 +66,8 @@ public class KafkaConfig {
             .build();
     }
 
-    @Bean
-    ProducerFactory<String, String> producerFactory() {
-        return new DefaultKafkaProducerFactory<>(producerConfigs());
-    }
-
-    @Bean
-    KafkaTemplate<String, String> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
-    }
-
     // A KafkaListenerContainerFactory is required 
-    // for the @KafkaListener annotation to work.
+    // for the @KafkaListener annotation to work in non-shared mode (classic).
     @Bean
     ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
@@ -94,19 +80,61 @@ public class KafkaConfig {
         return factory;
     }
 
+    // A ShareKafkaListenerContainerFactory is required 
+    // for the @KafkaListener annotation to work in shared mode.
+
+    @Bean
+    ShareKafkaListenerContainerFactory<String, String> shareKafkaListenerContainerFactory() {
+
+        ShareKafkaListenerContainerFactory<String, String> factory =
+            new ShareKafkaListenerContainerFactory<>(shareConsumerFactory());
+
+        factory.setConcurrency(kafkaSandbox().getCfg().concurrency());
+        factory.getContainerProperties().setShareAckMode(
+            ContainerProperties.ShareAckMode.MANUAL
+        );
+
+        factory.setShareConsumerRecordRecoverer((record, ex) -> {
+            return AcknowledgeType.RELEASE;
+        });        
+        return factory;
+    }
+
     @Bean
     ConsumerFactory<String, String> consumerFactory() {
         return new DefaultKafkaConsumerFactory<>(
-                consumerConfigs(),
-                new StringDeserializer(),
-                new StringDeserializer()
+            kafkaSandbox().buildConsumerConfig()
         );
     }
 
     @Bean
-    Map<String, Object> producerConfigs() {
-        // Aligned with KafkaSandbox.buildProducerConfig so both producer paths share
-        // the same durability/idempotence guarantees.
+    ShareConsumerFactory<String, String> shareConsumerFactory() {
+        return new DefaultShareConsumerFactory<>(
+            kafkaSandbox().buildShareConsumerConfig()
+        );
+    }
+
+    @Bean
+    DefaultErrorHandler errorHandler() {
+        return kafkaSandbox().getErrorHandler(KafkaConstants.CST_TOPIC_KAFKA_REQ);
+    }
+
+    @Bean
+    ShareConsumerRecordRecoverer shareConsumerRecordHandler() {
+        return kafkaSandbox().getShareConsumerRecordHandler(KafkaConstants.CST_TOPIC_KAFKA_REQ);
+    }
+
+    //
+    // EXTRA
+    // -----
+    // The following is an example of how to configure a producer and/or consumer factory 
+    // without using KafkaSandbox.
+    // 
+
+    /* Example without using KafkaSandbox.buildProducerConfig() 
+       to show how to configure a producer factory.
+    @Bean
+    Map<String, Object> buildProducerConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,      kafkaSandbox().getBootstrapServers());
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,   StringSerializer.class);
@@ -120,9 +148,12 @@ public class KafkaConfig {
         props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG,       KafkaConstants.CST_MAX_BLOCK_MS_CONFIG);
         return props;
     }
+    */
 
+    /* Example without using KafkaSandbox.buildConsumerConfig() 
+       to show how to configure a consumer factory.
     @Bean
-    Map<String, Object> consumerConfigs() {
+    Map<String, Object> buildConsumerConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,  kafkaSandbox().getBootstrapServers());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,  KafkaConstants.CST_AUTO_OFFSET_RESET_CONFIG);
@@ -133,11 +164,10 @@ public class KafkaConfig {
         // Bound the batch size: with the optional 500ms per-record latency, a large
         // batch could exceed max.poll.interval.ms and trigger a rebalance.
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,   KafkaConstants.CST_MAX_POLL_RECORDS);
+        // Use String deserializers for both key and value.
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,   StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         return props;
-    }
-
-    @Bean
-    DefaultErrorHandler errorHandler() {
-        return kafkaSandbox().getErrorHandler(KafkaConstants.CST_TOPIC_KAFKA_REQ);
-    }
+    } 
+    */
 }

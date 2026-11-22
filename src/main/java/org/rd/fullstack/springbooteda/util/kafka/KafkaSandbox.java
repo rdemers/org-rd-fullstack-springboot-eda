@@ -27,6 +27,8 @@
 package org.rd.fullstack.springbooteda.util.kafka;
 
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AlterConfigOp;
+import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.GroupListing;
@@ -34,6 +36,7 @@ import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.clients.consumer.AcknowledgeType;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -45,10 +48,14 @@ import org.apache.kafka.common.GroupType;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.config.ConfigResource;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.core.ShareConsumerFactory;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -57,6 +64,7 @@ import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.listener.ShareConsumerRecordRecoverer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.backoff.FixedBackOff;
@@ -73,6 +81,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements AutoCloseable {
@@ -92,6 +102,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     //       for the lifetime of the process.
     //       During shutdown, ensure that all resources are properly released. 
     private final Map<ErrorHandleCacheKey, DefaultErrorHandler>                   errorHandlerCache;
+    private final Map<ErrorHandleCacheKey, ShareConsumerRecordRecoverer>          consumerRecordRecovererCache;
     private final Map<ProducerCacheKey, Producer<?, ?>>                           producerCache;
     private final Map<TemplateCacheKey, KafkaTemplate<?, ?>>                      templateCache;
     private final Map<ConsumerCacheKey, KafkaConsumer<?, ?>>                      consumerCache;
@@ -195,7 +206,9 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         this.cfg             = Objects.requireNonNull(cfg, "KafkaConfig must not be null.");
         this.brokerLifecycle = Objects.requireNonNull(brokerLifecycle, "BrokerLifecycle must not be null.");
 
-        this.errorHandlerCache = new HashMap<>();
+        this.errorHandlerCache            = new HashMap<>();
+        this.consumerRecordRecovererCache = new HashMap<>();
+
         this.producerCache     = new HashMap<>();
         this.templateCache     = new HashMap<>();
         this.consumerCache     = new HashMap<>();
@@ -223,6 +236,8 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         producerCache.forEach((key,value) -> { close(value); });
 
         errorHandlerCache.clear();
+        consumerRecordRecovererCache.clear();
+
         monitorRegistry.clear();
         consumerCache.clear();
         listenerCache.clear();
@@ -441,9 +456,46 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
             throw new IllegalStateException("Failed to retrieve topics from broker.", ex);
         }
     }
-
-   public AdminClient getAdminClient() {
+    
+    public AdminClient getAdminClient() {
         return brokerLifecycle.getAdminClient();
+    }
+
+    /**
+     * Configures the initial offset reset policy for a Kafka share group.
+     *
+     * <p>This is a group configuration, not a {@code ConsumerConfig} property.
+     * It must therefore be applied through the AdminClient before the group
+     * starts consuming records.</p>
+     *
+     * @param groupId the share group to configure
+     */
+    public void configureShareGroupOffsetReset(String groupId) {
+        Objects.requireNonNull(groupId, "groupId must not be null.");
+        if (groupId.isBlank())
+            throw new IllegalArgumentException("groupId must not be blank.");
+
+        ConfigResource resource =
+            new ConfigResource(ConfigResource.Type.GROUP, groupId);
+        ConfigEntry entry = new ConfigEntry(
+            KafkaConstants.CST_SHARE_AUTO_OFFSET_RESET_CONFIG,
+            KafkaConstants.CST_AUTO_OFFSET_RESET_CONFIG
+        );
+
+        try {
+            getAdminClient()
+                .incrementalAlterConfigs(Map.of(
+                    resource,
+                    List.of(new AlterConfigOp(entry, AlterConfigOp.OpType.SET))
+                ))
+                .all()
+                .get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while configuring share group " + groupId + ".", ex);
+        } catch (ExecutionException | TimeoutException ex) {
+            throw new IllegalStateException("Failed to configure share group " + groupId + ".", ex);
+        }
     }
 
     public Map<MetricName, ? extends Metric> getBrokerMetrics() {
@@ -617,6 +669,53 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         return handler;
     }
 
+    public synchronized ShareConsumerRecordRecoverer getShareConsumerRecordHandler(String topicName) {
+        brokerLifecycle.requireStarted();
+        Objects.requireNonNull(topicName, "Topic name must not be null.");
+        final ErrorHandleCacheKey key = new ErrorHandleCacheKey(topicName);
+
+        // Reuse existing handler.
+        ShareConsumerRecordRecoverer handler = consumerRecordRecovererCache.get(key);
+        if (handler != null)
+            return handler;
+
+        // Retrieve source topic configuration.
+        TopicConfig cfg = getTopicConfig(topicName);
+
+        // A dedicated DLT must be configured.
+        final String dltName = cfg.dltName();
+
+        KafkaTemplate<Object, Object> template = null;
+        if (!dltName.isEmpty()) {
+            if (topicName.equals(dltName))
+                throw new IllegalStateException("Source topic and DLT must be different.");
+
+            if (!getTopicRegistry().containsKey(dltName))
+                throw new IllegalStateException("DLT is not registered: " + dltName);
+
+            // Non-transactional producer for DLT recovery.
+            template = getKafkaTemplate(dltName, false);
+            // To be completed  ... Next release.
+            // getKafkaTemplate(dltName, TRANSACTIONAL_ACK_MODES.contains(ackMode));        
+        }
+
+        // No DLT configured.
+        if (template == null) {
+            return (record, ex) -> {
+                logger.error("Share Consumer processing failed", ex);
+                return AcknowledgeType.REJECT;
+            };
+        }
+
+        // Use the retry policy of the source topic.
+        handler = buildShareConsumerRecordHandler(template, cfg.retryInterval(), cfg.retryAttempts());
+        ShareConsumerRecordRecoverer previous = consumerRecordRecovererCache.putIfAbsent(key, handler);
+        if (previous != null)
+            throw new IllegalStateException("ShareConsumerRecordRecoverer was already in MAP ???");
+
+        return handler;
+    }
+
     public ConsumerGroupMonitor getConsumerGroupMonitor() {
         brokerLifecycle.requireStarted();
         ConsumerGroupMonitor monitor = new ConsumerGroupMonitor(this);
@@ -626,6 +725,18 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
 
     public void unregisterMonitor(ConsumerGroupMonitor monitor) {
         monitorRegistry.remove(monitor);
+    }
+
+    public Map<String,Object> buildProducerConfig() {
+        return buildProducerConfig(null, Optional.empty());
+    }
+
+    public Map<String, Object> buildConsumerConfig() {
+        return buildConsumerConfig(null, null);
+    }
+
+    public Map<String, Object> buildShareConsumerConfig() {
+       return buildShareConsumerConfig(null, null);
     }
 
     @Override
@@ -645,15 +756,16 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     }
 
     private Map<String, Object> buildProducerConfig(TopicConfig tc, Optional<String> trxID) {
-        Objects.requireNonNull(tc,                   "TopicConfig must not be null.");
-        Objects.requireNonNull(tc.keySerializer(),   "TopicConfig.keySerializer() must not be null.");
-        Objects.requireNonNull(tc.valueSerializer(), "TopicConfig.valueSerializer() must not be null.");
-        Objects.requireNonNull(trxID,                "trxID must not be null (use Optional.empty()).");
+        Objects.requireNonNull(trxID, "trxID must not be null (use Optional.empty()).");
 
         Map<String, Object> props = new HashMap<>();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,      brokerLifecycle.getBootstrapServers());
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,   tc.keySerializer());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, tc.valueSerializer());
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerLifecycle.getBootstrapServers());
+        
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,   
+            (tc != null) ? tc.keySerializer() : StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, 
+            (tc != null) ? tc.valueSerializer() : StringSerializer.class);
+
         props.put(ProducerConfig.ACKS_CONFIG,               KafkaConstants.CST_ACKS_CONFIG);
         props.put(ProducerConfig.RETRIES_CONFIG,            KafkaConstants.CST_RETRIES_CONFIG);
         props.put(ProducerConfig.LINGER_MS_CONFIG,          KafkaConstants.CST_LINGER_MS_CONFIG);
@@ -667,32 +779,63 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         });
 
         // Topic-specific overrides (if any).
-        props.putAll(tc.extraProducerProps());
+        if (tc != null)
+            props.putAll(tc.extraProducerProps());
         return props;
     }
 
     private Map<String, Object> buildConsumerConfig(String groupId, TopicConfig tc) {
-        Objects.requireNonNull(tc,                     "TopicConfig must not be null.");
-        Objects.requireNonNull(tc.keyDeserializer(),   "TopicConfig.keyDeserializer() must not be null.");
-        Objects.requireNonNull(tc.valueDeserializer(), "TopicConfig.valueDeserializer() must not be null.");
 
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerLifecycle.getBootstrapServers());
         
-        if (groupId != null) // Optional for a direct consumer using assign.
+        if (groupId != null)
             props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         else
-            logger.warn("No group for ConsumerConfig. Only assign can be used !!!");
+            logger.warn("No group for ConsumerConfig !!!");
         
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,   tc.keyDeserializer());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, tc.valueDeserializer());
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,   
+            (tc != null) ? tc.keyDeserializer() : StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, 
+            (tc != null) ? tc.valueDeserializer() : StringDeserializer.class);
 
         props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG,    KafkaConstants.CST_ISOLATION_LEVEL_CONFIG);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,  KafkaConstants.CST_AUTO_OFFSET_RESET_CONFIG);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, KafkaConstants.CST_ENABLE_AUTO_COMMIT_CONFIG);
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,   KafkaConstants.CST_MAX_POLL_RECORDS);
 
         // Topic-specific overrides (if any).
-        props.putAll(tc.extraConsumerProps());
+        if (tc != null)
+            props.putAll(tc.extraConsumerProps());
+
+        return props;
+    }
+
+    private Map<String, Object> buildShareConsumerConfig(String groupId, TopicConfig tc) {
+
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerLifecycle.getBootstrapServers());
+
+        if (groupId != null && !groupId.isBlank())
+            props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        else
+            logger.warn("No group for ShareConsumerConfig !!!");
+
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+            (tc != null) ? tc.keyDeserializer() : StringDeserializer.class);
+
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            (tc != null) ? tc.valueDeserializer() : StringDeserializer.class);
+
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, KafkaConstants.CST_MAX_POLL_RECORDS);
+
+        // Enforce max.poll.records as a strict limit.
+        props.put(ConsumerConfig.SHARE_ACQUIRE_MODE_CONFIG,"record_limit");
+
+        // Topic-specific overrides (if any)
+        if (tc != null)
+            props.putAll(tc.extraConsumerProps());
+
         return props;
     }
 
@@ -739,6 +882,51 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         // Non-retryable exceptions.
         errorHandler.addNotRetryableExceptions(IllegalArgumentException.class);
         return errorHandler;
+    }
+
+    private <K, V> ShareConsumerRecordRecoverer buildShareConsumerRecordHandler(
+        KafkaTemplate<K, V> template, long retryInterval, long retryAttempts) {
+
+        if (retryInterval <= 0)
+            throw new IllegalArgumentException("Retry interval must be > 0.");
+        if (retryAttempts <= 0)
+            throw new IllegalArgumentException("Retry attempts must be > 0.");
+
+        String dltTopic = template.getDefaultTopic();
+        if (dltTopic == null || dltTopic.isBlank())
+            throw new IllegalArgumentException("DLT topic is required.");
+
+        DeadLetterPublishingRecoverer recoverer =
+            new DeadLetterPublishingRecoverer(template, (record, ex) -> new TopicPartition(
+                dltTopic,
+                KafkaConstants.CST_PARTITION_DLT
+            )
+        );
+
+        // Preserve original record information.
+        recoverer.setAppendOriginalHeaders(true);
+        recoverer.setRetainExceptionHeader(true);
+
+        // Verify DLT publication.
+        recoverer.setFailIfSendResultIsError(true);
+        recoverer.setThrowIfNoDestinationReturned(true);
+
+        // Share Consumer recovery.
+        return (record, ex) -> {
+            try {
+                recoverer.accept(record, ex);
+                // DLT publication succeeded.
+                return AcknowledgeType.ACCEPT;
+            }
+            catch (RuntimeException publishFailure) {
+                logger.error("Failed to publish record to DLT: topic={}, partition={}, offset={}",
+                    record.topic(), record.partition(), record.offset(), publishFailure
+                );
+
+            // Make the original record available again.
+            return AcknowledgeType.RELEASE;
+            }
+        };
     }
 
     private String getUniqueTrxID() {
