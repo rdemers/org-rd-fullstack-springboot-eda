@@ -150,9 +150,15 @@ logging:
     "[org.apache.flink.runtime.metrics.util.MetricUtils]": ERROR
   file:
     name: log/springboot-eda.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 10
+      total-size-cap: 1GB
+      clean-history-on-start: false
   structured:
     format:
-      console: ecs
+      # console: ecs
       file: ecs
     ecs:
       service:

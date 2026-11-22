@@ -395,11 +395,17 @@
                         <exclude>**/*EXP_Tests.java</exclude>
                     </excludes>
 
-                    <!-- Ensure no parallel parameters are set. -->
+                    <!-- Ensure no parallel parameters are set for Apache/Maven. -->
                     <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <parallel>none</parallel> 
                     <threadCount>1</threadCount>
+
+                    <!-- Ensure no parallel parameters are set for Jupiter and Flink. -->
+                    <systemPropertyVariables>
+                        <junit.jupiter.execution.parallel.enabled>false</junit.jupiter.execution.parallel.enabled>
+                        <flink.tests.threads>1</flink.tests.threads>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
             <plugin>
