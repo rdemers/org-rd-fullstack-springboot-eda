@@ -156,25 +156,13 @@ logging:
       max-history: 10
       total-size-cap: 1GB
       clean-history-on-start: false
-  structured:
-    format:
+  #structured:
+  #  format:
       # console: ecs
-      file: ecs
-    ecs:
-      service:
-        name: org.rd.fullstack.springboot-eda
-        version: unspecified
-        environment: DEV
-        node-name: DEV
-#
-# Using JUnit 5 (Jupiter) for unit tests, disable parallel execution to avoid race conditions in the Flink pipeline tests.
-# Warning: 
-# JUnit Platform does not read application.yml. 
-# Put it in src/test/resources/junit-platform.properties instead:
-#   junit.jupiter.execution.parallel.enabled=false
-#junit:
-#  jupiter:
-#    execution:
-#      parallel:
-#        enabled: false
-#
+      # file: ecs
+    # ecs:
+    #  service:
+    #    name: org.rd.fullstack.springboot-eda
+    #    version: unspecified
+    #    environment: DEV
+    #    node-name: DEV

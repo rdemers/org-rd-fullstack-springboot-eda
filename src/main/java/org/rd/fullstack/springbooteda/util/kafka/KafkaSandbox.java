@@ -28,6 +28,7 @@ package org.rd.fullstack.springbooteda.util.kafka;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AlterConfigOp;
+import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
@@ -55,7 +56,6 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.core.ShareConsumerFactory;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -471,12 +471,12 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
      * @param groupId the share group to configure
      */
     public void configureShareGroupOffsetReset(String groupId) {
+        brokerLifecycle.requireStarted();
         Objects.requireNonNull(groupId, "groupId must not be null.");
         if (groupId.isBlank())
             throw new IllegalArgumentException("groupId must not be blank.");
 
-        ConfigResource resource =
-            new ConfigResource(ConfigResource.Type.GROUP, groupId);
+        ConfigResource resource = new ConfigResource(ConfigResource.Type.GROUP, groupId);
         ConfigEntry entry = new ConfigEntry(
             KafkaConstants.CST_SHARE_AUTO_OFFSET_RESET_CONFIG,
             KafkaConstants.CST_AUTO_OFFSET_RESET_CONFIG
@@ -490,8 +490,12 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
                 ))
                 .all()
                 .get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            // Wait for the share group configuration to be applied.
+            // To be fixed in a future release of EmbeddedKafkaKraftBroker.  
+            // Currently, the group configuration is not applied immediately.
+            Thread.sleep(KafkaConstants.CST_REQUEST_TIMEOUT_MS_CONFIG); 
         } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted while configuring share group " + groupId + ".", ex);
         } catch (ExecutionException | TimeoutException ex) {
             throw new IllegalStateException("Failed to configure share group " + groupId + ".", ex);
@@ -570,63 +574,6 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         // Execute deletion and wait for completion.
         var result = adminClient.deleteRecords(records);
         result.all().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-    }
-
-    private List<GroupLagSummary> calculateConsumerGroupsLag(AdminClient adm) throws Exception {
-        // 1. List all groups (universal API listGroups).
-        Collection<GroupListing> allGroups =
-            adm.listGroups().all().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        List<GroupLagSummary> summaries = new ArrayList<>();
-
-        for (GroupListing group : allGroups) {
-            // 2. Filter to keep only groups of type CONSUMER.
-            boolean isConsumerGroup = group.type().map(type -> type == GroupType.CONSUMER).orElse(true);
-            if (!isConsumerGroup)
-                continue;
-
-            String groupId = group.groupId();
-
-            // 3. Retrieve the group's current offsets (where the consumer stands).
-            Map<TopicPartition, OffsetAndMetadata> currentOffsets = adm
-                .listConsumerGroupOffsets(groupId)
-                .partitionsToOffsetAndMetadata()
-                .get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
-            if (currentOffsets.isEmpty()) {
-                // STABLE, PREPARING_REBALANCE, COMPLETING_REBALANCE, DEAD, etc.
-                // use describeConsumerGroups to get the real status.
-                summaries.add(new GroupLagSummary(groupId, 0L, "UNKNOWN"));
-                continue;
-            }
-
-            // 4. Identify the target partitions to request Log End Offsets (LEO).
-            Set<TopicPartition> partitions = currentOffsets.keySet();
-
-            // Prepare the query to obtain the most recent offset (Latest).
-            Map<TopicPartition, OffsetSpec> latestSpecs = partitions.stream()
-                .collect(Collectors.toMap(tp -> tp, tp -> OffsetSpec.latest()));
-
-            // 5. Retrieve the Log End Offsets (LEO) from the broker.
-            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> endOffsets =
-                adm.listOffsets(latestSpecs).all().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
-            // 6. Calculate the total lag (sum of gaps per partition).
-            long totalLag = 0;
-            for (TopicPartition tp : partitions) {
-                long current = currentOffsets.get(tp).offset();
-
-                // Safety in case the partition disappeared between calls.
-                if (endOffsets.containsKey(tp)) {
-                    long end = endOffsets.get(tp).offset();
-                    // The lag cannot be negative (in theory).
-                    totalLag += Math.max(0, end - current);
-                }
-            }
-
-            // 7. Add to summary (could also include state via describeGroups if needed).
-            summaries.add(new GroupLagSummary(groupId, totalLag, "ACTIVE"));
-        }
-        return summaries;
     }
 
     public synchronized DefaultErrorHandler getErrorHandler(String topicName) {
@@ -748,6 +695,100 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
                ", concurrency=" + cfg.concurrency() +
                ", autoCreateTopic=" + cfg.autoCreateTopic() +
                ", ports=" + ports + "]";
+    }
+
+    /* To ba validated in a future release of EmbeddedKafkaKraftBroker. 
+       Currently, the group configuration is not applied immediately.
+    private void waitForShareGroupConfig(String groupId, String key, String value) {
+    
+        ConfigResource resource = new ConfigResource(ConfigResource.Type.GROUP, groupId);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        long delayMillis = 100;
+        while (System.nanoTime() < deadline) {
+            try {
+                Config config = getAdminClient()
+                    .describeConfigs(List.of(resource))
+                    .all()
+                    .get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .get(resource);
+
+                ConfigEntry entry = config.get(key);
+
+                if (entry != null && 
+                    value.equals(entry.value()) && !entry.isDefault()) {
+                    return;
+                }
+
+                Thread.sleep(delayMillis);
+                delayMillis = Math.min(delayMillis * 2, 1000);
+            } catch (InterruptedException ex) {
+                throw new IllegalStateException(
+                    "Interrupted while waiting for share group configuration.", ex);
+            } catch (ExecutionException | TimeoutException ex) {
+                throw new IllegalStateException(
+                    "Unable to verify share group configuration.", ex);
+            }
+        }
+   
+        throw new IllegalStateException(
+            "Share group configuration was not applied in time: " + groupId);
+    }
+    */
+    private List<GroupLagSummary> calculateConsumerGroupsLag(AdminClient adm) throws Exception {
+        // 1. List all groups (universal API listGroups).
+        Collection<GroupListing> allGroups =
+            adm.listGroups().all().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        List<GroupLagSummary> summaries = new ArrayList<>();
+
+        for (GroupListing group : allGroups) {
+            // 2. Filter to keep only groups of type CONSUMER.
+            boolean isConsumerGroup = group.type().map(type -> type == GroupType.CONSUMER).orElse(true);
+            if (!isConsumerGroup)
+                continue;
+
+            String groupId = group.groupId();
+
+            // 3. Retrieve the group's current offsets (where the consumer stands).
+            Map<TopicPartition, OffsetAndMetadata> currentOffsets = adm
+                .listConsumerGroupOffsets(groupId)
+                .partitionsToOffsetAndMetadata()
+                .get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            if (currentOffsets.isEmpty()) {
+                // STABLE, PREPARING_REBALANCE, COMPLETING_REBALANCE, DEAD, etc.
+                // use describeConsumerGroups to get the real status.
+                summaries.add(new GroupLagSummary(groupId, 0L, "UNKNOWN"));
+                continue;
+            }
+
+            // 4. Identify the target partitions to request Log End Offsets (LEO).
+            Set<TopicPartition> partitions = currentOffsets.keySet();
+
+            // Prepare the query to obtain the most recent offset (Latest).
+            Map<TopicPartition, OffsetSpec> latestSpecs = partitions.stream()
+                .collect(Collectors.toMap(tp -> tp, tp -> OffsetSpec.latest()));
+
+            // 5. Retrieve the Log End Offsets (LEO) from the broker.
+            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> endOffsets =
+                adm.listOffsets(latestSpecs).all().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            // 6. Calculate the total lag (sum of gaps per partition).
+            long totalLag = 0;
+            for (TopicPartition tp : partitions) {
+                long current = currentOffsets.get(tp).offset();
+
+                // Safety in case the partition disappeared between calls.
+                if (endOffsets.containsKey(tp)) {
+                    long end = endOffsets.get(tp).offset();
+                    // The lag cannot be negative (in theory).
+                    totalLag += Math.max(0, end - current);
+                }
+            }
+
+            // 7. Add to summary (could also include state via describeGroups if needed).
+            summaries.add(new GroupLagSummary(groupId, totalLag, "ACTIVE"));
+        }
+        return summaries;
     }
 
     private <V, K> ProducerFactory<K, V> buildProducerFactory(TopicConfig cfg, Optional<String> trxID) {

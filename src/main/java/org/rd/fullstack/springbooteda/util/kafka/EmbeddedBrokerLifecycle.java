@@ -173,7 +173,7 @@ class EmbeddedBrokerLifecycle implements BrokerLifecycle {
 
     private Map<String, String> buildBrokerProperties(KafkaConfig cfg) {
         return Map.ofEntries(
-            Map.entry("group.coordinator.rebalance.protocols",            "classic,consumer,share"),
+            // Obsolete -- Map.entry("group.coordinator.rebalance.protocols",            "classic,consumer,share"),
             Map.entry("group.initial.rebalance.delay.ms",                 "0"),
             Map.entry("auto.create.topics.enable",                        String.valueOf(cfg.autoCreateTopic())),
             Map.entry("offsets.topic.replication.factor",                 "1"),

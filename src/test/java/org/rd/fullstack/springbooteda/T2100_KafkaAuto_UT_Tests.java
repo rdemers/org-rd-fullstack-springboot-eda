@@ -15,16 +15,18 @@
  */
 package org.rd.fullstack.springbooteda;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -59,8 +61,8 @@ public class T2100_KafkaAuto_UT_Tests {
     @Autowired
     private KafkaSandbox kafkaSandbox;
 
-    private AtomicBoolean bSuccess1;
-    private AtomicBoolean bSuccess2;
+    private AtomicBoolean bSuccess;
+    private AtomicInteger msgCount;
 
     @Test
     @Order(1)
@@ -68,7 +70,7 @@ public class T2100_KafkaAuto_UT_Tests {
         assertTrue(kafkaSandbox.isStarted());
 
         kafkaSandbox.addTopic(CST_TOPIC_NAME_1, 10, (short) 1);
-        bSuccess1 = new AtomicBoolean(false);
+        bSuccess = new AtomicBoolean(false);
         KafkaTemplate<String, String> kafkaTemplate = kafkaSandbox.getKafkaTemplate(CST_TOPIC_NAME_1);
 
         // Send message - Template.
@@ -87,56 +89,51 @@ public class T2100_KafkaAuto_UT_Tests {
             );
         });
 
-        Awaitility.await().atMost(Duration.ofSeconds(10)).untilTrue(bSuccess1);
-        assertTrue(bSuccess1.get(), "Message should have been received.");
+        Awaitility.await().atMost(Duration.ofSeconds(10)).untilTrue(bSuccess);
+        assertTrue(bSuccess.get(), "Message should have been received.");
     }
 
     @Test
     @Order(2)
-    @Disabled // Disabled because under development.
     public void kafkaSandboxShareGroupListenerDemoTest() {
         assertTrue(kafkaSandbox.isStarted());
         
+        logger.info("***** kafkaSandboxShareGroupListenerDemoTest ***** ");
         kafkaSandbox.addTopic(CST_TOPIC_NAME_2, 
                               CST_TOPIC_NAME_2 + KafkaConstants.CST_TOPIC_DLT_POSTFIX, 
                               10, (short) 1);
-
+        
+        // Configure the share group listener to reset offsets to the earliest available message.
+        // With API Admin client.
         kafkaSandbox.configureShareGroupOffsetReset(CST_TOPIC_GROUP_2);
 
-        bSuccess2 = new AtomicBoolean(false);
+        msgCount = new AtomicInteger(0);
         KafkaTemplate<String, String> kafkaTemplate = kafkaSandbox.getKafkaTemplate(CST_TOPIC_NAME_2);
 
         // Send message - Template.
-        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(CST_TOPIC_NAME_2, "Hello Kafka Embedded!");
-        future.whenComplete((result, ex) -> {
-            if (ex != null) {
-                logger.error("Template - Error sending message:", ex);
-                fail(ex);
-            }
+        kafkaTemplate.send(CST_TOPIC_NAME_2, "ORDER:1001");
+        kafkaTemplate.send(CST_TOPIC_NAME_2, "RETRY:1002");
+        kafkaTemplate.send(CST_TOPIC_NAME_2, "FINAL:1003");
 
-        });
-
-        Awaitility.await().atMost(Duration.ofSeconds(10)).untilTrue(bSuccess2);
-        assertTrue(bSuccess2.get(), "Message should have been received.");
+        Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> msgCount.get() == 3);
+        assertEquals(3, msgCount.get());
     }
 
     @KafkaListener(topics = CST_TOPIC_NAME_1, groupId = CST_TOPIC_GROUP_1,
-                   containerFactory = "kafkaListenerContainerFactory"
-    )
+                   containerFactory = "kafkaListenerContainerFactory")
     public void listen1(ConsumerRecord<String, String> record, Acknowledgment ack) {
         logger.info("Received message: {}.", record.value());
         ack.acknowledge();
-        bSuccess1.set(true);
+        bSuccess.set(true);
     }
 
     @KafkaListener(topics = CST_TOPIC_NAME_2, groupId = CST_TOPIC_GROUP_2,
-                   containerFactory = "shareKafkaListenerContainerFactory"
-    )
+                   containerFactory = "shareKafkaListenerContainerFactory")
     public void listen2(ConsumerRecord<String, String> record, ShareAcknowledgment ack) {
 
         logger.info("ACK - offset={}", record.offset());
         ack.acknowledge();
-        bSuccess2.set(true);
+        msgCount.incrementAndGet();
 
         // NACK : nouvelle livraison
         // logger.warn("NACK / RETRY - offset={}", record.offset(), e);
@@ -146,5 +143,9 @@ public class T2100_KafkaAuto_UT_Tests {
         // logger.error("FINAL / DLT - offset={}", record.offset(), e);
         // logger.error("Unexpected error - offset={}", record.offset(), e);
         // ack.reject();
+
+        // The lock is generally 30 seconds (group.share.record.lock.duration.ms). 
+        // If processing exceeds this duration without renewal, the message may be delivered again.
+        // ack.renew();
     }
  }
