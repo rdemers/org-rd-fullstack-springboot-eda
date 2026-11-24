@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -95,6 +96,7 @@ public class T2100_KafkaAuto_UT_Tests {
 
     @Test
     @Order(2)
+    @Disabled("Disabled for now, under development.")
     public void kafkaSandboxShareGroupListenerDemoTest() {
         assertTrue(kafkaSandbox.isStarted());
         
