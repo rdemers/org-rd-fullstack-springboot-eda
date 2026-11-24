@@ -869,6 +869,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
             (tc != null) ? tc.valueDeserializer() : StringDeserializer.class);
 
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, KafkaConstants.CST_MAX_POLL_RECORDS);
+        props.put(ConsumerConfig.SHARE_ACKNOWLEDGEMENT_MODE_CONFIG, "explicit");
 
         // Enforce max.poll.records as a strict limit.
         props.put(ConsumerConfig.SHARE_ACQUIRE_MODE_CONFIG,"record_limit");

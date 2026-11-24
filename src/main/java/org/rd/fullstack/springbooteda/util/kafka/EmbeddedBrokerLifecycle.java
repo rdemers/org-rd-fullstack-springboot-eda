@@ -87,7 +87,8 @@ class EmbeddedBrokerLifecycle implements BrokerLifecycle {
       
         try {
             broker.destroy();
-            adminClient.close(Duration.ofSeconds(KafkaConstants.CST_ADMIN_CLOSE_TIMEOUT_SECONDS));
+            if (adminClient != null)
+                adminClient.close(Duration.ofSeconds(KafkaConstants.CST_ADMIN_CLOSE_TIMEOUT_SECONDS));
         } catch (Exception ex) {
             logger.warn("Exception destroying embedded Kafka broker:", ex);
         } finally {
