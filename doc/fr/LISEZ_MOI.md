@@ -53,6 +53,7 @@ Ce guide compile les meilleures pratiques pour concevoir, développer et exploit
 * [Architecture et Conception des Topics](./architecture_et_conception_des_topics.md)
 * [Cycle de Vie et Opérations](./cycle_vie_et_operations.md)
 * [Sémantiques de Livraison et Fiabilité](./semantiques_livraison_et_fiabilite.md)
+* [Approche Classique vs Share Groups](./kafka_classique_share.md)
 * [Reconnaissance et Idempotence du Consommateur](./reconnaissance_et_idempotence_consommateur.md)
 * [Patrons de Persistance et Transaction](./patrons_persistance_et_transaction.md)
 * [Gouvernance et Observabilité](./gouvernance_et_observabilite.md)

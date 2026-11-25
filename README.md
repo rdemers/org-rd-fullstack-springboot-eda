@@ -53,6 +53,7 @@ This guide compiles best practices for designing, developing, and operating robu
 * [Architecture & Topic Design](./doc/architecture_and_topic_design.md)
 * [Lifecycle & Operations](./doc/lifecycle_and_operations.md)
 * [Reliability & Delivery Semantics](./doc/reliability_and_delivery_semantics.md)
+* [Classic Approach vs Share Groups](./doc/kafka_classic_share.md)
 * [Consumer Acknowledgement & Idempotency](./doc/consumer_acknowledgement_and_idempotency.md)
 * [Persistence & Transaction Patterns](./doc/persistence_and_transaction_patterns.md)
 * [Governance & Observability](./doc/governance_and_observability.md)
