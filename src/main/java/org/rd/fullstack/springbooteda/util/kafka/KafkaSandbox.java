@@ -28,7 +28,6 @@ package org.rd.fullstack.springbooteda.util.kafka;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AlterConfigOp;
-import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
@@ -38,33 +37,34 @@ import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.AcknowledgeType;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.GroupType;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.ConfigResource;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultShareConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
+import org.springframework.kafka.listener.AcknowledgingShareConsumerAwareMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ShareKafkaMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
+import org.springframework.kafka.listener.ContainerProperties.ShareAckMode;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.GenericMessageListener;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.ShareConsumerRecordRecoverer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.backoff.FixedBackOff;
@@ -86,8 +86,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements AutoCloseable {
-    private static final Logger logger =
-            LoggerFactory.getLogger(KafkaSandbox.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(KafkaSandbox.class);
 
     // To be completed ... Next release. See DLT setup.
     //private static final EnumSet<AckMode> TRANSACTIONAL_ACK_MODES =
@@ -101,12 +101,14 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     //       This should not be an issue, as cached items remain in memory
     //       for the lifetime of the process.
     //       During shutdown, ensure that all resources are properly released. 
-    private final Map<ErrorHandleCacheKey, DefaultErrorHandler>                   errorHandlerCache;
-    private final Map<ErrorHandleCacheKey, ShareConsumerRecordRecoverer>          consumerRecordRecovererCache;
-    private final Map<ProducerCacheKey, Producer<?, ?>>                           producerCache;
-    private final Map<TemplateCacheKey, KafkaTemplate<?, ?>>                      templateCache;
-    private final Map<ConsumerCacheKey, KafkaConsumer<?, ?>>                      consumerCache;
-    private final Map<ListenerCacheKey, ConcurrentMessageListenerContainer<?, ?>> listenerCache;
+    private final Map<ErrorHandleCacheKey, DefaultErrorHandler>          errorHandlerCache;
+    private final Map<ErrorHandleCacheKey, ShareConsumerRecordRecoverer> consumerRecordRecovererCache;
+
+    private final Map<ProducerCacheKey, Producer<?, ?>>                                producerCache;
+    private final Map<TemplateCacheKey, KafkaTemplate<?, ?>>                           templateCache;
+    private final Map<ConsumerCacheKey, KafkaConsumer<?, ?>>                           consumerCache;
+    private final Map<ListenerCacheKey, ConcurrentMessageListenerContainer<?, ?>>      listenerCache;
+    private final Map<ListenerCacheKey, ShareKafkaMessageListenerContainer<?, ?>> shareListenerCache;
 
     private final Set<ConsumerGroupMonitor> monitorRegistry;
 
@@ -121,6 +123,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     }
 
     public static class Builder extends AbstractTopicHandler<Builder> {
+
         private int clusters          = KafkaConstants.CST_NBR_CLUSTERS_DEFAULT;
         private int clusterPartitions = KafkaConstants.CST_NBR_CLUSTERS_PARTITIONS_DEFAULT;
         private int concurrency       = KafkaConstants.CST_NBR_CONCURRENCY_DEFAULT;
@@ -209,11 +212,12 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         this.errorHandlerCache            = new HashMap<>();
         this.consumerRecordRecovererCache = new HashMap<>();
 
-        this.producerCache     = new HashMap<>();
-        this.templateCache     = new HashMap<>();
-        this.consumerCache     = new HashMap<>();
-        this.listenerCache     = new HashMap<>();
-        this.monitorRegistry   = new HashSet<>();
+        this.producerCache      = new HashMap<>();
+        this.templateCache      = new HashMap<>();
+        this.consumerCache      = new HashMap<>();
+        this.listenerCache      = new HashMap<>();
+        this.shareListenerCache = new HashMap<>();
+        this.monitorRegistry    = new HashSet<>();
     }
 
     public synchronized void start() {
@@ -225,13 +229,13 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     }
 
     public synchronized void stop() {
-
         if (!brokerLifecycle.isStarted())
             return;
 
         monitorRegistry.forEach(m -> { close(m); });
         consumerCache.forEach((key,value) -> { close(value); });
         listenerCache.forEach((key,value) -> { close(value); });
+        shareListenerCache.forEach((key,value) -> { close(value); });
         templateCache.forEach((key,value) -> { close(value); });
         producerCache.forEach((key,value) -> { close(value); });
 
@@ -241,6 +245,7 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         monitorRegistry.clear();
         consumerCache.clear();
         listenerCache.clear();
+        shareListenerCache.clear();
         templateCache.clear();
         producerCache.clear();
 
@@ -273,8 +278,11 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
 
         final TopicConfig topicConfig = getTopicConfig(topicName);
         Producer<K, V> created =
-            new KafkaProducer<>(buildProducerConfig(topicConfig,
-                (indTrxFlag ? Optional.of(getUniqueTrxID()) : Optional.empty())));
+            new KafkaProducer<>(
+                ConfigProvider.buildProducerConfig(brokerLifecycle.getBootstrapServers(), topicConfig,
+                (indTrxFlag ? Optional.of(getUniqueTrxID()) : Optional.empty()))
+            );
+        
         if (indTrxFlag) {
             try {
                 created.initTransactions();
@@ -337,7 +345,9 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
             return (KafkaConsumer<K, V>) cached;
         
         TopicConfig cfg = getTopicConfig(topicName);
-        KafkaConsumer<K, V> consumer = new KafkaConsumer<>(buildConsumerConfig(group, cfg));
+        KafkaConsumer<K, V> consumer = new KafkaConsumer<>(
+            ConfigProvider.buildConsumerConfig(brokerLifecycle.getBootstrapServers(), group, cfg)
+        );
 
         KafkaConsumer<?, ?> previous = consumerCache.putIfAbsent(key, consumer);
         if (previous != null)
@@ -390,7 +400,10 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
 
         ConcurrentMessageListenerContainer<K, V> container =
             new ConcurrentMessageListenerContainer<>(
-                new DefaultKafkaConsumerFactory<>(buildConsumerConfig(groupId, cfg)), props);
+                new DefaultKafkaConsumerFactory<>(
+                    ConfigProvider.buildConsumerConfig(brokerLifecycle.getBootstrapServers(), groupId, cfg)
+                ), props
+            );
 
         container.setCommonErrorHandler(getErrorHandler(topicName)); 
         container.setupMessageListener(listener);
@@ -404,61 +417,65 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         logger.debug("Listener started for topic {} group {}.", topicName, groupId);
     }
 
-    public void seekConsumerGroupOffsets(String topicName, String groupId, Map<Integer, Long> partitionOffsets) {
+    public <K, V> void setupShareMessageListener(String topicName, MessageListener<K, V> listener) {
+        setupShareMessageListener(cfg.concurrency(), cfg.uuidID().toString(), topicName, ShareAckMode.MANUAL, listener);
+    }
+
+    public <K, V> void setupShareMessageListener(String topicName, String groupId, MessageListener<K, V> listener) {
+        setupShareMessageListener(cfg.concurrency(), groupId, topicName, ShareAckMode.MANUAL, listener);
+    }
+
+    public <K, V> void setupShareMessageListener(String topicName, AcknowledgingShareConsumerAwareMessageListener<K, V> listener) {
+        setupShareMessageListener(cfg.concurrency(), cfg.uuidID().toString(), topicName, ShareAckMode.MANUAL, listener);
+    }
+
+    public <K, V> void setupShareMessageListener(String topicName, String groupId, AcknowledgingShareConsumerAwareMessageListener<K, V> listener) {
+        setupShareMessageListener(cfg.concurrency(), groupId, topicName, ShareAckMode.MANUAL, listener);
+    }
+
+    public synchronized <K, V>  void setupShareMessageListener(int concurrency, String groupId, String topicName, ShareAckMode ackMode, 
+                                                               GenericMessageListener<ConsumerRecord<K, V>> listener) {
         brokerLifecycle.requireStarted();
-        Objects.requireNonNull(topicName,        "TopicName must not be null.");
-        Objects.requireNonNull(groupId,          "GroupId must not be null.");
-        Objects.requireNonNull(partitionOffsets, "Partition offsets must not be null.");
-        if (groupId.isEmpty() || topicName.isEmpty() || partitionOffsets.isEmpty())
-            throw new IllegalArgumentException("Invalid parameters for consumer setup.");
+        Objects.requireNonNull(topicName, "topicName must not be null.");
+        Objects.requireNonNull(groupId,   "groupId must not be null.");
+        Objects.requireNonNull(ackMode,   "ackMode must not be null.");
+        Objects.requireNonNull(listener,  "Listener must not be null.");
+        if (groupId.isEmpty() || topicName.isEmpty() || concurrency <= 0)
+            throw new IllegalArgumentException("Invalid parameters for share listener setup.");
 
-        // Note: This method uses assign() (manual partition assignment) rather than subscribe().
-        // The consumer will not trigger a group rebalance, so the committed offsets are written
-        // directly to the group coordinator without joining the group. This is intentional for
-        // administrative offset management, but the consumer group must already exist.
-        KafkaConsumer<?, ?> consumer = getConsumer(groupId, topicName);
-        try {
-            List<TopicPartition> tps = partitionOffsets.keySet().stream()
-                    .map(p -> new TopicPartition(topicName, p))
-                    .toList();
+        final ListenerCacheKey key = new ListenerCacheKey(concurrency, groupId, topicName);
 
-            consumer.assign(tps);
-
-            // Move the offsets to the desired position.
-            for (TopicPartition tp : tps) {
-                long offset = partitionOffsets.get(tp.partition());
-                long end = consumer.endOffsets(List.of(tp)).get(tp);
-                consumer.seek(tp, Math.min(offset, end));
-            }
-
-            consumer.poll(Duration.ofMillis(KafkaConstants.CST_POLL_DURATION));
-            consumer.commitSync();
-        } catch (Exception ex) {
-            logger.warn("Failed to seek/commit offsets for group {} on topic {}: {}.", groupId, topicName, ex);
-            throw new IllegalStateException("Failed to seek/commit offsets for group " + groupId + " on topic " + topicName, ex);
+        // User want to change the listener.
+        if (shareListenerCache.containsKey(key)) {
+            close(shareListenerCache.get(key));
+            shareListenerCache.remove(key);
         }
-    }
 
-    public KafkaConfig getCfg() {
-        return cfg;
-    }
+        TopicConfig cfg = getTopicConfig(topicName);
+        if (concurrency > cfg.partitions())
+            logger.warn("The concurrent threads requested is greater than the partitions (concurrency: {}, partitions: {}).",
+                         concurrency, cfg.partitions());
 
-    public String getBootstrapServers() {
-        return brokerLifecycle.getBootstrapServers();
-    }
+        ContainerProperties props = new ContainerProperties(topicName);
+        props.setShareAckMode(ackMode);
 
-    public Set<String> getTopics() {
-        try {
-            return brokerLifecycle.getTopics().stream()
-                .filter(t -> KafkaConstants.CST_RESERVED_TOPIC_NAMES.stream().noneMatch(t::startsWith))
-                .collect(Collectors.toUnmodifiableSet());
-        } catch (Exception ex) {
-            throw new IllegalStateException("Failed to retrieve topics from broker.", ex);
-        }
-    }
-    
-    public AdminClient getAdminClient() {
-        return brokerLifecycle.getAdminClient();
+        ShareKafkaMessageListenerContainer<K, V> container =
+            new ShareKafkaMessageListenerContainer<>(
+                new DefaultShareConsumerFactory<>(
+                    ConfigProvider.buildShareConsumerConfig(brokerLifecycle.getBootstrapServers(), groupId, cfg)
+                ), props
+            );
+
+        // *** container.setCommonErrorHandler(getErrorHandler(topicName)); 
+        container.setupMessageListener(listener);
+        container.setConcurrency(concurrency);
+        container.start();
+
+        ShareKafkaMessageListenerContainer<?, ?> previous = shareListenerCache.putIfAbsent(key, container);
+        if (previous != null)
+            throw new IllegalStateException("ShareKafkaMessageListenerContainer was already in MAP ???");
+
+        logger.debug("ShareListener started for topic {} group {}.", topicName, groupId);
     }
 
     /**
@@ -502,43 +519,52 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         }
     }
 
-    public Map<MetricName, ? extends Metric> getBrokerMetrics() {
-        return brokerLifecycle.getBrokerMetrics();
+    public void seekConsumerGroupOffsets(String topicName, String groupId, Map<Integer, Long> partitionOffsets) {
+        brokerLifecycle.requireStarted();
+        Objects.requireNonNull(topicName,        "TopicName must not be null.");
+        Objects.requireNonNull(groupId,          "GroupId must not be null.");
+        Objects.requireNonNull(partitionOffsets, "Partition offsets must not be null.");
+        if (groupId.isEmpty() || topicName.isEmpty() || partitionOffsets.isEmpty())
+            throw new IllegalArgumentException("Invalid parameters for consumer setup.");
+
+        // Note: This method uses assign() (manual partition assignment) rather than subscribe().
+        // The consumer will not trigger a group rebalance, so the committed offsets are written
+        // directly to the group coordinator without joining the group. This is intentional for
+        // administrative offset management, but the consumer group must already exist.
+        KafkaConsumer<?, ?> consumer = getConsumer(groupId, topicName);
+        try {
+            List<TopicPartition> tps = partitionOffsets.keySet()
+                .stream()
+                .map(p -> new TopicPartition(topicName, p))
+                .toList();
+
+            consumer.assign(tps);
+
+            // Move the offsets to the desired position.
+            for (TopicPartition tp : tps) {
+                long offset = partitionOffsets.get(tp.partition());
+                long end = consumer.endOffsets(List.of(tp)).get(tp);
+                consumer.seek(tp, Math.min(offset, end));
+            }
+
+            consumer.poll(Duration.ofMillis(KafkaConstants.CST_POLL_DURATION));
+            consumer.commitSync();
+        } catch (Exception ex) {
+            logger.warn("Failed to seek/commit offsets for group {} on topic {}: {}.", groupId, topicName, ex);
+            throw new IllegalStateException("Failed to seek/commit offsets for group " + groupId + " on topic " + topicName, ex);
+        }
     }
 
-    public KafkaDashboard getDashboardData() throws Exception {
-        AdminClient adm = brokerLifecycle.getAdminClient();
-
-        // 1. Cluster infos.
-        DescribeClusterResult cluster = adm.describeCluster();
-        String clusterId  = getCfg().uuidID().toString(); // cluster.clusterId().get();
-        String clusterIp  = getBootstrapServers();
-        int brokers       = cluster.nodes().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS).size();
-        String controller = cluster.controller().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS).toString();
-
-        // 2. List and details of Topics.
-        Set<String> topicNames = adm.listTopics().names().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        DescribeTopicsResult topicDetails = adm.describeTopics(topicNames);
-        Map<String, TopicDescription> descriptions =
-            topicDetails.allTopicNames().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
-        List<TopicSummary> summaries = descriptions.values().stream()
-            .map(d -> new TopicSummary(
-                d.name(),
-                d.partitions().size(),
-                d.partitions().isEmpty() ? (short) 0 : (short) d.partitions().get(0).replicas().size(),
-                "N/A" // Requires a describeConfigs call to be precise.
-            ))
-            .toList();
-
-        // 3. Lags.
-        List<GroupLagSummary> groupLagSummaries = calculateConsumerGroupsLag(adm);
-        return new KafkaDashboard(clusterId, clusterIp, brokers, controller, summaries, groupLagSummaries);
+    public ConsumerGroupMonitor getConsumerGroupMonitor() {
+        brokerLifecycle.requireStarted();
+        ConsumerGroupMonitor monitor = new ConsumerGroupMonitor(this);
+        monitorRegistry.add(monitor);
+        return monitor;
     }
 
-    public boolean isStarted() {
-      return brokerLifecycle.isStarted();
-    }       
+    public void unregisterMonitor(ConsumerGroupMonitor monitor) {
+        monitorRegistry.remove(monitor);
+    }
 
     public void flushDLTForTopic(String sourceTopic) throws Exception {
 
@@ -574,6 +600,79 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         // Execute deletion and wait for completion.
         var result = adminClient.deleteRecords(records);
         result.all().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    public boolean isStarted() {
+      return brokerLifecycle.isStarted();
+    }       
+
+    public KafkaConfig getCfg() {
+        return cfg;
+    }
+
+    public String getBootstrapServers() {
+        return brokerLifecycle.getBootstrapServers();
+    }
+
+
+    public Map<String,Object> buildProducerConfig() {
+        return ConfigProvider.buildProducerConfig(brokerLifecycle.getBootstrapServers());
+    }
+
+    public Map<String, Object> buildConsumerConfig() {
+        return ConfigProvider.buildConsumerConfig(brokerLifecycle.getBootstrapServers());
+    }
+
+    public Map<String, Object> buildShareConsumerConfig() {
+       return ConfigProvider.buildShareConsumerConfig(brokerLifecycle.getBootstrapServers());
+    }
+
+    public Set<String> getTopics() {
+        try {
+            return brokerLifecycle.getTopics().stream()
+                .filter(t -> KafkaConstants.CST_RESERVED_TOPIC_NAMES.stream().noneMatch(t::startsWith))
+                .collect(Collectors.toUnmodifiableSet());
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to retrieve topics from broker.", ex);
+        }
+    }
+    
+    public AdminClient getAdminClient() {
+        return brokerLifecycle.getAdminClient();
+    }
+
+    public Map<MetricName, ? extends Metric> getBrokerMetrics() {
+        return brokerLifecycle.getBrokerMetrics();
+    }
+
+    public KafkaDashboard getDashboardData() throws Exception {
+        AdminClient adm = brokerLifecycle.getAdminClient();
+
+        // 1. Cluster infos.
+        DescribeClusterResult cluster = adm.describeCluster();
+        String clusterId  = getCfg().uuidID().toString(); // cluster.clusterId().get();
+        String clusterIp  = getBootstrapServers();
+        int brokers       = cluster.nodes().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS).size();
+        String controller = cluster.controller().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS).toString();
+
+        // 2. List and details of Topics.
+        Set<String> topicNames = adm.listTopics().names().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        DescribeTopicsResult topicDetails = adm.describeTopics(topicNames);
+        Map<String, TopicDescription> descriptions =
+            topicDetails.allTopicNames().get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        List<TopicSummary> summaries = descriptions.values().stream()
+            .map(d -> new TopicSummary(
+                d.name(),
+                d.partitions().size(),
+                d.partitions().isEmpty() ? (short) 0 : (short) d.partitions().get(0).replicas().size(),
+                "N/A" // Requires a describeConfigs call to be precise.
+            ))
+            .toList();
+
+        // 3. Lags.
+        List<GroupLagSummary> groupLagSummaries = calculateConsumerGroupsLag(adm);
+        return new KafkaDashboard(clusterId, clusterIp, brokers, controller, summaries, groupLagSummaries);
     }
 
     public synchronized DefaultErrorHandler getErrorHandler(String topicName) {
@@ -663,29 +762,6 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
         return handler;
     }
 
-    public ConsumerGroupMonitor getConsumerGroupMonitor() {
-        brokerLifecycle.requireStarted();
-        ConsumerGroupMonitor monitor = new ConsumerGroupMonitor(this);
-        monitorRegistry.add(monitor);
-        return monitor;
-    }
-
-    public void unregisterMonitor(ConsumerGroupMonitor monitor) {
-        monitorRegistry.remove(monitor);
-    }
-
-    public Map<String,Object> buildProducerConfig() {
-        return buildProducerConfig(null, Optional.empty());
-    }
-
-    public Map<String, Object> buildConsumerConfig() {
-        return buildConsumerConfig(null, null);
-    }
-
-    public Map<String, Object> buildShareConsumerConfig() {
-       return buildShareConsumerConfig(null, null);
-    }
-
     @Override
     public String toString() {
         String ports = brokerLifecycle.isStarted() ? brokerLifecycle.getBootstrapServers() : "<stopped>";
@@ -697,43 +773,6 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
                ", ports=" + ports + "]";
     }
 
-    /* To ba validated in a future release of EmbeddedKafkaKraftBroker. 
-       Currently, the group configuration is not applied immediately.
-    private void waitForShareGroupConfig(String groupId, String key, String value) {
-    
-        ConfigResource resource = new ConfigResource(ConfigResource.Type.GROUP, groupId);
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
-        long delayMillis = 100;
-        while (System.nanoTime() < deadline) {
-            try {
-                Config config = getAdminClient()
-                    .describeConfigs(List.of(resource))
-                    .all()
-                    .get(KafkaConstants.CST_ADMIN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                    .get(resource);
-
-                ConfigEntry entry = config.get(key);
-
-                if (entry != null && 
-                    value.equals(entry.value()) && !entry.isDefault()) {
-                    return;
-                }
-
-                Thread.sleep(delayMillis);
-                delayMillis = Math.min(delayMillis * 2, 1000);
-            } catch (InterruptedException ex) {
-                throw new IllegalStateException(
-                    "Interrupted while waiting for share group configuration.", ex);
-            } catch (ExecutionException | TimeoutException ex) {
-                throw new IllegalStateException(
-                    "Unable to verify share group configuration.", ex);
-            }
-        }
-   
-        throw new IllegalStateException(
-            "Share group configuration was not applied in time: " + groupId);
-    }
-    */
     private List<GroupLagSummary> calculateConsumerGroupsLag(AdminClient adm) throws Exception {
         // 1. List all groups (universal API listGroups).
         Collection<GroupListing> allGroups =
@@ -793,92 +832,9 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
 
     private <V, K> ProducerFactory<K, V> buildProducerFactory(TopicConfig cfg, Optional<String> trxID) {
         brokerLifecycle.requireStarted();
-        return new DefaultKafkaProducerFactory<>(buildProducerConfig(cfg, trxID));
-    }
-
-    private Map<String, Object> buildProducerConfig(TopicConfig tc, Optional<String> trxID) {
-        Objects.requireNonNull(trxID, "trxID must not be null (use Optional.empty()).");
-
-        Map<String, Object> props = new HashMap<>();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerLifecycle.getBootstrapServers());
-        
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,   
-            (tc != null) ? tc.keySerializer() : StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, 
-            (tc != null) ? tc.valueSerializer() : StringSerializer.class);
-
-        props.put(ProducerConfig.ACKS_CONFIG,               KafkaConstants.CST_ACKS_CONFIG);
-        props.put(ProducerConfig.RETRIES_CONFIG,            KafkaConstants.CST_RETRIES_CONFIG);
-        props.put(ProducerConfig.LINGER_MS_CONFIG,          KafkaConstants.CST_LINGER_MS_CONFIG);
-        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, KafkaConstants.CST_REQUEST_TIMEOUT_MS_CONFIG);
-        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG,       KafkaConstants.CST_MAX_BLOCK_MS_CONFIG);
-        props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG,   KafkaConstants.CST_RETRY_BACKOFF_MS_CONFIG);
-
-        trxID.ifPresent(id -> {
-            props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG,   id);
-            props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
-        });
-
-        // Topic-specific overrides (if any).
-        if (tc != null)
-            props.putAll(tc.extraProducerProps());
-        return props;
-    }
-
-    private Map<String, Object> buildConsumerConfig(String groupId, TopicConfig tc) {
-
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerLifecycle.getBootstrapServers());
-        
-        if (groupId != null)
-            props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        else
-            logger.warn("No group for ConsumerConfig !!!");
-        
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,   
-            (tc != null) ? tc.keyDeserializer() : StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, 
-            (tc != null) ? tc.valueDeserializer() : StringDeserializer.class);
-
-        props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG,    KafkaConstants.CST_ISOLATION_LEVEL_CONFIG);
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,  KafkaConstants.CST_AUTO_OFFSET_RESET_CONFIG);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, KafkaConstants.CST_ENABLE_AUTO_COMMIT_CONFIG);
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,   KafkaConstants.CST_MAX_POLL_RECORDS);
-
-        // Topic-specific overrides (if any).
-        if (tc != null)
-            props.putAll(tc.extraConsumerProps());
-
-        return props;
-    }
-
-    private Map<String, Object> buildShareConsumerConfig(String groupId, TopicConfig tc) {
-
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerLifecycle.getBootstrapServers());
-
-        if (groupId != null && !groupId.isBlank())
-            props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        else
-            logger.warn("No group for ShareConsumerConfig !!!");
-
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-            (tc != null) ? tc.keyDeserializer() : StringDeserializer.class);
-
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-            (tc != null) ? tc.valueDeserializer() : StringDeserializer.class);
-
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, KafkaConstants.CST_MAX_POLL_RECORDS);
-        props.put(ConsumerConfig.SHARE_ACKNOWLEDGEMENT_MODE_CONFIG, "explicit");
-
-        // Enforce max.poll.records as a strict limit.
-        props.put(ConsumerConfig.SHARE_ACQUIRE_MODE_CONFIG,"record_limit");
-
-        // Topic-specific overrides (if any)
-        if (tc != null)
-            props.putAll(tc.extraConsumerProps());
-
-        return props;
+        return new DefaultKafkaProducerFactory<>(
+            ConfigProvider.buildProducerConfig(brokerLifecycle.getBootstrapServers(), cfg, trxID)
+        );
     }
 
     private <K, V> DefaultErrorHandler buildErrorHandler(KafkaTemplate<K, V> template, 
@@ -1009,6 +965,21 @@ public class KafkaSandbox extends AbstractTopicHandler<KafkaSandbox> implements 
     }
   
     private <K,V> void close(ConcurrentMessageListenerContainer<K,V> listener) {
+        try { listener.stop(); } catch (Exception ex) {
+            logger.warn("Exception stopping listener container:", ex);
+        }
+
+        if (listener.isRunning()) // Let's the listerner drain messages.
+            try { Thread.sleep(KafkaConstants.CST_POLL_DURATION); } catch (InterruptedException ex) {
+                logger.warn("Exception waiting listener container:", ex);
+            }
+
+            try { listener.destroy(); } catch (Exception ex) {
+            logger.warn("Exception destroying listener container:", ex);
+        }
+    }
+
+    private <K,V> void close(ShareKafkaMessageListenerContainer<K,V> listener) {
         try { listener.stop(); } catch (Exception ex) {
             logger.warn("Exception stopping listener container:", ex);
         }

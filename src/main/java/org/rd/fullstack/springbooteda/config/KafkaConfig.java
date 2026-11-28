@@ -82,7 +82,6 @@ public class KafkaConfig {
 
     // A ShareKafkaListenerContainerFactory is required 
     // for the @KafkaListener annotation to work in shared mode.
-
     @Bean
     ShareKafkaListenerContainerFactory<String, String> shareKafkaListenerContainerFactory() {
 

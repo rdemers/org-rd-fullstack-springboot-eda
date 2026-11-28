@@ -83,8 +83,8 @@ public class T2100_KafkaAuto_UT_Tests {
 
         assertTrue(kafkaSandbox.isStarted());
         state.reset();
-        kafkaSandbox.addTopic(CST_TOPIC_NAME_1, 10, (short) 1);
 
+        kafkaSandbox.addTopic(CST_TOPIC_NAME_1, 10, (short) 1);
         KafkaTemplate<String, String> kafkaTemplate = kafkaSandbox.getKafkaTemplate(CST_TOPIC_NAME_1);
         CompletableFuture<SendResult<String, String>> future =
             kafkaTemplate.send(CST_TOPIC_NAME_1,"Hello Kafka Embedded!");
@@ -112,8 +112,6 @@ public class T2100_KafkaAuto_UT_Tests {
         assertTrue(kafkaSandbox.isStarted());
         state.reset();
 
-        kafkaSandbox.addTopic(CST_TOPIC_NAME_2, CST_TOPIC_NAME_2 + KafkaConstants.CST_TOPIC_DLT_POSTFIX, 10, (short) 1);
-
         // configure the share group to start from earliest offset (default = latest).
         // This is important for testing, otherwise the listener will not receive any messages if the topic already has messages.
         //
@@ -127,6 +125,7 @@ public class T2100_KafkaAuto_UT_Tests {
         // - Adding new partitions to an existing topic: If the topic's partition count is increased later, 
         //   the new partition has no prior state for your share group. It will initialize at latest, potentially 
         //   missing messages published to that new partition before the consumer begins reading from it.
+        kafkaSandbox.addTopic(CST_TOPIC_NAME_2, CST_TOPIC_NAME_2 + KafkaConstants.CST_TOPIC_DLT_POSTFIX, 10, (short) 1);
         kafkaSandbox.configureShareGroupOffsetReset(CST_TOPIC_GROUP_2); 
         MessageListenerContainer container = listenerRegistry.getListenerContainer(CST_LISTENER_2);
         assertTrue(container != null);
@@ -134,12 +133,13 @@ public class T2100_KafkaAuto_UT_Tests {
             container.start();
  
         KafkaTemplate<String, String> kafkaTemplate = kafkaSandbox.getKafkaTemplate(CST_TOPIC_NAME_2);
-        kafkaTemplate.send(CST_TOPIC_NAME_2, "ORDER:1001");
-        kafkaTemplate.send(CST_TOPIC_NAME_2, "RETRY:1002");
-        kafkaTemplate.send(CST_TOPIC_NAME_2, "FINAL:1003");
+        kafkaTemplate.send(CST_TOPIC_NAME_2, "ACK:1001");
+        kafkaTemplate.send(CST_TOPIC_NAME_2, "RELEASE:1002");
+        kafkaTemplate.send(CST_TOPIC_NAME_2, "REJECT:1003");
+        kafkaTemplate.send(CST_TOPIC_NAME_2, "RENEW:1004");
 
-        Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> state.messageCount().get() == 3);
-        assertEquals(3, state.messageCount().get());
+        Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> state.messageCount().get() == 4);
+        assertEquals(4, state.messageCount().get());
     }
 
     static class KafkaTestState {
@@ -184,20 +184,28 @@ public class T2100_KafkaAuto_UT_Tests {
             logger.info("Received shared message at offset {}", record.offset());
  
             state.messageCount().incrementAndGet();
-            ack.acknowledge();
+            String value = record.value();
 
-            // NACK : New delivery.
-            // logger.warn("NACK / RETRY - offset={}", record.offset(), e);
-            // ack.release();
-
-            // Permanent rejection: native DLT.
-            // logger.error("FINAL / DLT - offset={}", record.offset(), e);
-            // logger.error("Unexpected error - offset={}", record.offset(), e);
-            // ack.reject();
-
-            // The lock is generally 30 seconds (group.share.record.lock.duration.ms). 
-            // If processing exceeds this duration without renewal, the message may be delivered again.
-            // ack.renew();
+            if (value.startsWith("ACK")) {
+                logger.info("ACK - offset={}", record.offset());
+                ack.acknowledge(); // Acknowledge the message, no further delivery.
+            } else if (value.startsWith("RELEASE")) {
+                logger.warn("NACK / RETRY - offset={}", record.offset());
+                ack.release(); // Release the message, it will be redelivered to the same 
+                               // or another consumer in the group.
+            } else if (value.startsWith("REJECT")) {
+                logger.error("FINAL / DLT - offset={}", record.offset());
+                ack.reject(); // Reject the message, 
+                              // it will be sent to the DLT (Dead Letter Topic) if configured, 
+                              // otherwise it will be discarded.
+            } else if (value.startsWith("RENEW")) {
+                logger.info("RENEW - offset={}", record.offset());
+                ack.renew(); // Renew the lock on the message, preventing it from being 
+                             // redelivered to another consumer in the group.
+            } else {
+                logger.error("Unexpected message - offset={}", record.offset());
+                ack.reject(); // See previous comment about DLT. This is a permanent rejection.
+            }
         }
     }
 
